@@ -1,0 +1,43 @@
+{
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#a3a2a2",
+    "activityBar.background": "#cdc8c8",
+    "activityBar.foreground": "#000000",
+    "activityBar.inactiveForeground": "#000000",
+    "activityBarBadge.background": "#3979e7",
+    "activityBarBadge.foreground": "#15202b",
+    "commandCenter.border": "#e7e7e799",
+    "sash.hoverBorder": "#000000",
+    "statusBar.background": "#e8e7e6",
+    "statusBar.foreground": "#000000",
+    "statusBarItem.hoverBackground": "#000000",
+    "statusBarItem.remoteBackground": "#000000",
+    "statusBarItem.remoteForeground": "#eeeeee",
+    "titleBar.activeBackground": "#fbfafa",
+    "titleBar.activeForeground": "#000000",
+    "titleBar.inactiveBackground": "#000000",
+    "titleBar.inactiveForeground": "#FFE4BF"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "files.trimTrailingWhitespace": true,
+  "files.trimFinalNewlines": true,
+  "files.insertFinalNewline": true,
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "files.eol": "\n"
+}
