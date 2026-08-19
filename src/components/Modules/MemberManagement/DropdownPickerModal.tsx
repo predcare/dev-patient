@@ -45,31 +45,35 @@ export const DropdownPickerModal: React.FC<DropdownPickerModalProps> = ({
               <FlatList
                 data={options}
                 keyExtractor={item => item.value}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={[
-                      memberStyles.modalOption,
-                      item.value === selectedValue && memberStyles.modalOptionActive,
-                    ]}
-                    onPress={() => {
-                      onSelect(item.value);
-                      onClose();
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <Text
+                renderItem={({ item }) => {
+                  const isSelected =
+                    item.value === selectedValue ||
+                    (Boolean(selectedValue) &&
+                      item.label.toLowerCase() === String(selectedValue).toLowerCase());
+                  return (
+                    <TouchableOpacity
                       style={[
-                        memberStyles.modalOptionText,
-                        item.value === selectedValue && memberStyles.modalOptionTextActive,
+                        memberStyles.modalOption,
+                        isSelected && memberStyles.modalOptionActive,
                       ]}
+                      onPress={() => {
+                        onSelect(item.value);
+                        onClose();
+                      }}
+                      activeOpacity={0.7}
                     >
-                      {item.label}
-                    </Text>
-                    {item.value === selectedValue && (
-                      <CheckIcon size={16} color={theme.colors.primary} />
-                    )}
-                  </TouchableOpacity>
-                )}
+                      <Text
+                        style={[
+                          memberStyles.modalOptionText,
+                          isSelected && memberStyles.modalOptionTextActive,
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
+                      {isSelected && <CheckIcon size={16} color={theme.colors.primary} />}
+                    </TouchableOpacity>
+                  );
+                }}
               />
             </View>
           </TouchableWithoutFeedback>

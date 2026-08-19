@@ -1,21 +1,32 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Image, StyleSheet, Text, View } from 'react-native';
+import { queryClient } from '../components/providers/ReactQueryProvider';
+import { _projectToken } from '../config/keys.constants';
+import { getUserProfile } from '../hooks/react-query/profile/profile.funcs';
+import { UserQueryEnum } from '../hooks/react-query/query.keys';
 import { SafeAreaWrapper } from '../Layout/SafeAreaWrapper';
 import type { SplashScreenNavigationProp, SplashScreenRouteProp } from '../route';
+import { resetToLogin, resetToMainTabs } from '../lib/common/navigation.utils';
 import { theme } from '../styled/theme.styled';
+import { useAuthStore } from '../zustand/stores/useAuthStore';
 
 export interface SplashScreenProps {
   navigation?: SplashScreenNavigationProp;
   route?: SplashScreenRouteProp;
+  onFinish?: (isAuthenticated: boolean) => void;
 }
 
-export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
+export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation, onFinish }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.3)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
+  const setUserData = useAuthStore(state => state.setUserData);
+  const logout = useAuthStore(state => state.logout);
+
   useEffect(() => {
-    // Fade in and scale animation
+    // 1. Fade in and scale animations
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -30,7 +41,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
       }),
     ]).start();
 
-    // Pulse animation loop
+    // 2. Pulse animation loop
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
@@ -46,14 +57,47 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
       ])
     ).start();
 
-    const timer = setTimeout(() => {
-      if (navigation) {
-        navigation.navigate('Login');
-      }
-    }, 2500);
+    let isAuthenticated = false;
 
-    return () => clearTimeout(timer);
-  }, [navigation, fadeAnim, scaleAnim, pulseAnim]);
+    // 3. Authenticate and load profile
+    const authenticateAndLoad = async () => {
+      try {
+        const token = await AsyncStorage.getItem(_projectToken);
+        if (token) {
+          const res = await queryClient.fetchQuery({
+            queryKey: [UserQueryEnum.PROFILE],
+            queryFn: getUserProfile,
+          });
+
+          if (res?.data && (res?.success || res?.status === 200)) {
+            setUserData(res.data);
+            isAuthenticated = true;
+          } else {
+            logout();
+          }
+        } else {
+          logout();
+        }
+      } catch (error) {
+        console.error('[SplashScreen] Profile auto-login error:', error);
+        logout();
+      }
+    };
+
+    const minTimer = new Promise(resolve => setTimeout(resolve, 2200));
+
+    Promise.all([authenticateAndLoad(), minTimer]).then(() => {
+      if (onFinish) {
+        onFinish(isAuthenticated);
+      } else if (navigation) {
+        if (isAuthenticated) {
+          resetToMainTabs(navigation);
+        } else {
+          resetToLogin(navigation);
+        }
+      }
+    });
+  }, [fadeAnim, scaleAnim, pulseAnim, navigation, onFinish, setUserData, logout]);
 
   return (
     <SafeAreaWrapper backgroundColor={theme.colors.primaryDark} barStyle="light-content">

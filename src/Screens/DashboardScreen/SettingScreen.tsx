@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { SafeAreaView, ScrollView, Text, View } from 'react-native';
@@ -9,11 +10,18 @@ import {
   SettingsRowItem,
   SettingsSectionLabel,
 } from '../../components/Modules/AccountSettings';
+import { queryClient } from '../../components/providers/ReactQueryProvider';
 import { GlobeIcon, HelpIcon, LogoutIcon, ProfileIcon } from '../../components/ui/icons';
+import { _projectToken } from '../../config/keys.constants';
+import { useLogout } from '../../hooks/react-query/auth/auth.hooks';
+import useFcmToken from '../../hooks/useFcmToken';
 import { Header } from '../../Layout/Header';
+import { resetToLogin } from '../../lib/common/navigation.utils';
 import { MOCK_FAMILY_MEMBERS } from '../../resources/mockData';
 import { settingStyles } from '../../styled/SettingScreen.styled';
 import { theme } from '../../styled/theme.styled';
+import { useAuthStore } from '../../zustand/stores/useAuthStore';
+import { useLoadingStore } from '../../zustand/stores/useLoadingStore';
 
 interface PopupAlertState {
   visible: boolean;
@@ -36,6 +44,12 @@ export const SettingScreen: React.FC = () => {
 
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState<boolean>(false);
   const [selectedLanguageCode, setSelectedLanguageCode] = useState<string>('en');
+
+  const logout = useAuthStore(state => state.logout);
+  const showLoader = useLoadingStore(state => state.showLoader);
+  const hideLoader = useLoadingStore(state => state.hideLoader);
+  const { mutate: logoutUserMutation } = useLogout();
+  const { deviceInfo } = useFcmToken();
 
   const currentLanguage = LANGUAGES.find(l => l.code === selectedLanguageCode) || LANGUAGES[0];
 
@@ -100,16 +114,27 @@ export const SettingScreen: React.FC = () => {
       showCancel: true,
       onPress: () => {
         closeAlert();
-        rootNav.reset({
-          index: 0,
-          routes: [{ name: 'Login' }],
-        });
+        showLoader('Signing out & clearing session...');
+        const device_id = deviceInfo?.device_id || `rn-${Date.now()}`;
+        logoutUserMutation(
+          { device_id, all_devices: false },
+          {
+            onSettled: async () => {
+              try {
+                logout();
+                await AsyncStorage.removeItem(_projectToken);
+                await queryClient.clear();
+                resetToLogin(rootNav);
+              } finally {
+                hideLoader();
+              }
+            },
+          }
+        );
       },
       onCancel: closeAlert,
     });
   };
-
-  console.log("called settings screen")
 
   return (
     <SafeAreaView style={settingStyles.container}>

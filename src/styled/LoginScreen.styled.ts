@@ -205,6 +205,14 @@ export const loginStyles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
   },
+  timerText: {
+    color: theme.colors.textMuted,
+    fontSize: 13,
+  },
+  timerBold: {
+    fontWeight: '700',
+    color: theme.colors.brandBlue,
+  },
 
   // Primary Button
   primaryButton: {

@@ -32,6 +32,7 @@ import {
 } from '../../resources/mockData';
 import { dashboardStyles } from '../../styled/DashboardScreen.styled';
 import { theme } from '../../styled/theme.styled';
+import { useAuthStore } from '../../zustand/stores/useAuthStore';
 
 export const DashboardScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -49,6 +50,8 @@ export const DashboardScreen: React.FC = () => {
   const [notifications] = useState<DashboardNotificationItem[]>(MOCK_NOTIFICATIONS);
 
   const [myDoctors] = useState<MyDoctorData[]>(MOCK_MY_DOCTORS);
+
+  const { userData, isProfileCompleted } = useAuthStore(state => state);
 
   // Mock static upcoming appointment matching reference
   const [upcoming] = useState<any[]>([
@@ -220,7 +223,7 @@ export const DashboardScreen: React.FC = () => {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {/* Profile Completion Card (if incomplete) */}
-        {activeMemberId === 'self' && (
+        {!isProfileCompleted && (
           <ProfileCompletionCard percent={75} onPress={() => rootNav.navigate('ProfileSetup')} />
         )}
 
