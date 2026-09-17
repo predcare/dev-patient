@@ -1,4 +1,4 @@
-package com.predcarefrontendstable
+package com.predcarepatient
 
 import android.app.PictureInPictureParams
 import android.os.Build

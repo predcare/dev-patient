@@ -4,39 +4,34 @@ import { SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-na
 import AppHeader from '../../components/ui/AppHeader';
 import CustomTabs from '../../components/ui/CustomTabs/CustomTabs';
 import { BellIcon, CheckIcon, PlusIcon } from '../../components/ui/icons';
-import { useSupportTickets } from '../../hooks/react-query/support/support.hooks';
+import { MOCK_SUPPORT_TICKETS, SupportTicket } from '../../resources/mockData';
 import { supportStyles } from '../../styled/SupportScreen.styled';
 import { theme } from '../../styled/theme.styled';
-import { ISupportTicket } from '../../typescripts/interfaces/support.interfaces';
-
-import { SupportListingSkeleton } from '../../components/Skeletons';
 
 type TicketTabKey = 'open' | 'closed';
 
 export const SupportScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  const [tab, setTab] = useState<TicketTabKey>('open');
 
-  const { data: supportTicketsResponse, isPending: supportPending } = useSupportTickets({
-    limit: 10,
-    page: 1,
-    status: tab,
-  });
-  const tickets: ISupportTicket[] = supportTicketsResponse?.data || [];
+  const [tab, setTab] = useState<TicketTabKey>('open');
+  const [tickets] = useState<SupportTicket[]>(MOCK_SUPPORT_TICKETS);
+
+  const filtered = tickets.filter(ticket => ticket.status === tab);
+  const openCount = tickets.filter(t => t.status === 'open').length;
+  const closedCount = tickets.filter(t => t.status === 'closed').length;
 
   const openNew = () => {
     navigation.navigate('NewSupportTicket');
   };
 
-  const handleTicketPress = (ticket: ISupportTicket) => {
+  const handleTicketPress = (ticket: SupportTicket) => {
     navigation.navigate('SupportTicketDetails', {
       ticketId: ticket.id,
       initialTicket: ticket,
     });
   };
 
-  const formatTicketDate = (dateStr?: string) => {
-    if (!dateStr) return '';
+  const formatTicketDate = (dateStr: string) => {
     try {
       return new Date(dateStr)
         .toLocaleDateString('en-GB', {
@@ -61,7 +56,6 @@ export const SupportScreen: React.FC = () => {
           </View>
         }
       />
-
       <View style={supportStyles.tabsWrap}>
         <CustomTabs<TicketTabKey>
           tabs={[
@@ -75,9 +69,7 @@ export const SupportScreen: React.FC = () => {
       </View>
 
       <ScrollView contentContainerStyle={supportStyles.scroll} showsVerticalScrollIndicator={false}>
-        {supportPending ? (
-          <SupportListingSkeleton />
-        ) : tickets.length === 0 ? (
+        {filtered.length === 0 ? (
           <View style={supportStyles.empty}>
             <Text style={supportStyles.emptyTitle}>
               No {tab === 'open' ? 'open' : 'closed'} tickets
@@ -89,60 +81,56 @@ export const SupportScreen: React.FC = () => {
             </Text>
           </View>
         ) : (
-          tickets.map(ticket => {
-            const isOpen = (ticket.status || '').toLowerCase() === 'open';
-
-            return (
-              <TouchableOpacity
-                key={String(ticket.id)}
-                style={supportStyles.card}
-                onPress={() => handleTicketPress(ticket)}
-                activeOpacity={0.85}
+          filtered.map(ticket => (
+            <TouchableOpacity
+              key={String(ticket.id || ticket.ticketNo)}
+              style={supportStyles.card}
+              onPress={() => handleTicketPress(ticket)}
+              activeOpacity={0.85}
+            >
+              <View style={supportStyles.avatar}>
+                <Text style={supportStyles.avatarTxt}>
+                  {(ticket.subject || ticket.category || 'T').charAt(0).toUpperCase()}
+                </Text>
+              </View>
+              <View style={supportStyles.cardBody}>
+                <Text style={supportStyles.ticketId} numberOfLines={1}>
+                  {ticket.ticketNo}
+                </Text>
+                <Text style={supportStyles.subject} numberOfLines={1}>
+                  {ticket.subject || ticket.category}
+                </Text>
+                <Text style={supportStyles.created}>
+                  CREATED ON {formatTicketDate(ticket.createdAt)}
+                </Text>
+              </View>
+              <View
+                style={[
+                  supportStyles.statusPill,
+                  ticket.status === 'open' ? supportStyles.statusOpen : supportStyles.statusClosed,
+                ]}
               >
-                <View style={supportStyles.avatar}>
-                  <Text style={supportStyles.avatarTxt}>
-                    {(ticket.subject || 'T').charAt(0).toUpperCase()}
-                  </Text>
-                </View>
-                <View style={supportStyles.cardBody}>
-                  <Text style={supportStyles.ticketId} numberOfLines={1}>
-                    {ticket.ticket_no}
-                  </Text>
-                  <Text style={supportStyles.subject} numberOfLines={1}>
-                    {ticket.subject}
-                  </Text>
-                  {ticket.created_at ? (
-                    <Text style={supportStyles.created}>
-                      CREATED ON {formatTicketDate(ticket.created_at)}
-                    </Text>
-                  ) : null}
-                </View>
                 <View
                   style={[
-                    supportStyles.statusPill,
-                    isOpen ? supportStyles.statusOpen : supportStyles.statusClosed,
+                    supportStyles.statusDot,
+                    ticket.status === 'open' ? supportStyles.dotOpen : supportStyles.dotClosed,
                   ]}
                 >
-                  <View
-                    style={[
-                      supportStyles.statusDot,
-                      isOpen ? supportStyles.dotOpen : supportStyles.dotClosed,
-                    ]}
-                  >
-                    {isOpen && <CheckIcon size={10} color={theme.colors.surface} />}
-                  </View>
-                  <Text
-                    style={[
-                      supportStyles.statusTxt,
-                      isOpen ? supportStyles.statusTxtOpen : supportStyles.statusTxtClosed,
-                    ]}
-                  >
-                    {isOpen ? 'Open' : 'Closed'}
-                  </Text>
+                  {ticket.status === 'open' && <CheckIcon size={10} color={theme.colors.surface} />}
                 </View>
-              </TouchableOpacity>
-            );
-          })
+                <Text
+                  style={[
+                    supportStyles.statusTxt,
+                    ticket.status === 'open'
+                      ? supportStyles.statusTxtOpen
+                      : supportStyles.statusTxtClosed,
+                  ]}
+                >
+                  {ticket.status === 'open' ? 'Open' : 'Closed'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))
         )}
 
         <View style={supportStyles.newWrap}>

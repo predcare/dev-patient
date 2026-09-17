@@ -4,30 +4,24 @@ import { Image, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'r
 import { AttachmentPreviewModal } from '../../components/Modules/Support';
 import AppHeader from '../../components/ui/AppHeader';
 import { CheckIcon, FileTextIcon, MailIcon } from '../../components/ui/icons';
-import { useSupportTicketDetails } from '../../hooks/react-query/support/support.hooks';
+import { MOCK_SUPPORT_TICKETS, SupportTicket } from '../../resources/mockData';
 import { supportStyles } from '../../styled/SupportScreen.styled';
 import { theme } from '../../styled/theme.styled';
-import { ISupportTicket } from '../../typescripts/interfaces/support.interfaces';
-
-import { SupportDetailsSkeleton } from '../../components/Skeletons';
 
 export const SupportTicketDetailsScreen: React.FC = () => {
   const route = useRoute<any>();
 
-  const routeTicket: ISupportTicket | undefined = route.params?.initialTicket;
-  const ticketId: string = route.params?.ticketId || routeTicket?.id || '';
+  const routeTicket: SupportTicket | undefined = route.params?.initialTicket;
+  const ticketId: string = route.params?.ticketId || 'tk-1';
 
-  const { data: ticketDetailResponse, isFetching: detailsPending } = useSupportTicketDetails(
-    ticketId,
-    {
-      enabled: !!ticketId,
-    }
-  );
+  const ticket: SupportTicket =
+    routeTicket ||
+    MOCK_SUPPORT_TICKETS.find(t => t.id === ticketId || t.ticketNo === ticketId) ||
+    MOCK_SUPPORT_TICKETS[0];
 
-  const ticket: ISupportTicket | undefined = ticketDetailResponse?.data || routeTicket;
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  const isClosed = (ticket?.status || '').toLowerCase() === 'closed';
+  const isClosed = ticket.status === 'closed';
 
   const formatTicketDate = (dateStr?: string) => {
     if (!dateStr) return '';
@@ -44,144 +38,147 @@ export const SupportTicketDetailsScreen: React.FC = () => {
     }
   };
 
-  const formatFileSize = (bytes?: number) => {
-    if (!bytes) return '';
-    if (bytes < 1024 * 1024) {
-      return `${(bytes / 1024).toFixed(1)} KB`;
-    }
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
+  const replyCount = ticket.replies?.length || 0;
 
   return (
     <SafeAreaView style={supportStyles.screen}>
       <AppHeader
-        title={ticket?.ticket_no ? `#${ticket.ticket_no}` : 'Ticket Details'}
+        title={ticket?.ticketNo ? `#${ticket.ticketNo}` : 'Ticket Details'}
         showBack={true}
       />
 
-      <ScrollView contentContainerStyle={supportStyles.scroll} showsVerticalScrollIndicator={false}>
-        {detailsPending ? (
-          <SupportDetailsSkeleton />
-        ) : ticket ? (
-          <>
-            {/* Overview Card */}
-            <View style={supportStyles.overviewCard}>
-              <View style={supportStyles.overviewTop}>
-                <View style={supportStyles.avatar}>
-                  <Text style={supportStyles.avatarTxt}>
-                    {(ticket.subject || 'T').charAt(0).toUpperCase()}
-                  </Text>
-                </View>
-                <View style={supportStyles.overviewMeta}>
-                  <Text style={supportStyles.ticketNo}>{ticket.ticket_no}</Text>
-                  <Text style={supportStyles.dateTxt}>
-                    CREATED ON {formatTicketDate(ticket.created_at)}
-                  </Text>
-                </View>
-                <View
-                  style={[
-                    supportStyles.statusPill,
-                    !isClosed ? supportStyles.statusOpen : supportStyles.statusClosed,
-                  ]}
-                >
-                  <View
-                    style={[
-                      supportStyles.statusDot,
-                      !isClosed ? supportStyles.dotOpen : supportStyles.dotClosed,
-                    ]}
-                  >
-                    {!isClosed && <CheckIcon size={10} color={theme.colors.surface} />}
-                  </View>
-                  <Text
-                    style={[
-                      supportStyles.statusTxt,
-                      !isClosed ? supportStyles.statusTxtOpen : supportStyles.statusTxtClosed,
-                    ]}
-                  >
-                    {!isClosed ? 'Open' : 'Closed'}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={supportStyles.divider} />
-
-              <View style={supportStyles.subjectRow}>
-                <Text style={supportStyles.subjectLabel}>Subject</Text>
-                <Text style={supportStyles.subjectVal}>{ticket.subject}</Text>
-              </View>
-
-              {ticket.email ? (
-                <View style={supportStyles.emailRow}>
-                  <MailIcon size={14} color={theme.colors.textSecondary} />
-                  <Text style={supportStyles.emailTxt}>{ticket.email}</Text>
-                </View>
-              ) : null}
+      <ScrollView
+        contentContainerStyle={supportStyles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Overview Card */}
+        <View style={supportStyles.overviewCard}>
+          <View style={supportStyles.overviewTop}>
+            <View style={supportStyles.avatar}>
+              <Text style={supportStyles.avatarTxt}>
+                {(ticket.subject || ticket.category || 'T').charAt(0).toUpperCase()}
+              </Text>
             </View>
-
-            {/* Issue Description Section */}
-            <View style={supportStyles.sectionCard}>
-              <View style={supportStyles.sectionHeader}>
-                <FileTextIcon size={18} color={theme.colors.primary} />
-                <Text style={supportStyles.sectionTitle}>Issue Description</Text>
-              </View>
-              <View style={supportStyles.messageBox}>
-                <Text style={supportStyles.messageTxt}>
-                  {ticket.message || 'No description provided.'}
-                </Text>
-              </View>
+            <View style={supportStyles.overviewMeta}>
+              <Text style={supportStyles.ticketNo}>{ticket.ticketNo}</Text>
+              <Text style={supportStyles.dateTxt}>
+                CREATED ON {formatTicketDate(ticket.createdAt)}
+              </Text>
             </View>
-
-            {/* Admin Response / Notes Section (if present) */}
-            {ticket.admin_description ? (
-              <View style={supportStyles.sectionCard}>
-                <View style={supportStyles.sectionHeader}>
-                  <Text style={supportStyles.sectionTitle}>Admin Response</Text>
-                </View>
-                <View style={supportStyles.replyCard}>
-                  <Text style={supportStyles.replyMsg}>{ticket.admin_description}</Text>
-                </View>
+            <View
+              style={[
+                supportStyles.statusPill,
+                !isClosed ? supportStyles.statusOpen : supportStyles.statusClosed,
+              ]}
+            >
+              <View
+                style={[
+                  supportStyles.statusDot,
+                  !isClosed ? supportStyles.dotOpen : supportStyles.dotClosed,
+                ]}
+              >
+                {!isClosed && <CheckIcon size={10} color={theme.colors.surface} />}
               </View>
-            ) : null}
+              <Text
+                style={[
+                  supportStyles.statusTxt,
+                  !isClosed ? supportStyles.statusTxtOpen : supportStyles.statusTxtClosed,
+                ]}
+              >
+                {!isClosed ? 'Open' : 'Closed'}
+              </Text>
+            </View>
+          </View>
 
-            {/* Attachments Section */}
-            {ticket.attachments && ticket.attachments.length > 0 && (
-              <View style={supportStyles.sectionCard}>
-                <View style={supportStyles.sectionHeader}>
-                  <Text style={supportStyles.sectionTitle}>
-                    Attachments ({ticket.attachments.length})
-                  </Text>
-                </View>
-                <View style={supportStyles.attachmentsGrid}>
-                  {ticket.attachments.map(att => (
-                    <TouchableOpacity
-                      key={String(att.id || att.file_path || att.file_url)}
-                      style={supportStyles.attItem}
-                      onPress={() => setPreviewImage(att.file_url)}
-                      activeOpacity={0.8}
-                    >
-                      <Image source={{ uri: att.file_url }} style={supportStyles.attThumb} />
-                      <View style={supportStyles.attInfo}>
-                        <Text style={supportStyles.attName} numberOfLines={1}>
-                          {att.original_name || 'Attachment'}
-                        </Text>
-                        {att.file_size ? (
-                          <Text style={supportStyles.attSize}>{formatFileSize(att.file_size)}</Text>
-                        ) : null}
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            )}
-          </>
-        ) : (
-          <View style={supportStyles.empty}>
-            <Text style={supportStyles.emptyTitle}>Ticket not found</Text>
-            <Text style={supportStyles.emptySub}>
-              Could not fetch ticket details. Please try again later.
+          <View style={supportStyles.divider} />
+
+          <View style={supportStyles.subjectRow}>
+            <Text style={supportStyles.subjectLabel}>Subject</Text>
+            <Text style={supportStyles.subjectVal}>{ticket.subject}</Text>
+          </View>
+
+          {ticket.userEmail ? (
+            <View style={supportStyles.emailRow}>
+              <MailIcon size={14} color={theme.colors.textSecondary} />
+              <Text style={supportStyles.emailTxt}>{ticket.userEmail}</Text>
+            </View>
+          ) : null}
+        </View>
+
+        {/* Issue Description Section */}
+        <View style={supportStyles.sectionCard}>
+          <View style={supportStyles.sectionHeader}>
+            <FileTextIcon size={18} color={theme.colors.primary} />
+            <Text style={supportStyles.sectionTitle}>Issue Description</Text>
+          </View>
+          <View style={supportStyles.messageBox}>
+            <Text style={supportStyles.messageTxt}>
+              {ticket.message || 'No description provided.'}
             </Text>
           </View>
+        </View>
+
+        {/* Attachments Section */}
+        {ticket.attachments && ticket.attachments.length > 0 && (
+          <View style={supportStyles.sectionCard}>
+            <View style={supportStyles.sectionHeader}>
+              <Text style={supportStyles.sectionTitle}>
+                Attachments ({ticket.attachments.length})
+              </Text>
+            </View>
+            <View style={supportStyles.attachmentsGrid}>
+              {ticket.attachments.map(att => (
+                <TouchableOpacity
+                  key={att.id || att.name}
+                  style={supportStyles.attItem}
+                  onPress={() => setPreviewImage(att.uri)}
+                  activeOpacity={0.8}
+                >
+                  <Image source={{ uri: att.uri }} style={supportStyles.attThumb} />
+                  <View style={supportStyles.attInfo}>
+                    <Text style={supportStyles.attName} numberOfLines={1}>
+                      {att.name || 'Attachment'}
+                    </Text>
+                    <Text style={supportStyles.attSize}>{att.size}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
         )}
+
+        {/* Replies & Updates Section */}
+        <View style={supportStyles.sectionCard}>
+          <View style={supportStyles.sectionHeader}>
+            <Text style={supportStyles.sectionTitle}>
+              Replies & Updates {replyCount > 0 ? `(${replyCount})` : ''}
+            </Text>
+          </View>
+
+          {ticket.replies && ticket.replies.length > 0 ? (
+            ticket.replies.map(reply => (
+              <View key={reply.id} style={supportStyles.replyCard}>
+                <View style={supportStyles.replyHeader}>
+                  <Text style={supportStyles.replySender}>
+                    {reply.sender_name ||
+                      (reply.created_by_type === 'patient' ? 'You' : 'Support Agent')}
+                  </Text>
+                  <Text style={supportStyles.replyDate}>
+                    {formatTicketDate(reply.created_at)}
+                  </Text>
+                </View>
+                <Text style={supportStyles.replyMsg}>{reply.message}</Text>
+              </View>
+            ))
+          ) : (
+            <View style={supportStyles.noRepliesBox}>
+              <Text style={supportStyles.noRepliesTitle}>No replies yet</Text>
+              <Text style={supportStyles.noRepliesSub}>
+                Our support team is reviewing your ticket and will respond shortly.
+              </Text>
+            </View>
+          )}
+        </View>
       </ScrollView>
 
       {/* Modular Attachment Preview Modal */}

@@ -1,7 +1,7 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import {
   HomeIcon,
@@ -10,7 +10,6 @@ import {
   SettingsIcon,
   StethoscopeIcon,
 } from '../components/ui/icons';
-import useNotificationListeners from '../hooks/useNotificationListeners';
 import { DashboardTabParamList, RootStackParamList } from '../route';
 import LoginScreen from '../Screens/Auth/LoginScreen';
 import RegisterScreen from '../Screens/Auth/RegisterScreen';
@@ -38,7 +37,6 @@ import SupportTicketDetailsScreen from '../Screens/Support/SupportTicketDetailsS
 import SupportTicketSuccessScreen from '../Screens/Support/SupportTicketSuccessScreen';
 import { navigationStyles } from '../styled/Navigation.styled';
 import { theme } from '../styled/theme.styled';
-import { useAuthStore } from '../zustand/stores/useAuthStore';
 export type { DashboardTabParamList, RootStackParamList };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -221,40 +219,8 @@ const DashboardTabNavigator: React.FC = () => {
 };
 
 export const AppNavigator: React.FC = () => {
-  const navigationRef = useNavigationContainerRef();
-  const isLoggedIn = useAuthStore(state => state.isLoggedIn);
-
-  useNotificationListeners(navigationRef);
-
-  // Central Auth Guard: Prevent logged-in users from accessing Login / Register screens
-  useEffect(() => {
-    if (isLoggedIn && navigationRef.isReady()) {
-      const currentRoute = navigationRef.getCurrentRoute()?.name;
-      if (currentRoute === 'Login' || currentRoute === 'Register') {
-        navigationRef.reset({
-          index: 0,
-          routes: [{ name: 'MainTabs' }],
-        });
-      }
-    }
-  }, [isLoggedIn, navigationRef]);
-
   return (
-    <NavigationContainer
-      ref={navigationRef}
-      onStateChange={() => {
-        if (isLoggedIn && navigationRef.isReady()) {
-          const currentRoute = navigationRef.getCurrentRoute()?.name;
-          if (currentRoute === 'Login' || currentRoute === 'Register') {
-            navigationRef.reset({
-              index: 0,
-              routes: [{ name: 'MainTabs' }],
-            });
-          }
-        }
-      }}
-    >
-
+    <NavigationContainer>
       <Stack.Navigator
         initialRouteName="Splash"
         screenOptions={{

@@ -1,4 +1,4 @@
-package com.predcarefrontendstable;
+package com.predcarepatient;
 
 import android.os.Build;
 import com.facebook.react.bridge.ReactApplicationContext;

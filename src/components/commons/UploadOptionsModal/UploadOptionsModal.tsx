@@ -18,10 +18,6 @@ export interface UploadOptionsModalProps {
   title?: string;
   subtitle?: string;
   type?: 'logo' | 'signature';
-  enableCamera?: boolean;
-  enableGallery?: boolean;
-  disableCamera?: boolean;
-  disableGallery?: boolean;
   onSelectCamera: () => void;
   onSelectGallery: () => void;
   onClose: () => void;
@@ -42,7 +38,15 @@ const CameraBadgeIcon = () => (
 
 const GalleryBadgeIcon = () => (
   <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-    <Rect x="3" y="3" width="18" height="18" rx="3" stroke="#6366F1" strokeWidth="2" />
+    <Rect
+      x="3"
+      y="3"
+      width="18"
+      height="18"
+      rx="3"
+      stroke="#6366F1"
+      strokeWidth="2"
+    />
     <Circle cx="8.5" cy="8.5" r="1.5" fill="#6366F1" />
     <Path
       d="M21 15l-5-5L5 21"
@@ -71,17 +75,10 @@ export const UploadOptionsModal: React.FC<UploadOptionsModalProps> = ({
   title,
   subtitle,
   type = 'signature',
-  enableCamera = true,
-  enableGallery = true,
-  disableCamera = false,
-  disableGallery = false,
   onSelectCamera,
   onSelectGallery,
   onClose,
 }) => {
-  const isCameraEnabled = enableCamera && !disableCamera;
-  const isGalleryEnabled = enableGallery && !disableGallery;
-
   const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(300)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -120,9 +117,13 @@ export const UploadOptionsModal: React.FC<UploadOptionsModalProps> = ({
 
   if (!visible) return null;
 
-  const displayTitle = title || `Upload ${type === 'logo' ? 'Clinic Logo' : 'Doctor Signature'}`;
+  const displayTitle =
+    title || `Upload ${type === 'logo' ? 'Clinic Logo' : 'Doctor Signature'}`;
   const displaySubtitle =
-    subtitle || `Choose a source to add your ${type === 'logo' ? 'logo image' : 'signature'}`;
+    subtitle ||
+    `Choose a source to add your ${
+      type === 'logo' ? 'logo image' : 'signature'
+    }`;
 
   return (
     <Modal
@@ -153,7 +154,11 @@ export const UploadOptionsModal: React.FC<UploadOptionsModalProps> = ({
                   <Text style={styles.sheetTitle}>{displayTitle}</Text>
                   <Text style={styles.sheetSubtitle}>{displaySubtitle}</Text>
                 </View>
-                <TouchableOpacity onPress={onClose} style={styles.closeBtn} activeOpacity={0.7}>
+                <TouchableOpacity
+                  onPress={onClose}
+                  style={styles.closeBtn}
+                  activeOpacity={0.7}
+                >
                   <CloseIcon />
                 </TouchableOpacity>
               </View>
@@ -161,62 +166,67 @@ export const UploadOptionsModal: React.FC<UploadOptionsModalProps> = ({
               {/* Options */}
               <View style={styles.optionsContainer}>
                 {/* Camera Option */}
-                {isCameraEnabled ? (
-                  <TouchableOpacity
-                    style={styles.optionCard}
-                    onPress={() => {
-                      onClose();
-                      setTimeout(() => {
-                        onSelectCamera();
-                      }, 100);
-                    }}
-                    activeOpacity={0.8}
+                <TouchableOpacity
+                  style={styles.optionCard}
+                  onPress={() => {
+                    onClose();
+                    setTimeout(() => {
+                      onSelectCamera();
+                    }, 100);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <View
+                    style={[
+                      styles.iconCircle,
+                      { backgroundColor: theme.colors.primarySoft },
+                    ]}
                   >
-                    <View
-                      style={[styles.iconCircle, { backgroundColor: theme.colors.primarySoft }]}
-                    >
-                      <CameraBadgeIcon />
-                    </View>
-                    <View style={styles.optionTextWrap}>
-                      <Text style={styles.optionTitle}>Take Photo</Text>
-                      <Text style={styles.optionDesc}>
-                        {type === 'signature'
-                          ? 'Snap a clear photo of your signature on white paper'
-                          : 'Take a photo of your clinic logo'}
-                      </Text>
-                    </View>
-                    <Text style={styles.arrowIcon}>›</Text>
-                  </TouchableOpacity>
-                ) : null}
+                    <CameraBadgeIcon />
+                  </View>
+                  <View style={styles.optionTextWrap}>
+                    <Text style={styles.optionTitle}>Take Photo</Text>
+                    <Text style={styles.optionDesc}>
+                      {type === 'signature'
+                        ? 'Snap a clear photo of your signature on white paper'
+                        : 'Take a photo of your clinic logo'}
+                    </Text>
+                  </View>
+                  <Text style={styles.arrowIcon}>›</Text>
+                </TouchableOpacity>
 
                 {/* Gallery Option */}
-                {isGalleryEnabled ? (
-                  <TouchableOpacity
-                    style={styles.optionCard}
-                    onPress={() => {
-                      onClose();
-                      setTimeout(() => {
-                        onSelectGallery();
-                      }, 100);
-                    }}
-                    activeOpacity={0.8}
+                <TouchableOpacity
+                  style={styles.optionCard}
+                  onPress={() => {
+                    onClose();
+                    setTimeout(() => {
+                      onSelectGallery();
+                    }, 100);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <View
+                    style={[styles.iconCircle, { backgroundColor: '#EEF2FF' }]}
                   >
-                    <View style={[styles.iconCircle, { backgroundColor: '#EEF2FF' }]}>
-                      <GalleryBadgeIcon />
-                    </View>
-                    <View style={styles.optionTextWrap}>
-                      <Text style={styles.optionTitle}>Choose from Gallery</Text>
-                      <Text style={styles.optionDesc}>
-                        Select a PNG or JPG file stored on your device
-                      </Text>
-                    </View>
-                    <Text style={styles.arrowIcon}>›</Text>
-                  </TouchableOpacity>
-                ) : null}
+                    <GalleryBadgeIcon />
+                  </View>
+                  <View style={styles.optionTextWrap}>
+                    <Text style={styles.optionTitle}>Choose from Gallery</Text>
+                    <Text style={styles.optionDesc}>
+                      Select a PNG or JPG file stored on your device
+                    </Text>
+                  </View>
+                  <Text style={styles.arrowIcon}>›</Text>
+                </TouchableOpacity>
               </View>
 
               {/* Cancel Button */}
-              <TouchableOpacity style={styles.cancelBtn} onPress={onClose} activeOpacity={0.8}>
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                onPress={onClose}
+                activeOpacity={0.8}
+              >
                 <Text style={styles.cancelBtnText}>Cancel</Text>
               </TouchableOpacity>
             </Animated.View>
@@ -293,13 +303,6 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.surfaceBorder,
     borderRadius: 16,
     padding: 14,
-  },
-  optionCardDisabled: {
-    opacity: 0.5,
-    backgroundColor: '#F1F5F9',
-  },
-  disabledText: {
-    color: '#94A3B8',
   },
   iconCircle: {
     width: 48,
