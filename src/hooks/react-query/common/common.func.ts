@@ -23,3 +23,10 @@ export const getCities = async (stateId: number) => {
   );
   return res.data;
 };
+
+export const getSpecializations = async () => {
+  const res = await axiosInstance.get<IRootResponse<any[]>>(
+    `${endpoints.commons.specializations}`
+  );
+  return res.data;
+};

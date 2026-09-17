@@ -1,24 +1,42 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-import { MockClinicItem } from '../../../resources/mockData';
 import { doctorSearchStyles } from '../../../styled/DoctorSearchScreen.styled';
 import { theme } from '../../../styled/theme.styled';
+import { IClinicDoc } from '../../../typescripts/interfaces/doctors.interfaces';
 import { ClinicIcon, MapPinIcon, StethoscopeIcon } from '../../ui/icons';
 
 export interface ClinicCardProps {
-  clinic: MockClinicItem;
-  onPress: (clinic: MockClinicItem) => void;
+  id: string;
+  name: string;
+  location?: string;
+  city?: string;
+  state?: string;
+  specialities?: string[];
+  availableDoctorsCount?: number;
+  onPress?: () => void;
 }
 
-export const ClinicCard: React.FC<ClinicCardProps> = ({ clinic, onPress }) => {
-  const doctorCount = clinic.doctors?.length || 0;
-  const locationLabel = [clinic.city, clinic.state].filter(Boolean).join(', ') || 'New York, NY';
+export const ClinicCard: React.FC<ClinicCardProps> = ({
+  name,
+  location,
+  city,
+  state,
+  specialities,
+  availableDoctorsCount = 0,
+  onPress,
+}) => {
+  const doctorCount = availableDoctorsCount;
+  const locationLabel = location || [city, state].filter(Boolean).join(', ');
+
+  const handlePress = () => {
+    if (onPress) onPress();
+  };
 
   return (
     <TouchableOpacity
       style={doctorSearchStyles.clinicCard}
       activeOpacity={0.88}
-      onPress={() => onPress(clinic)}
+      onPress={handlePress}
     >
       <View style={doctorSearchStyles.clinicCardHeader}>
         <View style={doctorSearchStyles.clinicIconWrapper}>
@@ -27,29 +45,31 @@ export const ClinicCard: React.FC<ClinicCardProps> = ({ clinic, onPress }) => {
 
         <View style={doctorSearchStyles.clinicInfoCol}>
           <Text style={doctorSearchStyles.clinicName} numberOfLines={1}>
-            {clinic.clinic_name}
+            {name}
           </Text>
-          <View style={doctorSearchStyles.clinicLocRow}>
-            <MapPinIcon size={14} color={theme.colors.textMuted} />
-            <Text style={doctorSearchStyles.clinicLocTxt} numberOfLines={1}>
-              {locationLabel}
-            </Text>
-          </View>
+          {locationLabel ? (
+            <View style={doctorSearchStyles.clinicLocRow}>
+              <MapPinIcon size={14} color={theme.colors.textMuted} />
+              <Text style={doctorSearchStyles.clinicLocTxt} numberOfLines={1}>
+                {locationLabel}
+              </Text>
+            </View>
+          ) : null}
         </View>
       </View>
 
       {/* Specialities Chips */}
-      {clinic.specialities && clinic.specialities.length > 0 && (
+      {specialities && specialities.length > 0 && (
         <View style={doctorSearchStyles.clinicChipsRow}>
-          {clinic.specialities.slice(0, 3).map((spec, idx) => (
+          {specialities.slice(0, 3).map((spec, idx) => (
             <View key={idx} style={doctorSearchStyles.clinicSpecChip}>
               <Text style={doctorSearchStyles.clinicSpecChipTxt}>{spec}</Text>
             </View>
           ))}
-          {clinic.specialities.length > 3 && (
+          {specialities.length > 3 && (
             <View style={doctorSearchStyles.clinicSpecChipMore}>
               <Text style={doctorSearchStyles.clinicSpecChipMoreTxt}>
-                +{clinic.specialities.length - 3}
+                +{specialities.length - 3}
               </Text>
             </View>
           )}
@@ -67,7 +87,7 @@ export const ClinicCard: React.FC<ClinicCardProps> = ({ clinic, onPress }) => {
 
         <TouchableOpacity
           style={doctorSearchStyles.viewClinicBtn}
-          onPress={() => onPress(clinic)}
+          onPress={handlePress}
           activeOpacity={0.8}
         >
           <Text style={doctorSearchStyles.viewClinicBtnTxt}>View Clinic →</Text>

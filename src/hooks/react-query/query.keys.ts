@@ -22,4 +22,12 @@ export enum CommonQueryKeys {
   Cities = 'Cities',
   GET_ALL_USERS = 'GET_ALL_USERS',
   POLICIES = 'POLICIES',
+  Specializations = 'Specializations',
+}
+
+export enum DoctorQueryKeys {
+  GET_ALL = 'GET_ALL',
+  GET_DETAILS = 'GET_DETAILS',
+  GET_AVAIL_DATES = 'GET_AVAIL_DATES',
+  GET_SLOTS_BY_DATE = 'GET_SLOTS_BY_DATE',
 }

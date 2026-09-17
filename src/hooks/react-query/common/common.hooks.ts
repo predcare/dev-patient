@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { CommonQueryKeys } from '../query.keys';
-import { getCities, getCountries, getStates } from './common.func';
+import { getCities, getCountries, getSpecializations, getStates } from './common.func';
 
 export const useCountries = () =>
   useQuery({
@@ -30,6 +30,17 @@ export const useCitiesBySId = (params?: { sId?: number }) =>
     queryKey: [CommonQueryKeys.Cities, params],
     queryFn: () => getCities(params?.sId!),
     enabled: !!params?.sId,
+    select: (v: any) => {
+      if (Array.isArray(v)) return v;
+      if (Array.isArray(v?.data)) return v.data;
+      return [];
+    },
+  });
+
+export const useSpecializations = () =>
+  useQuery({
+    queryKey: [CommonQueryKeys.Specializations],
+    queryFn: () => getSpecializations(),
     select: (v: any) => {
       if (Array.isArray(v)) return v;
       if (Array.isArray(v?.data)) return v.data;

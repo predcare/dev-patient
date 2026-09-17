@@ -1,19 +1,39 @@
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
-import { SearchDoctorData } from '../../../resources/mockData';
+import { getInitials } from '../../../lib/common/common.utils';
 import { doctorSearchStyles } from '../../../styled/DoctorSearchScreen.styled';
 import { theme } from '../../../styled/theme.styled';
 import { CalendarIcon, VideoIcon } from '../../ui/icons';
 
 export interface DoctorSearchCardProps {
-  doctor: SearchDoctorData;
-  onProfilePress?: (doctor: SearchDoctorData) => void;
-  onBookPress?: (doctor: SearchDoctorData) => void;
+  id: string;
+  doctorId?: string;
+  name: string;
+  profileImage?: string | null;
+  specialization?: string;
+  experienceYears?: number;
+  city?: string;
+  clinicName?: string;
+  nextAvailableDate?: string;
+  offersInPerson?: boolean;
+  offersVideo?: boolean;
+  onProfilePress?: () => void;
+  onBookPress?: () => void;
 }
 
 export const DoctorSearchCard: React.FC<DoctorSearchCardProps> = ({
-  doctor,
+  id,
+  doctorId,
+  name,
+  profileImage,
+  specialization,
+  experienceYears = 0,
+  city,
+  clinicName,
+  nextAvailableDate,
+  offersInPerson,
+  offersVideo,
   onProfilePress,
   onBookPress,
 }) => {
@@ -22,27 +42,26 @@ export const DoctorSearchCard: React.FC<DoctorSearchCardProps> = ({
 
   const handleProfile = () => {
     if (onProfilePress) {
-      onProfilePress(doctor);
+      onProfilePress();
     } else {
-      rootNav.navigate('DoctorDetails', { doctorId: doctor.doctor_id, doctor });
+      rootNav.navigate('DoctorDetails', { doctorId: doctorId || id });
     }
   };
 
   const handleBook = () => {
     if (onBookPress) {
-      onBookPress(doctor);
+      onBookPress();
     } else {
-      rootNav.navigate('BookAppointment', { doctorId: doctor.doctor_id, doctor });
+      rootNav.navigate('BookAppointment', { doctorId: doctorId || id });
     }
   };
-  const nextDate = doctor.next_available_dates[0] || 'Today';
 
   return (
     <View style={doctorSearchStyles.card}>
       <View style={doctorSearchStyles.cardTop}>
-        {doctor.profile_image ? (
+        {profileImage ? (
           <Image
-            source={{ uri: doctor.profile_image }}
+            source={{ uri: profileImage }}
             style={{ width: 56, height: 56, borderRadius: 28, marginRight: 12 }}
           />
         ) : (
@@ -58,40 +77,37 @@ export const DoctorSearchCard: React.FC<DoctorSearchCardProps> = ({
             }}
           >
             <Text style={{ color: theme.colors.surface, fontWeight: '700', fontSize: 16 }}>
-              {doctor.initials}
+              {getInitials(name)}
             </Text>
           </View>
         )}
 
         <View style={doctorSearchStyles.cardInfo}>
-          <Text style={doctorSearchStyles.doctorName}>{doctor.doctor_name}</Text>
-          <Text style={doctorSearchStyles.doctorMeta}>
-            {doctor.specialization} • {doctor.years_of_experience} yrs exp • {doctor.city}
+          <Text style={doctorSearchStyles.doctorName}>{name}</Text>
+          <Text style={doctorSearchStyles.doctorMeta} numberOfLines={1}>
+            {[specialization, `${experienceYears} yrs exp`, city].filter(Boolean).join(' • ')}
           </Text>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => rootNav.navigate('ClinicDetails', { clinicId: 1 })}
-            style={{ marginTop: 4, flexDirection: 'row', alignItems: 'center' }}
-          >
-            <Text style={{ fontSize: 12, fontWeight: '700', color: theme.colors.primary }}>
-              🏥 ST. JUDE MEDICAL CENTER →
-            </Text>
-          </TouchableOpacity>
+          {clinicName ? (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              style={{ marginTop: 4, flexDirection: 'row', alignItems: 'center' }}
+            >
+              <Text style={{ fontSize: 12, fontWeight: '700', color: theme.colors.primary }}>
+                🏥 {clinicName} →
+              </Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
 
         <View style={doctorSearchStyles.cardIcons}>
-          {doctor.min_in_person_fee ? (
-            <CalendarIcon size={16} color={theme.colors.primary} />
-          ) : null}
-          {doctor.min_video_fee ? (
-            <VideoIcon size={16} color={theme.colors.primary} />
-          ) : null}
+          {offersInPerson ? <CalendarIcon size={16} color={theme.colors.primary} /> : null}
+          {offersVideo ? <VideoIcon size={16} color={theme.colors.primary} /> : null}
         </View>
       </View>
 
       <View style={doctorSearchStyles.dateRow}>
         <View style={doctorSearchStyles.dateChip}>
-          <Text style={doctorSearchStyles.dateChipText}>Next Available: {nextDate}</Text>
+          <Text style={doctorSearchStyles.dateChipText}>Next Available: {nextAvailableDate}</Text>
         </View>
       </View>
 

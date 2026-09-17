@@ -1,4 +1,4 @@
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import {
@@ -8,9 +8,19 @@ import {
 } from '../../components/Modules/Doctors';
 import AppHeader from '../../components/ui/AppHeader';
 import { CalendarIcon, VideoIcon } from '../../components/ui/icons';
-import { MOCK_SEARCH_DOCTORS, SearchDoctorData } from '../../resources/mockData';
 import { bookAppointmentStyles } from '../../styled/BookAppointmentScreen.styled';
 import { theme } from '../../styled/theme.styled';
+
+const STATIC_DOCTOR = {
+  doctor_id: 'DR0001',
+  user_id: '3',
+  doctor_name: 'Dr. Sarah Jenkins',
+  specialization: 'Cardiologist',
+  years_of_experience: 12,
+  clinic_name: 'St. Jude Medical Center',
+  min_in_person_fee: 1000,
+  min_video_fee: 800,
+};
 
 const MOCK_FAMILY_MEMBERS: FamilyMemberOption[] = [
   { id: 'self', name: 'John Doe', relation: 'Self', initials: 'JD' },
@@ -49,15 +59,6 @@ const EVENING_SLOTS = [
 
 export const BookAppointmentScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  const route = useRoute<any>();
-
-  const routeDoctor: SearchDoctorData | undefined = route.params?.doctor;
-  const doctorId: number = route.params?.doctorId || 101;
-
-  const doctor: SearchDoctorData =
-    routeDoctor ||
-    MOCK_SEARCH_DOCTORS.find(d => d.doctor_id === doctorId) ||
-    MOCK_SEARCH_DOCTORS[0];
 
   const [selectedMember, setSelectedMember] = useState<FamilyMemberOption>(MOCK_FAMILY_MEMBERS[0]);
   const [consultationType, setConsultationType] = useState<'in-person' | 'video'>('in-person');
@@ -70,14 +71,14 @@ export const BookAppointmentScreen: React.FC = () => {
 
   const consultationFee =
     consultationType === 'in-person'
-      ? doctor.min_in_person_fee || 1000
-      : doctor.min_video_fee || 800;
+      ? STATIC_DOCTOR.min_in_person_fee
+      : STATIC_DOCTOR.min_video_fee;
   const platformFee = 50;
   const totalAmount = consultationFee + platformFee;
 
   const handleProceed = () => {
     const bookingData = {
-      doctor,
+      doctor: STATIC_DOCTOR,
       patientName: selectedMember.name,
       patientRelation: selectedMember.relation,
       consultationType,
@@ -133,20 +134,21 @@ export const BookAppointmentScreen: React.FC = () => {
         <View style={bookAppointmentStyles.doctorCard}>
           <View style={bookAppointmentStyles.doctorAvatar}>
             <Text style={bookAppointmentStyles.doctorAvatarText}>
-              {doctor.doctor_name
+              {STATIC_DOCTOR.doctor_name
                 .split(' ')
-                .map(n => n[0])
+                .map((n: string) => n[0])
                 .join('')
                 .substring(0, 2)
                 .toUpperCase()}
             </Text>
           </View>
           <View style={bookAppointmentStyles.doctorDetails}>
-            <Text style={bookAppointmentStyles.doctorName}>{doctor.doctor_name}</Text>
-            <Text style={bookAppointmentStyles.doctorSpecialization}>{doctor.specialization}</Text>
+            <Text style={bookAppointmentStyles.doctorName}>{STATIC_DOCTOR.doctor_name}</Text>
+            <Text style={bookAppointmentStyles.doctorSpecialization}>
+              {STATIC_DOCTOR.specialization}
+            </Text>
             <Text style={bookAppointmentStyles.doctorSubline}>
-              {doctor.years_of_experience || 12} Yrs Exp •{' '}
-              {doctor.clinics?.[0]?.clinic_name || 'St. Jude Clinic'}
+              {STATIC_DOCTOR.years_of_experience} Yrs Exp • {STATIC_DOCTOR.clinic_name}
             </Text>
           </View>
         </View>
@@ -173,8 +175,6 @@ export const BookAppointmentScreen: React.FC = () => {
             <Text style={bookAppointmentStyles.changeBtnText}>Change</Text>
           </TouchableOpacity>
         </View>
-
-        {/* Consultation Type Selector */}
         <Text style={bookAppointmentStyles.sectionLabel}>CONSULTATION TYPE</Text>
         <View style={bookAppointmentStyles.consultationRow}>
           <TouchableOpacity
@@ -228,8 +228,6 @@ export const BookAppointmentScreen: React.FC = () => {
             </Text>
           </TouchableOpacity>
         </View>
-
-        {/* Reason for Visit (optional) */}
         <Text style={bookAppointmentStyles.fieldLabel}>
           Reason for Visit <Text style={bookAppointmentStyles.optionalHint}>(optional)</Text>
         </Text>
@@ -244,7 +242,6 @@ export const BookAppointmentScreen: React.FC = () => {
           textAlignVertical="top"
         />
 
-        {/* Select Date */}
         <Text style={bookAppointmentStyles.sectionLabel}>SELECT DATE</Text>
         <View style={bookAppointmentStyles.dateRow}>
           {DATE_OPTIONS.map(opt => {
@@ -299,7 +296,7 @@ export const BookAppointmentScreen: React.FC = () => {
 
           <View style={bookAppointmentStyles.summaryRow}>
             <Text style={bookAppointmentStyles.summaryLabel}>DOCTOR</Text>
-            <Text style={bookAppointmentStyles.summaryValue}>{doctor.doctor_name}</Text>
+            <Text style={bookAppointmentStyles.summaryValue}>{STATIC_DOCTOR.doctor_name}</Text>
           </View>
 
           <View style={bookAppointmentStyles.summaryRow}>
