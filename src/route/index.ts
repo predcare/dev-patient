@@ -5,10 +5,11 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 /**
  * Navigation Route Names Constants
  */
-export const ROUTES = {
+export const AppRoute = {
   SPLASH: 'Splash',
   LOGIN: 'Login',
   REGISTER: 'Register',
+  POLICY_ACCEPTANCE: 'PolicyAcceptance',
   SUPPORT: 'Support',
   SUPPORT_TICKET_DETAILS: 'SupportTicketDetails',
   NEW_SUPPORT_TICKET: 'NewSupportTicket',
@@ -28,7 +29,7 @@ export const ROUTES = {
   CLINIC_DETAILS: 'ClinicDetails',
 } as const;
 
-export type RouteNames = (typeof ROUTES)[keyof typeof ROUTES];
+export type RouteNames = (typeof AppRoute)[keyof typeof AppRoute];
 
 /**
  * Root Stack Navigator Parameter List
@@ -46,23 +47,27 @@ export type RootStackParamList = {
   DoctorSearch: { query?: string; specialty?: string } | undefined;
   DoctorDetails: { doctorId?: number; doctor?: any } | undefined;
   ClinicDetails: { clinicId?: number; clinic?: any } | undefined;
-  BookAppointment: { doctorId?: number; doctor?: any; clinicId?: number; clinicName?: string } | undefined;
+  BookAppointment:
+    | { doctorId?: number; doctor?: any; clinicId?: number; clinicName?: string }
+    | undefined;
   Payment: { bookingData?: any; totalAmount?: number } | undefined;
   BookingSuccess: { bookingData?: any } | undefined;
   PrescriptionsList: undefined;
   PrescriptionDetail: { prescriptionId?: number; prescription?: any } | undefined;
   RescheduleAppointment: { appointmentId?: number | string; appointment?: any } | undefined;
   Meeting: { appointmentId?: number | string; appointment?: any } | undefined;
-  ConsultationCompleted: {
-    appointmentId?: number | string;
-    doctorName?: string;
-    doctorSpecialization?: string;
-    patientName?: string;
-    appointmentDate?: string;
-    durationSeconds?: number;
-    durationLabel?: string;
-    consultationType?: string;
-  } | undefined;
+  ConsultationCompleted:
+    | {
+        appointmentId?: number | string;
+        doctorName?: string;
+        doctorSpecialization?: string;
+        patientName?: string;
+        appointmentDate?: string;
+        durationSeconds?: number;
+        durationLabel?: string;
+        consultationType?: string;
+      }
+    | undefined;
   MainTabs: undefined;
 };
 
@@ -122,10 +127,7 @@ export interface MainTabsScreenProps {
   route?: MainTabsScreenRouteProp;
 }
 
-export type SupportScreenNavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  'Support'
->;
+export type SupportScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Support'>;
 export type SupportScreenRouteProp = RouteProp<RootStackParamList, 'Support'>;
 export interface SupportScreenProps {
   navigation?: SupportScreenNavigationProp;
@@ -149,10 +151,7 @@ export type NewSupportTicketScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'NewSupportTicket'
 >;
-export type NewSupportTicketScreenRouteProp = RouteProp<
-  RootStackParamList,
-  'NewSupportTicket'
->;
+export type NewSupportTicketScreenRouteProp = RouteProp<RootStackParamList, 'NewSupportTicket'>;
 export interface NewSupportTicketScreenProps {
   navigation?: NewSupportTicketScreenNavigationProp;
   route?: NewSupportTicketScreenRouteProp;

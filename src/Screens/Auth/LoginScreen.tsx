@@ -47,8 +47,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: propNaviga
     resolver: yupResolver(LoginFormSchema),
     defaultValues: {
       mode: 'mobile',
-      identifier: '9876543210',
-      otp: '123456',
+      identifier: '',
+      otp: '',
     },
     mode: 'onBlur',
   });
@@ -59,10 +59,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: propNaviga
     setLoginMode(mode);
     clearErrors();
     setValue('mode', mode, { shouldValidate: false });
-    setValue('identifier', mode === 'mobile' ? '9876543210' : 'doctor@example.com', {
+    setValue('identifier', '', {
       shouldValidate: false,
     });
-    setValue('otp', '123456', { shouldValidate: false });
+    setValue('otp', '', { shouldValidate: false });
     setOtpSent(false);
   };
 

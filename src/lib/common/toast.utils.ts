@@ -1,31 +1,37 @@
-import Toast from "react-native-toast-message";
+import { useToastStore } from '../../zustand/stores/useToastStore';
 
-export const showSuccessToast = (message: string, title = "Success") => {
-  Toast.show({
-    type: "success",
-    text1: title,
-    text2: message,
-    position: "top",
-    visibilityTime: 3500,
+export const showSuccessToast = (message: string, title = 'Success') => {
+  useToastStore.getState().showToast({
+    type: 'success',
+    title,
+    message,
+    duration: 3500,
   });
 };
 
-export const showErrorToast = (message: string, title = "Error") => {
-  Toast.show({
-    type: "error",
-    text1: title,
-    text2: message,
-    position: "top",
-    visibilityTime: 3500,
+export const showErrorToast = (message: string, title = 'Error') => {
+  useToastStore.getState().showToast({
+    type: 'error',
+    title,
+    message,
+    duration: 3500,
   });
 };
 
-export const showInfoToast = (message: string, title = "Info") => {
-  Toast.show({
-    type: "info",
-    text1: title,
-    text2: message,
-    position: "top",
-    visibilityTime: 3500,
+export const showInfoToast = (message: string, title = 'Info') => {
+  useToastStore.getState().showToast({
+    type: 'info',
+    title,
+    message,
+    duration: 3500,
+  });
+};
+
+export const showWarningToast = (message: string, title = 'Warning') => {
+  useToastStore.getState().showToast({
+    type: 'warning',
+    title,
+    message,
+    duration: 3500,
   });
 };
