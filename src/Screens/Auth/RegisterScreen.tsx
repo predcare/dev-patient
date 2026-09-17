@@ -15,7 +15,11 @@ import {
 import OtpInput from '../../components/commons/OtpInput';
 import { MailIcon, PhoneIcon, ProfileIcon } from '../../components/ui/icons';
 import { Assets } from '../../resources/assets';
-import { AppRoute, type RegisterScreenNavigationProp, type RegisterScreenRouteProp } from '../../route';
+import {
+  AppRoute,
+  type RegisterScreenNavigationProp,
+  type RegisterScreenRouteProp,
+} from '../../route';
 import { registerStyles } from '../../styled/RegisterScreen.styled';
 
 export interface RegisterScreenProps {

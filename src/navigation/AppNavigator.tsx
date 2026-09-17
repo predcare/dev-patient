@@ -39,6 +39,8 @@ import SupportTicketDetailsScreen from '../Screens/Support/SupportTicketDetailsS
 import SupportTicketSuccessScreen from '../Screens/Support/SupportTicketSuccessScreen';
 import { navigationStyles } from '../styled/Navigation.styled';
 import { theme } from '../styled/theme.styled';
+import { navigationRef } from './navigationRef';
+import useNotificationListeners from '../hooks/commons/useNotificationListeners';
 export type { DashboardTabParamList, RootStackParamList };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -221,6 +223,7 @@ const DashboardTabNavigator: React.FC = () => {
 };
 
 export const AppNavigator: React.FC = () => {
+  useNotificationListeners(navigationRef);
   return (
     <NavigationContainer>
       <Stack.Navigator
