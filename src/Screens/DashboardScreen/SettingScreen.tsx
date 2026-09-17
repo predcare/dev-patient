@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { SafeAreaView, ScrollView, Text, View } from 'react-native';
 import LanguageSwitcherModal, { LANGUAGES } from '../../components/commons/LanguageSwitcherModal';
+import LogoutOptionsModal from '../../components/commons/LogoutOptionsModal/LogoutOptionsModal';
 import PopupAlert, { AlertType } from '../../components/commons/PopupAlert/PopupAlert';
 import {
   FamilyMemberItemData,
@@ -9,11 +10,17 @@ import {
   SettingsRowItem,
   SettingsSectionLabel,
 } from '../../components/Modules/AccountSettings';
+import { queryClient } from '../../components/providers/ReactQueryProvider';
 import { GlobeIcon, HelpIcon, LogoutIcon, ProfileIcon } from '../../components/ui/icons';
+import { useUserLogout } from '../../hooks/react-query/auth/auth.hooks';
 import { Header } from '../../Layout/Header';
+import { resetToLogin } from '../../lib/common/navigation.utils';
+import { navigationRef } from '../../navigation/navigationRef';
 import { MOCK_FAMILY_MEMBERS } from '../../resources/mockData';
 import { settingStyles } from '../../styled/SettingScreen.styled';
 import { theme } from '../../styled/theme.styled';
+import { useAuthStore } from '../../zustand/stores/useAuthStore';
+import { useLoadingStore } from '../../zustand/stores/useLoadingStore';
 
 interface PopupAlertState {
   visible: boolean;
@@ -29,13 +36,18 @@ interface PopupAlertState {
 
 export const SettingScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-
   const [activeMemberId, setActiveMemberId] = useState<string>('self');
   const [members, setMembers] = useState<FamilyMemberItemData[]>(MOCK_FAMILY_MEMBERS);
   const [alertConfig, setAlertConfig] = useState<PopupAlertState>({ visible: false });
 
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState<boolean>(false);
   const [selectedLanguageCode, setSelectedLanguageCode] = useState<string>('en');
+
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState<boolean>(false);
+
+  const logout = useAuthStore(state => state.logout);
+  const { showLoader, hideLoader } = useLoadingStore(state => state);
+  const { mutate: userLogoutMutate, isPending: isLoggingOut } = useUserLogout();
 
   const currentLanguage = LANGUAGES.find(l => l.code === selectedLanguageCode) || LANGUAGES[0];
 
@@ -90,39 +102,53 @@ export const SettingScreen: React.FC = () => {
   };
 
   const handleSignOut = () => {
-    setAlertConfig({
-      visible: true,
-      type: 'warning',
-      title: 'Sign Out',
-      message: 'Are you sure you want to sign out of your account?',
-      buttonText: 'Sign Out',
-      cancelText: 'Cancel',
-      showCancel: true,
-      onPress: () => {
-        closeAlert();
-        rootNav.reset({
-          index: 0,
-          routes: [{ name: 'Login' }],
-        });
-      },
-      onCancel: closeAlert,
-    });
+    setIsLogoutModalOpen(true);
   };
 
-  console.log("called settings screen")
+  const performCleanupAndRedirect = async () => {
+    try {
+      await logout();
+      await queryClient.clear();
+    } catch (err) {
+      console.error('[Logout] Cleanup error:', err);
+    } finally {
+      if (navigationRef.isReady()) {
+        resetToLogin(navigationRef);
+      } else {
+        resetToLogin(rootNav);
+      }
+      setTimeout(() => {
+        hideLoader();
+      }, 500);
+    }
+  };
+
+  const handleConfirmLogout = (allDevices: boolean) => {
+    setIsLogoutModalOpen(false);
+    showLoader('Logging out... Please wait');
+    userLogoutMutate(
+      { all_devices: allDevices },
+      {
+        onSuccess: async () => {
+          await performCleanupAndRedirect();
+        },
+        onError: async (error: any) => {
+          console.error('[Logout] Backend mutation error:', error);
+          await performCleanupAndRedirect();
+        },
+      }
+    );
+  };
 
   return (
     <SafeAreaView style={settingStyles.container}>
       <Header onProfilePress={handleProfilePress} />
-
-      {/* Scrollable Screen Content */}
       <ScrollView
         style={settingStyles.scrollContainer}
         contentContainerStyle={settingStyles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Profile Row Section */}
         <SettingsSectionLabel title="PROFILE" />
         <View style={settingStyles.card}>
           <SettingsRowItem
@@ -133,7 +159,6 @@ export const SettingScreen: React.FC = () => {
           />
         </View>
 
-        {/* My Members Section */}
         <SettingsSectionLabel title="MY MEMBERS" />
         <FamilyMembersCard
           members={members}
@@ -144,7 +169,6 @@ export const SettingScreen: React.FC = () => {
           onAddMember={handleAddMember}
         />
 
-        {/* Preferences / Language Section */}
         <SettingsSectionLabel title="PREFERENCES" />
         <View style={settingStyles.card}>
           <SettingsRowItem
@@ -155,7 +179,6 @@ export const SettingScreen: React.FC = () => {
           />
         </View>
 
-        {/* Support Section */}
         <SettingsSectionLabel title="SUPPORT" />
         <View style={settingStyles.card}>
           <SettingsRowItem
@@ -166,7 +189,6 @@ export const SettingScreen: React.FC = () => {
           />
         </View>
 
-        {/* Account Actions Section */}
         <SettingsSectionLabel title="ACCOUNT ACTIONS" />
         <View style={settingStyles.card}>
           <SettingsRowItem
@@ -178,11 +200,8 @@ export const SettingScreen: React.FC = () => {
           />
         </View>
 
-        {/* App Version Footer */}
         <Text style={settingStyles.versionText}>PredCare v1.0.0</Text>
       </ScrollView>
-
-      {/* Common LanguageSwitcherModal */}
       <LanguageSwitcherModal
         visible={isLanguageModalOpen}
         onClose={() => setIsLanguageModalOpen(false)}
@@ -190,7 +209,13 @@ export const SettingScreen: React.FC = () => {
         onSelectLanguage={setSelectedLanguageCode}
       />
 
-      {/* Custom Reusable PopupAlert Modal */}
+      <LogoutOptionsModal
+        visible={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirmLogout={handleConfirmLogout}
+        isLoading={isLoggingOut}
+      />
+
       <PopupAlert
         visible={alertConfig.visible}
         type={alertConfig.type}

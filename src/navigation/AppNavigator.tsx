@@ -10,6 +10,7 @@ import {
   SettingsIcon,
   StethoscopeIcon,
 } from '../components/ui/icons';
+import useNotificationListeners from '../hooks/commons/useNotificationListeners';
 import { DashboardTabParamList, RootStackParamList } from '../route';
 import EmailVerifyScreen from '../Screens/Auth/EmailVerifyScreen';
 import LoginScreen from '../Screens/Auth/LoginScreen';
@@ -40,7 +41,6 @@ import SupportTicketSuccessScreen from '../Screens/Support/SupportTicketSuccessS
 import { navigationStyles } from '../styled/Navigation.styled';
 import { theme } from '../styled/theme.styled';
 import { navigationRef } from './navigationRef';
-import useNotificationListeners from '../hooks/commons/useNotificationListeners';
 export type { DashboardTabParamList, RootStackParamList };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -225,7 +225,7 @@ const DashboardTabNavigator: React.FC = () => {
 export const AppNavigator: React.FC = () => {
   useNotificationListeners(navigationRef);
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
         initialRouteName="Splash"
         screenOptions={{

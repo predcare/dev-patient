@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StatusBar, StyleProp, ViewStyle } from 'react-native';
+import { StatusBar, StyleProp, View, ViewStyle } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { safeAreaStyles } from '../styled/SafeAreaWrapper.styled';
 import { theme } from '../styled/theme.styled';
@@ -22,22 +22,9 @@ export const SafeAreaWrapper: React.FC<SafeAreaWrapperProps> = ({
   const insets = useSafeAreaInsets();
 
   return (
-    <SafeAreaView
-      style={[
-        safeAreaStyles.container,
-        { backgroundColor },
-        style,
-      ]}
-      edges={edges}
-    >
-      <StatusBar
-        barStyle={barStyle}
-        backgroundColor={backgroundColor}
-        translucent={false}
-      />
-      <View style={[safeAreaStyles.innerContainer, { backgroundColor }]}>
-        {children}
-      </View>
+    <SafeAreaView style={[safeAreaStyles.container, { backgroundColor }, style]} edges={edges}>
+      <StatusBar barStyle={barStyle} backgroundColor={backgroundColor} translucent={false} />
+      <View style={[safeAreaStyles.innerContainer, { backgroundColor }]}>{children}</View>
     </SafeAreaView>
   );
 };
