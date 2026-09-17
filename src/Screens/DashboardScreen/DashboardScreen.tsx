@@ -5,7 +5,6 @@ import {
   RefreshControl,
   SafeAreaView,
   ScrollView,
-  StatusBar,
   Text,
   TouchableOpacity,
   View,
@@ -31,7 +30,6 @@ import {
   MyDoctorData,
 } from '../../resources/mockData';
 import { dashboardStyles } from '../../styled/DashboardScreen.styled';
-import { theme } from '../../styled/theme.styled';
 
 export const DashboardScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -45,7 +43,6 @@ export const DashboardScreen: React.FC = () => {
 
   // Modals state
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
-  const [showMemberSheet, setShowMemberSheet] = useState<boolean>(false);
   const [notifications] = useState<DashboardNotificationItem[]>(MOCK_NOTIFICATIONS);
 
   const [myDoctors] = useState<MyDoctorData[]>(MOCK_MY_DOCTORS);
@@ -178,13 +175,8 @@ export const DashboardScreen: React.FC = () => {
     },
   ];
 
-  console.log('called home screen');
-
   return (
     <SafeAreaView style={dashboardStyles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
-
-      {/* Viewing Family Member Banner */}
       {profile.isFamilyMember && (
         <View style={dashboardStyles.memberBanner}>
           <Text style={dashboardStyles.memberBannerIcon}>👨‍👩‍👧</Text>
@@ -201,7 +193,6 @@ export const DashboardScreen: React.FC = () => {
         </View>
       )}
 
-      {/* Main Dashboard Header */}
       <Header
         greeting="Welcome back,"
         userName={profile.name}
@@ -211,20 +202,15 @@ export const DashboardScreen: React.FC = () => {
         notifications={notifications}
         onProfilePress={() => setShowProfileModal(true)}
       />
-
-      {/* Main Dashboard Scrollable Content */}
       <ScrollView
         style={dashboardStyles.scrollView}
         contentContainerStyle={dashboardStyles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {/* Profile Completion Card (if incomplete) */}
         {activeMemberId === 'self' && (
           <ProfileCompletionCard percent={75} onPress={() => rootNav.navigate('ProfileSetup')} />
         )}
-
-        {/* 1. My Doctors Section */}
         {activeMemberId === 'self' && (
           <MyDoctorsSection
             doctors={myDoctors}
@@ -234,13 +220,9 @@ export const DashboardScreen: React.FC = () => {
             onBookPress={handleBookDoctorPress}
           />
         )}
-
-        {/* 2. Find Specialist Card Banner */}
         <View style={dashboardStyles.blockSpacing}>
           <FindSpecialistCard onPress={() => rootNav.navigate('DoctorSearch')} />
         </View>
-
-        {/* 3. Upcoming Consultations Section */}
         {activeMemberId === 'self' && (
           <UpcomingAppointmentsSection
             appointments={upcoming}
@@ -249,47 +231,12 @@ export const DashboardScreen: React.FC = () => {
             onAppointmentPress={handleAppointmentAction}
           />
         )}
-
-        {/* 4. Quick Access Grid (2 columns) */}
         <QuickAccessGrid items={quickAccessItems} />
-
-        {/* 5. Daily Health Tips Horizontal Snap Scroll Section */}
         <DailyHealthTipsSection />
       </ScrollView>
-
-      {/* Interactive Modals */}
       <DashboardModals
         showProfileModal={showProfileModal}
         onCloseProfileModal={() => setShowProfileModal(false)}
-        profile={profile}
-        familyMembers={familyMembers}
-        activeMemberId={activeMemberId}
-        onSwitchMember={handleSwitchMember}
-        onEditProfile={() => {
-          setShowProfileModal(false);
-          rootNav.navigate('ProfileSetup');
-        }}
-        onAddNewMember={() => {
-          setShowProfileModal(false);
-          rootNav.navigate('AddNewMember');
-        }}
-        onOpenSettings={() => {
-          setShowProfileModal(false);
-          rootNav.navigate('MainTabs', { screen: 'Account' });
-        }}
-        onSignOut={() => {
-          setShowProfileModal(false);
-          Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-            { text: 'Cancel', style: 'cancel' },
-            {
-              text: 'Sign Out',
-              style: 'destructive',
-              onPress: () => rootNav.navigate('Login'),
-            },
-          ]);
-        }}
-        showMemberSheet={showMemberSheet}
-        onCloseMemberSheet={() => setShowMemberSheet(false)}
       />
     </SafeAreaView>
   );

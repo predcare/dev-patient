@@ -6,9 +6,11 @@ import NotificationModal, {
   NotificationItem,
 } from '../components/commons/NotificationModal/NotificationModal';
 import { BellIcon, GlobeIcon } from '../components/ui/icons';
+import { getInitials } from '../lib/common/common.utils';
 import { MOCK_NOTIFICATIONS, MOCK_USER_PROFILE } from '../resources/mockData';
 import { headerStyles } from '../styled/Header.styled';
 import { theme } from '../styled/theme.styled';
+import { useAuthStore } from '../zustand/stores/useAuthStore';
 
 export interface HeaderProps {
   greeting?: string;
@@ -43,6 +45,8 @@ export const Header: React.FC<HeaderProps> = ({
   const [isNotifModalOpen, setIsNotifModalOpen] = useState<boolean>(false);
   const [selectedLangCode, setSelectedLangCode] = useState<string>('en');
 
+  const { userData } = useAuthStore(state => state);
+
   const currentLang = LANGUAGES.find(l => l.code === selectedLangCode) || LANGUAGES[0];
 
   const handleAvatarPress = () => {
@@ -63,23 +67,21 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <View style={headerStyles.container}>
       <View style={headerStyles.row}>
-        {/* Left: Avatar + Greeting + User Name */}
         <TouchableOpacity style={headerStyles.left} onPress={handleAvatarPress} activeOpacity={0.8}>
-          {profileImageUrl ? (
-            <Image source={{ uri: profileImageUrl }} style={headerStyles.avatarImage} />
+          {userData?.profile_image ? (
+            <Image source={{ uri: userData?.profile_image }} style={headerStyles.avatarImage} />
           ) : (
             <View style={[headerStyles.avatar, { backgroundColor: avatarColor }]}>
-              <Text style={headerStyles.avatarText}>{initials}</Text>
+              <Text style={headerStyles.avatarText}>{getInitials(userData?.name || '')}</Text>
             </View>
           )}
 
           <View style={headerStyles.greetingWrap}>
             <Text style={headerStyles.greeting}>{greeting}</Text>
-            <Text style={headerStyles.userName}>{userName}</Text>
+            <Text style={headerStyles.userName}>{userData?.name || 'Unknown'}</Text>
           </View>
         </TouchableOpacity>
 
-        {/* Right Actions: Language Switcher + Notification Bell */}
         <View style={headerStyles.rightActions}>
           <TouchableOpacity
             style={headerStyles.langPill}
@@ -100,16 +102,12 @@ export const Header: React.FC<HeaderProps> = ({
           </TouchableOpacity>
         </View>
       </View>
-
-      {/* Common Language Switcher Modal */}
       <LanguageSwitcherModal
         visible={isLangModalOpen}
         selectedLanguageCode={selectedLangCode}
         onSelectLanguage={langCode => setSelectedLangCode(langCode)}
         onClose={() => setIsLangModalOpen(false)}
       />
-
-      {/* Common Notification Modal for all screens */}
       <NotificationModal
         visible={isNotifModalOpen}
         onClose={() => setIsNotifModalOpen(false)}

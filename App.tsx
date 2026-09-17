@@ -7,6 +7,7 @@ import GlobalPopupAlert from './src/components/commons/PopupAlert/GlobalPopupAle
 import GlobalToast from './src/components/commons/Toast/GlobalToast';
 import ReactQueryProvider from './src/components/providers/ReactQueryProvider';
 import AppNavigator from './src/navigation/AppNavigator';
+import theme from './src/styled/theme.styled';
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
@@ -14,7 +15,10 @@ function App(): React.JSX.Element {
     <ReactQueryProvider>
       <SafeAreaProvider>
         <AppNavigator />
-        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+        <StatusBar
+          barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+          backgroundColor={theme.colors.background}
+        />
         <GlobalToast />
         <GlobalPopupAlert />
         <BackdropLoader />
