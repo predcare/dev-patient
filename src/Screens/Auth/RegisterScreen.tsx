@@ -15,7 +15,7 @@ import {
 import OtpInput from '../../components/commons/OtpInput';
 import { MailIcon, PhoneIcon, ProfileIcon } from '../../components/ui/icons';
 import { Assets } from '../../resources/assets';
-import type { RegisterScreenNavigationProp, RegisterScreenRouteProp } from '../../route';
+import { AppRoute, type RegisterScreenNavigationProp, type RegisterScreenRouteProp } from '../../route';
 import { registerStyles } from '../../styled/RegisterScreen.styled';
 
 export interface RegisterScreenProps {
@@ -53,9 +53,12 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: prop
   }, [resendTimer, step]);
 
   const handleCreateAccount = () => {
-    setStep('otp');
-    setResendTimer(60);
-    setCanResend(false);
+    const nav = navigation || defaultNavigation;
+    if (nav && typeof nav.navigate === 'function') {
+      nav.navigate(AppRoute.EMAIL_VERIFY, { email, phone });
+    } else {
+      setStep('otp');
+    }
   };
 
   const handleVerifyOtp = () => {

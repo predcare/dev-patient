@@ -9,6 +9,7 @@ export const AppRoute = {
   SPLASH: 'Splash',
   LOGIN: 'Login',
   REGISTER: 'Register',
+  EMAIL_VERIFY: 'EmailVerify',
   POLICY_ACCEPTANCE: 'PolicyAcceptance',
   SUPPORT: 'Support',
   SUPPORT_TICKET_DETAILS: 'SupportTicketDetails',
@@ -38,6 +39,8 @@ export type RootStackParamList = {
   Splash: undefined;
   Login: undefined;
   Register: undefined;
+  EmailVerify: { email?: string; phone?: string } | undefined;
+  PolicyAcceptance: { userId?: string } | undefined;
   Support: undefined;
   SupportTicketDetails: { ticketId?: string; initialTicket?: any } | undefined;
   NewSupportTicket: undefined;
@@ -115,6 +118,26 @@ export type RegisterScreenRouteProp = RouteProp<RootStackParamList, 'Register'>;
 export interface RegisterScreenProps {
   navigation?: RegisterScreenNavigationProp;
   route?: RegisterScreenRouteProp;
+}
+
+export type EmailVerifyScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'EmailVerify'
+>;
+export type EmailVerifyScreenRouteProp = RouteProp<RootStackParamList, 'EmailVerify'>;
+export interface EmailVerifyScreenProps {
+  navigation?: EmailVerifyScreenNavigationProp;
+  route?: EmailVerifyScreenRouteProp;
+}
+
+export type PolicyAcceptanceScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'PolicyAcceptance'
+>;
+export type PolicyAcceptanceScreenRouteProp = RouteProp<RootStackParamList, 'PolicyAcceptance'>;
+export interface PolicyAcceptanceScreenProps {
+  navigation?: PolicyAcceptanceScreenNavigationProp;
+  route?: PolicyAcceptanceScreenRouteProp;
 }
 
 export type MainTabsScreenNavigationProp = NativeStackNavigationProp<

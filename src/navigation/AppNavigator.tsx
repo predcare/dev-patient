@@ -11,7 +11,9 @@ import {
   StethoscopeIcon,
 } from '../components/ui/icons';
 import { DashboardTabParamList, RootStackParamList } from '../route';
+import EmailVerifyScreen from '../Screens/Auth/EmailVerifyScreen';
 import LoginScreen from '../Screens/Auth/LoginScreen';
+import PolicyAcceptanceScreen from '../Screens/Auth/PolicyAcceptanceScreen';
 import RegisterScreen from '../Screens/Auth/RegisterScreen';
 import AddNewMemberScreen from '../Screens/DashboardScreen/AddNewMemberScreen';
 import AppointmentsScreen from '../Screens/DashboardScreen/AppointmentsScreen';
@@ -237,6 +239,8 @@ export const AppNavigator: React.FC = () => {
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen name="EmailVerify" component={EmailVerifyScreen} />
+        <Stack.Screen name="PolicyAcceptance" component={PolicyAcceptanceScreen} />
         <Stack.Screen name="Support" component={SupportScreen} />
         <Stack.Screen name="SupportTicketDetails" component={SupportTicketDetailsScreen} />
         <Stack.Screen name="NewSupportTicket" component={NewSupportTicketScreen} />
