@@ -177,6 +177,13 @@ export const emailVerifyStyles = StyleSheet.create({
     fontSize: 13,
     color: theme.colors.textSlate,
   },
+  errorText: {
+    color: theme.colors.errorRed,
+    fontSize: 12,
+    marginTop: 6,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
 });
 
 export default emailVerifyStyles;

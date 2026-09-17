@@ -21,7 +21,11 @@ export const endpoints = {
   auth: {
     sendOtp: '/auth/request-login-otp',
     verifyOtp: '/auth/verify-login-otp',
+    patientRegister: '/auth/patient/register',
+    patientVerifyOtp: '/auth/patient/verify-otp',
     resendOtp: '/auth/resend-otp',
+    verifyEmail: '/users/verify-email',
+    resendEmailOtp: '/users/resend-email-otp',
     users: '/doctor/auth/users',
     logout: '/auth/logout',
   },
@@ -106,8 +110,19 @@ export const endpoints = {
 export const successEndpoints = [
   endpoints.auth.sendOtp,
   endpoints.auth.verifyOtp,
+  endpoints.auth.patientRegister,
+  endpoints.auth.patientVerifyOtp,
+  endpoints.auth.verifyEmail,
+  endpoints.auth.resendEmailOtp,
   endpoints?.patients?.emrUpload,
   endpoints?.patients?.patientUpdate,
 ];
 
-export const exclude401Routes = [endpoints.auth.verifyOtp, endpoints.auth.sendOtp];
+export const exclude401Routes = [
+  endpoints.auth.verifyOtp,
+  endpoints.auth.sendOtp,
+  endpoints.auth.patientRegister,
+  endpoints.auth.patientVerifyOtp,
+  endpoints.auth.verifyEmail,
+  endpoints.auth.resendEmailOtp,
+];

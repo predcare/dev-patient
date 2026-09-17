@@ -2,12 +2,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { clearStorageExcept, STORAGE_KEYS } from '../../lib/common/asyncStorage';
+import { IMyProfileDoc } from '../../typescripts/interfaces/profile.interfaces';
 
 type TAuthState = {
-  userData: any | null;
+  userData: IMyProfileDoc | null;
   isLoggedIn: boolean;
-  isDoctor?: boolean;
-  setUserData: (user: any | null) => void;
+  setUserData: (user: IMyProfileDoc | null) => void;
   logout: () => Promise<void>;
 };
 
@@ -17,19 +17,17 @@ export const useAuthStore = create<TAuthState>()(
       userData: null,
       isLoggedIn: false,
       activeWorkspace: null,
-      setUserData: (user: any | null) => {
+      setUserData: (user: IMyProfileDoc | null) => {
         if (!user) {
           set({
             userData: null,
             isLoggedIn: false,
-            isDoctor: false,
           });
           return;
         }
         set({
           userData: user,
           isLoggedIn: true,
-          isDoctor: user?.role === 'doctor' ? true : false,
         });
       },
 
@@ -37,7 +35,6 @@ export const useAuthStore = create<TAuthState>()(
         set({
           userData: null,
           isLoggedIn: false,
-          isDoctor: false,
         });
         await clearStorageExcept([STORAGE_KEYS.FCM_TOKEN, STORAGE_KEYS.DEVICE_ID]);
       },

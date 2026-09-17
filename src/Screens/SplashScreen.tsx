@@ -1,8 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Image, StyleSheet, Text, View } from 'react-native';
+import { fetchProfileQuery } from '../hooks/react-query/profile/profile.hooks';
 import { SafeAreaWrapper } from '../Layout/SafeAreaWrapper';
+import { getItem, STORAGE_KEYS } from '../lib/common/asyncStorage';
+import { resetAndNavigate, resetToLogin, resetToMainTabs } from '../lib/common/navigation.utils';
 import type { SplashScreenNavigationProp, SplashScreenRouteProp } from '../route';
+import { AppRoute } from '../route';
 import { theme } from '../styled/theme.styled';
+import { useAuthStore } from '../zustand/stores/useAuthStore';
 
 export interface SplashScreenProps {
   navigation?: SplashScreenNavigationProp;
@@ -13,6 +18,9 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.3)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  const setUserData = useAuthStore(state => state.setUserData);
+  const logout = useAuthStore(state => state.logout);
 
   useEffect(() => {
     // Fade in and scale animation
@@ -31,7 +39,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
     ]).start();
 
     // Pulse animation loop
-    Animated.loop(
+    const pulseLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
           toValue: 1.1,
@@ -44,28 +52,70 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
           useNativeDriver: true,
         }),
       ])
-    ).start();
+    );
+    pulseLoop.start();
 
-    const timer = setTimeout(() => {
-      if (navigation) {
-        navigation.navigate('Login');
+    let isMounted = true;
+
+    const authenticateAndLoad = async () => {
+      try {
+        const token = await getItem(STORAGE_KEYS.AUTH_TOKEN);
+
+        if (!token) {
+          await logout();
+          if (isMounted) {
+            resetToLogin(navigation);
+          }
+          return;
+        }
+
+        const res = await fetchProfileQuery();
+
+        if (!isMounted) return;
+
+        if (res?.data) {
+          setUserData(res.data);
+          const userData = res.data;
+
+          if (!userData.email_verified_at) {
+            resetAndNavigate(navigation, AppRoute.EMAIL_VERIFY);
+          } else if (userData.email_verified_at && !userData.has_accepted_policies) {
+            resetAndNavigate(navigation, AppRoute.POLICY_ACCEPTANCE);
+          } else {
+            resetToMainTabs(navigation);
+          }
+        } else {
+          await logout();
+          resetToLogin(navigation);
+        }
+      } catch (error) {
+        console.error('[SplashScreen] Profile auto-login error:', error);
+        await logout();
+        if (isMounted) {
+          resetToLogin(navigation);
+        }
       }
-    }, 2500);
+    };
 
-    return () => clearTimeout(timer);
-  }, [navigation, fadeAnim, scaleAnim, pulseAnim]);
+    authenticateAndLoad();
+
+    return () => {
+      isMounted = false;
+      pulseLoop.stop();
+      fadeAnim.stopAnimation();
+      scaleAnim.stopAnimation();
+      pulseAnim.stopAnimation();
+    };
+  }, [navigation, fadeAnim, scaleAnim, pulseAnim, setUserData, logout]);
 
   return (
     <SafeAreaWrapper backgroundColor={theme.colors.primaryDark} barStyle="light-content">
       <View style={styles.container}>
-        {/* Background Gradient Circles */}
         <View style={styles.circleContainer}>
           <View style={[styles.circle, styles.circle1]} />
           <View style={[styles.circle, styles.circle2]} />
           <View style={[styles.circle, styles.circle3]} />
         </View>
-
-        {/* Logo and Title Container */}
         <Animated.View
           style={[
             styles.contentContainer,
@@ -75,7 +125,6 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
             },
           ]}
         >
-          {/* Logo/Icon */}
           <View style={styles.logoContainer}>
             <Image
               source={require('../assets/logo2.png')}
@@ -83,12 +132,8 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
               resizeMode="contain"
             />
           </View>
-
-          {/* App Title */}
           <Text style={styles.tagline}>Your Health, Secured & Protected</Text>
         </Animated.View>
-
-        {/* Animated Loading Indicator */}
         <Animated.View
           style={[
             styles.loaderContainer,
@@ -103,8 +148,6 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
             <View style={[styles.dot, styles.dot3]} />
           </View>
         </Animated.View>
-
-        {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>Powered by PredCare</Text>
         </View>

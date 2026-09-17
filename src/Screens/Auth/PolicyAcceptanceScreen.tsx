@@ -1,8 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   Pressable,
+  RefreshControl,
   SafeAreaView,
   ScrollView,
   Text,
@@ -12,63 +14,24 @@ import {
 import PolicyViewerModal, {
   PolicyItemType,
 } from '../../components/commons/PolicyViewerModal/PolicyViewerModal';
+import { queryClient } from '../../components/providers/ReactQueryProvider';
+import PolicyAcceptanceSkeleton from '../../components/Skeletons/PolicyAcceptanceSkeleton';
 import { ShieldIcon } from '../../components/ui/icons';
+import {
+  usePolicies,
+  usePostPolicyAcceptance,
+} from '../../hooks/react-query/policies/policies.hooks';
+import { fetchProfileQuery } from '../../hooks/react-query/profile/profile.hooks';
+import { resetToLogin, resetToMainTabs } from '../../lib/common/navigation.utils';
 import { Assets } from '../../resources/assets';
 import type {
   PolicyAcceptanceScreenNavigationProp,
   PolicyAcceptanceScreenProps,
 } from '../../route';
-import { AppRoute } from '../../route';
 import { policyStyles } from '../../styled/PolicyAcceptanceScreen.styled';
-
-// Static Mock Policy Documents
-const MOCK_TERMS_POLICY: PolicyItemType = {
-  title: 'Terms of Use — Patient Portal',
-  version: '1.2',
-  updatedAt: 'January 2026',
-  content: `1. Acceptance of Terms
-By creating an account and using the PRED Care Patient Portal, you agree to comply with and be bound by these Terms of Use.
-
-2. Patient Responsibilities
-You are responsible for maintaining the confidentiality of your account credentials and for providing accurate medical, contact, and emergency information.
-
-3. Scope of Telehealth Services
-PRED Care provides digital health tools and appointment booking. Video consultations and messaging services are supplementary and do not replace emergency medical care.
-
-4. Limitation of Liability
-In case of a medical emergency, immediately dial your local emergency services (e.g. 112 / 911) or visit the nearest emergency healthcare facility.`,
-};
-
-const MOCK_PRIVACY_POLICY: PolicyItemType = {
-  title: 'Privacy Policy — Patient Care',
-  version: '2.0',
-  updatedAt: 'February 2026',
-  content: `1. Data Security & Confidentiality
-PRED Care employs end-to-end encryption, strict access controls, and industry-standard security protocols to safeguard your Personal Health Information (PHI).
-
-2. Collection & Usage of Health Records
-We collect personal information, consultation records, prescriptions, and lab diagnostic reports solely to facilitate medical care, doctor consultations, and health tracking.
-
-3. Data Sharing Policies
-Your medical records will never be sold to third parties. Data is shared exclusively with authorized doctors and healthcare providers involved in your treatment.
-
-4. Patient Rights
-You retain full ownership of your medical history and may request access to or deletion of your records at any time subject to applicable health regulations.`,
-};
-
-const MOCK_INFORMED_CONSENT_POLICY: PolicyItemType = {
-  title: 'Informed Consent for Telehealth',
-  version: '1.0',
-  updatedAt: 'March 2026',
-  content: `1. Digital Healthcare & Consultation Consent
-By agreeing to this policy, you consent to receive healthcare services, medical assessments, and prescriptions via PRED Care's digital platform.
-
-2. Electronic Records & Communications
-You authorize PRED Care practitioners to access your uploaded medical documents and transmit electronic prescriptions to registered pharmacies.
-
-3. Benefits & Potential Risks
-Digital consultations offer convenient access to specialist physicians. However, limitations exist compared to in-person physical examinations.`,
-};
+import { IPolicyAcceptancePayload } from '../../typescripts/interfaces/policies.interfaces';
+import { useAlertStore } from '../../zustand/stores/useAlertStore';
+import { useAuthStore } from '../../zustand/stores/useAuthStore';
 
 export const PolicyAcceptanceScreen: React.FC<PolicyAcceptanceScreenProps> = ({
   navigation: propNavigation,
@@ -78,43 +41,172 @@ export const PolicyAcceptanceScreen: React.FC<PolicyAcceptanceScreenProps> = ({
   const { width } = useWindowDimensions();
   const cardWidth = Math.min(width - 32, 480);
 
+  const { data: allPolicies, isPending: isLoadingPolicies, refetch, isRefetching } = usePolicies();
+  const { logout, userData, setUserData } = useAuthStore(state => state);
+  const { showConfirm, showError } = useAlertStore(state => state);
   const [selectedPolicyItem, setSelectedPolicyItem] = useState<PolicyItemType | null>(null);
-  const [agreedTermsPrivacy, setAgreedTermsPrivacy] = useState(false);
-  const [agreedConsent, setAgreedConsent] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [formStates, setFormStates] = useState<IPolicyAcceptancePayload>({
+    audience: 'patient',
+    source: 'forced_reaccept',
+    documents: [],
+  });
+  const { mutate: postPolicyAcceptanceMutation, isPending: isPostPolicyAcceptancePending } =
+    usePostPolicyAcceptance();
 
-  const isFormValid = agreedTermsPrivacy && agreedConsent;
+  const termsData = allPolicies?.terms;
+  const privacyData = allPolicies?.privacy_policy;
+  const consentData = allPolicies?.informed_consent;
+
+  const isAgreedTermsAndPrivacy =
+    Boolean(formStates.documents?.some(d => d.document_kind === 'terms')) &&
+    Boolean(formStates.documents?.some(d => d.document_kind === 'privacy'));
+
+  const isAgreedConsent = Boolean(
+    formStates.documents?.some(d => d.document_kind === 'informed_consent')
+  );
+
+  const isFormValid = isAgreedTermsAndPrivacy && isAgreedConsent;
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
+
+  const toggleTermsAndPrivacy = () => {
+    setFormStates(prev => {
+      const existingDocs = prev.documents || [];
+      if (isAgreedTermsAndPrivacy) {
+        return {
+          ...prev,
+          documents: existingDocs.filter(
+            d => d.document_kind !== 'terms' && d.document_kind !== 'privacy'
+          ),
+        };
+      } else {
+        const newDocs = existingDocs.filter(
+          d => d.document_kind !== 'terms' && d.document_kind !== 'privacy'
+        );
+        if (termsData) {
+          newDocs.push({
+            document_kind: 'terms',
+            document_id: Number(termsData.id),
+            document_version: termsData.version,
+          });
+        }
+        if (privacyData) {
+          newDocs.push({
+            document_kind: 'privacy',
+            document_id: Number(privacyData.id),
+            document_version: privacyData.version,
+          });
+        }
+        return {
+          ...prev,
+          documents: newDocs,
+        };
+      }
+    });
+  };
+
+  const toggleConsent = () => {
+    setFormStates(prev => {
+      const existingDocs = prev.documents || [];
+      if (isAgreedConsent) {
+        return {
+          ...prev,
+          documents: existingDocs.filter(d => d.document_kind !== 'informed_consent'),
+        };
+      } else {
+        const newDocs = existingDocs.filter(d => d.document_kind !== 'informed_consent');
+        if (consentData) {
+          newDocs.push({
+            document_kind: 'informed_consent',
+            document_id: Number(consentData.id),
+            document_version: consentData.version,
+          });
+        }
+        return {
+          ...prev,
+          documents: newDocs,
+        };
+      }
+    });
+  };
 
   const handleAccept = () => {
-    if (!isFormValid) return;
-    if (navigation) {
-      if (typeof navigation.reset === 'function') {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'MainTabs' }],
-        });
-      } else if (typeof navigation.navigate === 'function') {
-        navigation.navigate('MainTabs');
-      }
-    }
+    if (!isFormValid || isPostPolicyAcceptancePending) return;
+    postPolicyAcceptanceMutation(formStates, {
+      onSuccess: async res => {
+        if (res?.success) {
+          const profileRes = await fetchProfileQuery(true);
+          if (profileRes?.data) {
+            setUserData(profileRes.data);
+          }
+          resetToMainTabs(navigation);
+        } else if (res?.message) {
+          showError(res.message);
+        }
+      },
+      onError: (err: any) => {
+        showError(err?.response?.data?.message || 'Failed to submit policy acceptance.');
+      },
+    });
   };
 
   const handleSignOut = () => {
-    if (navigation && typeof navigation.navigate === 'function') {
-      navigation.navigate(AppRoute.LOGIN);
+    showConfirm({
+      title: 'Sign Out',
+      message: 'Are you sure you want to sign out and return to the login screen?',
+      buttonText: 'Sign Out',
+      cancelText: 'Cancel',
+      onConfirm: async () => {
+        try {
+          await logout();
+          queryClient.clear();
+          resetToLogin(navigation);
+        } catch (error) {
+          console.error('Logout error:', error);
+        }
+      },
+    });
+  };
+
+  const openPolicyModal = (policyData?: any) => {
+    if (policyData && policyData.content) {
+      setSelectedPolicyItem({
+        title: policyData.title || 'Policy Document',
+        version: String(policyData.version || '1.0'),
+        content: policyData.content,
+        updatedAt: policyData.updated_at || policyData.published_at,
+      });
     }
   };
 
   return (
     <SafeAreaView style={policyStyles.safeArea}>
-      <View style={policyStyles.scrollContent}>
-        {/* Header Logo */}
+      <ScrollView
+        style={policyStyles.scrollContainer}
+        contentContainerStyle={policyStyles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing || isRefetching}
+            onRefresh={onRefresh}
+            colors={['#0F766E']}
+            tintColor="#0F766E"
+          />
+        }
+      >
         <View style={policyStyles.logoContainer}>
           <Image source={Assets.logo2} style={policyStyles.logo} resizeMode="contain" />
         </View>
 
-        {/* Main Card Container */}
         <View style={[policyStyles.card, { width: cardWidth }]}>
-          {/* Title Header */}
           <View style={policyStyles.titleContainer}>
             <View style={policyStyles.titleBadgeContainer}>
               <ShieldIcon size={26} color="#0F766E" />
@@ -125,67 +217,89 @@ export const PolicyAcceptanceScreen: React.FC<PolicyAcceptanceScreenProps> = ({
             </Text>
           </View>
 
-          {/* Scrollable Policy Documents Box */}
           <ScrollView
             style={policyStyles.scrollableContent}
             contentContainerStyle={policyStyles.scrollableContentInner}
             showsVerticalScrollIndicator={true}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing || isRefetching}
+                onRefresh={onRefresh}
+                colors={['#0F766E']}
+                tintColor="#0F766E"
+              />
+            }
           >
-            <View style={policyStyles.policyBox}>
-              {/* Terms of Use */}
-              <View style={policyStyles.policyCard}>
-                <View style={policyStyles.policyCardHeader}>
-                  <View style={policyStyles.policyCardTitleGroup}>
-                    <Text style={policyStyles.policyCardTitle}>Terms of Use</Text>
+            {isLoadingPolicies ? (
+              <PolicyAcceptanceSkeleton />
+            ) : (
+              <View style={policyStyles.policyBox}>
+                <View style={policyStyles.policyCard}>
+                  <View style={policyStyles.policyCardHeader}>
+                    <View style={policyStyles.policyCardTitleGroup}>
+                      <Text style={policyStyles.policyCardTitle} numberOfLines={2}>
+                        {termsData?.title || 'Terms of Use'}
+                      </Text>
+                    </View>
+                    {termsData?.version !== undefined && (
+                      <View style={policyStyles.policyVersionBadge}>
+                        <Text style={policyStyles.policyVersionText}>v{termsData.version}</Text>
+                      </View>
+                    )}
                   </View>
-                  <View style={policyStyles.policyVersionBadge}>
-                    <Text style={policyStyles.policyVersionText}>v{MOCK_TERMS_POLICY.version}</Text>
-                  </View>
+                  <Text style={policyStyles.policyDescription}>
+                    General Patient Terms of Service and Platform Usage Guidelines.
+                  </Text>
+                  <Pressable onPress={() => openPolicyModal(termsData)}>
+                    <Text style={policyStyles.viewPolicyLinkText}>Read Full Document →</Text>
+                  </Pressable>
                 </View>
-                <Text style={policyStyles.policyDescription}>
-                  General Patient Terms of Service and Platform Usage Guidelines.
-                </Text>
-                <Pressable onPress={() => setSelectedPolicyItem(MOCK_TERMS_POLICY)}>
-                  <Text style={policyStyles.viewPolicyLinkText}>Read Full Document →</Text>
-                </Pressable>
-              </View>
 
-              {/* Privacy Policy */}
-              <View style={policyStyles.policyCard}>
-                <View style={policyStyles.policyCardHeader}>
-                  <View style={policyStyles.policyCardTitleGroup}>
-                    <Text style={policyStyles.policyCardTitle}>Privacy Policy</Text>
+                {/* Privacy Policy */}
+                <View style={policyStyles.policyCard}>
+                  <View style={policyStyles.policyCardHeader}>
+                    <View style={policyStyles.policyCardTitleGroup}>
+                      <Text style={policyStyles.policyCardTitle} numberOfLines={2}>
+                        {privacyData?.title || 'Privacy Policy'}
+                      </Text>
+                    </View>
+                    {privacyData?.version !== undefined && (
+                      <View style={policyStyles.policyVersionBadge}>
+                        <Text style={policyStyles.policyVersionText}>v{privacyData.version}</Text>
+                      </View>
+                    )}
                   </View>
-                  <View style={policyStyles.policyVersionBadge}>
-                    <Text style={policyStyles.policyVersionText}>v{MOCK_PRIVACY_POLICY.version}</Text>
-                  </View>
+                  <Text style={policyStyles.policyDescription}>
+                    Patient Data Protection & HIPAA Compliant Healthcare Standards.
+                  </Text>
+                  <Pressable onPress={() => openPolicyModal(privacyData)}>
+                    <Text style={policyStyles.viewPolicyLinkText}>Read Full Document →</Text>
+                  </Pressable>
                 </View>
-                <Text style={policyStyles.policyDescription}>
-                  Patient Data Protection & HIPAA Compliant Healthcare Standards.
-                </Text>
-                <Pressable onPress={() => setSelectedPolicyItem(MOCK_PRIVACY_POLICY)}>
-                  <Text style={policyStyles.viewPolicyLinkText}>Read Full Document →</Text>
-                </Pressable>
-              </View>
 
-              {/* Informed Consent Policy */}
-              <View style={policyStyles.policyCard}>
-                <View style={policyStyles.policyCardHeader}>
-                  <View style={policyStyles.policyCardTitleGroup}>
-                    <Text style={policyStyles.policyCardTitle}>Informed Consent for Telehealth</Text>
+                {/* Informed Consent Policy */}
+                <View style={policyStyles.policyCard}>
+                  <View style={policyStyles.policyCardHeader}>
+                    <View style={policyStyles.policyCardTitleGroup}>
+                      <Text style={policyStyles.policyCardTitle} numberOfLines={2}>
+                        {consentData?.title || 'Informed Consent for Telehealth'}
+                      </Text>
+                    </View>
+                    {consentData?.version !== undefined && (
+                      <View style={policyStyles.policyVersionBadge}>
+                        <Text style={policyStyles.policyVersionText}>v{consentData.version}</Text>
+                      </View>
+                    )}
                   </View>
-                  <View style={policyStyles.policyVersionBadge}>
-                    <Text style={policyStyles.policyVersionText}>v{MOCK_INFORMED_CONSENT_POLICY.version}</Text>
-                  </View>
+                  <Text style={policyStyles.policyDescription}>
+                    Consent to Digital Health Consultations & Electronic Medical Records.
+                  </Text>
+                  <Pressable onPress={() => openPolicyModal(consentData)}>
+                    <Text style={policyStyles.viewPolicyLinkText}>Read Full Document →</Text>
+                  </Pressable>
                 </View>
-                <Text style={policyStyles.policyDescription}>
-                  Consent to Digital Health Consultations & Electronic Medical Records.
-                </Text>
-                <Pressable onPress={() => setSelectedPolicyItem(MOCK_INFORMED_CONSENT_POLICY)}>
-                  <Text style={policyStyles.viewPolicyLinkText}>Read Full Document →</Text>
-                </Pressable>
               </View>
-            </View>
+            )}
           </ScrollView>
 
           {/* Interactive Consent Checkboxes */}
@@ -193,30 +307,30 @@ export const PolicyAcceptanceScreen: React.FC<PolicyAcceptanceScreenProps> = ({
             <View style={policyStyles.checkboxContainer}>
               <Pressable
                 style={policyStyles.checkboxRow}
-                onPress={() => setAgreedTermsPrivacy(prev => !prev)}
+                onPress={toggleTermsAndPrivacy}
                 accessibilityRole="checkbox"
-                accessibilityState={{ checked: agreedTermsPrivacy }}
+                accessibilityState={{ checked: isAgreedTermsAndPrivacy }}
               >
                 <View
                   style={[
                     policyStyles.checkboxSquare,
-                    agreedTermsPrivacy && policyStyles.checkboxSquareChecked,
+                    isAgreedTermsAndPrivacy && policyStyles.checkboxSquareChecked,
                   ]}
                 >
-                  {agreedTermsPrivacy && <Text style={policyStyles.checkmarkIcon}>✓</Text>}
+                  {isAgreedTermsAndPrivacy && <Text style={policyStyles.checkmarkIcon}>✓</Text>}
                 </View>
                 <Text style={policyStyles.checkboxLabel}>
                   I have read and agree to the{' '}
                   <Text
                     style={policyStyles.policyLinkBold}
-                    onPress={() => setSelectedPolicyItem(MOCK_TERMS_POLICY)}
+                    onPress={() => openPolicyModal(termsData)}
                   >
                     Terms of Use
                   </Text>{' '}
                   and{' '}
                   <Text
                     style={policyStyles.policyLinkBold}
-                    onPress={() => setSelectedPolicyItem(MOCK_PRIVACY_POLICY)}
+                    onPress={() => openPolicyModal(privacyData)}
                   >
                     Privacy Policy
                   </Text>
@@ -226,23 +340,23 @@ export const PolicyAcceptanceScreen: React.FC<PolicyAcceptanceScreenProps> = ({
 
               <Pressable
                 style={policyStyles.checkboxRow}
-                onPress={() => setAgreedConsent(prev => !prev)}
+                onPress={toggleConsent}
                 accessibilityRole="checkbox"
-                accessibilityState={{ checked: agreedConsent }}
+                accessibilityState={{ checked: isAgreedConsent }}
               >
                 <View
                   style={[
                     policyStyles.checkboxSquare,
-                    agreedConsent && policyStyles.checkboxSquareChecked,
+                    isAgreedConsent && policyStyles.checkboxSquareChecked,
                   ]}
                 >
-                  {agreedConsent && <Text style={policyStyles.checkmarkIcon}>✓</Text>}
+                  {isAgreedConsent && <Text style={policyStyles.checkmarkIcon}>✓</Text>}
                 </View>
                 <Text style={policyStyles.checkboxLabel}>
                   I have read and agree to the{' '}
                   <Text
                     style={policyStyles.policyLinkBold}
-                    onPress={() => setSelectedPolicyItem(MOCK_INFORMED_CONSENT_POLICY)}
+                    onPress={() => openPolicyModal(consentData)}
                   >
                     Informed Consent Policy
                   </Text>
@@ -254,15 +368,20 @@ export const PolicyAcceptanceScreen: React.FC<PolicyAcceptanceScreenProps> = ({
             {/* Action Buttons */}
             <View style={policyStyles.buttonGroup}>
               <Pressable
-                disabled={!isFormValid}
+                disabled={!isFormValid || isPostPolicyAcceptancePending}
                 style={({ pressed }) => [
                   policyStyles.primaryButton,
-                  !isFormValid && policyStyles.primaryButtonDisabled,
-                  pressed && isFormValid && { opacity: 0.85 },
+                  (!isFormValid || isPostPolicyAcceptancePending) &&
+                    policyStyles.primaryButtonDisabled,
+                  pressed && isFormValid && !isPostPolicyAcceptancePending && { opacity: 0.85 },
                 ]}
                 onPress={handleAccept}
               >
-                <Text style={policyStyles.primaryButtonText}>Accept & Complete Setup</Text>
+                {isPostPolicyAcceptancePending ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={policyStyles.primaryButtonText}>Accept & Complete Setup</Text>
+                )}
               </Pressable>
 
               <Pressable
@@ -284,9 +403,7 @@ export const PolicyAcceptanceScreen: React.FC<PolicyAcceptanceScreenProps> = ({
             © {new Date().getFullYear()} PRED Care. All rights reserved.
           </Text>
         </View>
-      </View>
-
-      {/* Policy Viewer Modal */}
+      </ScrollView>
       <PolicyViewerModal
         visible={!!selectedPolicyItem}
         policy={selectedPolicyItem}

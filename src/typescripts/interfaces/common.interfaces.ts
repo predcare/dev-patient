@@ -4,6 +4,7 @@ export interface ICommonRoot {
   data?: unknown;
   status: number;
   id?: number;
+  token?: string;
 }
 
 export interface IRootResponse<T> {

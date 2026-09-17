@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { queryClient } from '../../../components/providers/ReactQueryProvider';
 import { ProfileQueryKeys } from '../query.keys';
 import { getProfile } from './profile.funcs';
 
@@ -8,3 +9,12 @@ export const useProfile = () =>
     queryFn: () => getProfile(),
     select: v => v.data,
   });
+
+export const fetchProfileQuery = async (forceFetch = false) => {
+  return await queryClient.fetchQuery({
+    queryKey: [ProfileQueryKeys.Profile],
+    queryFn: getProfile,
+    staleTime: forceFetch ? 0 : undefined,
+  });
+};
+

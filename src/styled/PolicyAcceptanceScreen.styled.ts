@@ -116,6 +116,8 @@ export const policyStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    flex: 1,
+    paddingRight: 6,
   },
   policyCardTitle: {
     fontSize: 14,
