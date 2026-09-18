@@ -8,6 +8,7 @@ import AppHeader from '../../components/ui/AppHeader';
 import { CheckIcon, GlobeIcon, PatientsIcon, StethoscopeIcon } from '../../components/ui/icons';
 import { useDoctorDetails } from '../../hooks/react-query/doctors/doctor.hooks';
 import { getInitials } from '../../lib/common/common.utils';
+import { showErrorToast } from '../../lib/common/toast.utils';
 import { doctorDetailsStyles } from '../../styled/DoctorDetailsScreen.styled';
 import { theme } from '../../styled/theme.styled';
 
@@ -23,14 +24,11 @@ export const DoctorDetailsScreen: React.FC = () => {
     refetch,
   } = useDoctorDetails(doctorId);
 
-  const handleBookAppointment = (clinicId: string, clinicName: string, selectedDate: string) => {
-    if (!doctorDetailsData) return;
+  const handleBookAppointment = (clinicId: string) => {
+    if (!doctorDetailsData) return showErrorToast('Error', 'Doctor details not found');
     navigation.navigate('BookAppointment', {
       doctorId: doctorDetailsData.user_id,
-      doctor: doctorDetailsData,
       clinicId,
-      clinicName,
-      selectedDate,
     });
   };
 

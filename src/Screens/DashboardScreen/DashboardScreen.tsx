@@ -24,10 +24,8 @@ import {
   DashboardProfile,
   MOCK_DASHBOARD_PROFILE,
   MOCK_FAMILY_MEMBERS,
-  MOCK_MY_DOCTORS,
   MOCK_NOTIFICATIONS,
   MockFamilyMember,
-  MyDoctorData,
 } from '../../resources/mockData';
 import { dashboardStyles } from '../../styled/DashboardScreen.styled';
 
@@ -44,8 +42,6 @@ export const DashboardScreen: React.FC = () => {
   // Modals state
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
   const [notifications] = useState<DashboardNotificationItem[]>(MOCK_NOTIFICATIONS);
-
-  const [myDoctors] = useState<MyDoctorData[]>(MOCK_MY_DOCTORS);
 
   // Mock static upcoming appointment matching reference
   const [upcoming] = useState<any[]>([
@@ -90,14 +86,6 @@ export const DashboardScreen: React.FC = () => {
         });
       }
     }
-  };
-
-  const handleDoctorPress = (doctor: MyDoctorData) => {
-    rootNav.navigate('DoctorDetails', { doctorId: doctor.doctor_user_id, doctor });
-  };
-
-  const handleBookDoctorPress = (doctor: MyDoctorData) => {
-    rootNav.navigate('BookAppointment', { doctorId: doctor.doctor_user_id, doctor });
   };
 
   const handleAppointmentAction = (appointment: any) => {
@@ -211,15 +199,7 @@ export const DashboardScreen: React.FC = () => {
         {activeMemberId === 'self' && (
           <ProfileCompletionCard percent={75} onPress={() => rootNav.navigate('ProfileSetup')} />
         )}
-        {activeMemberId === 'self' && (
-          <MyDoctorsSection
-            doctors={myDoctors}
-            onEmptyActionPress={() => rootNav.navigate('DoctorSearch')}
-            onSeeAllPress={() => navigation.navigate('Doctors')}
-            onDoctorPress={handleDoctorPress}
-            onBookPress={handleBookDoctorPress}
-          />
-        )}
+        {activeMemberId === 'self' && <MyDoctorsSection />}
         <View style={dashboardStyles.blockSpacing}>
           <FindSpecialistCard onPress={() => rootNav.navigate('DoctorSearch')} />
         </View>

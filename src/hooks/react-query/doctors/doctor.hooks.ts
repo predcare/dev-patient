@@ -5,6 +5,7 @@ import {
   getDoctorAvailDates,
   getDoctorDetails,
   getDoctorTimingsByDate,
+  getMyDoctors,
   IGetDoctorsQueryParams,
 } from './doctor.funcs';
 
@@ -71,4 +72,12 @@ export const useDoctorTimingsByDate = (params: {
       }),
     select: v => v.data,
     enabled: Boolean(params?.doctorId && params?.date),
+  });
+
+// My Doctors
+export const useGetMyDoctors = () =>
+  useQuery({
+    queryKey: [DoctorQueryKeys.MY_DOCS],
+    queryFn: () => getMyDoctors(),
+    select: v => v,
   });

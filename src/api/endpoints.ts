@@ -38,6 +38,7 @@ export const endpoints = {
     getDetails: (doctorId: string | number) => `/patients/doctors/${doctorId}`,
     doctorAvailDates: '/doctor-availabilities/available-dates',
     getSlotsByDate: '/doctor-availabilities/slots-by-date',
+    myDocs: '/patients/my-doctors',
   },
   commons: {
     country: '/common/countries',

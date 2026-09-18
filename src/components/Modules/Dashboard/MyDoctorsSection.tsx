@@ -1,100 +1,141 @@
-import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { MyDoctorData } from '../../../resources/mockData';
+import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useGetMyDoctors } from '../../../hooks/react-query/doctors/doctor.hooks';
+import { getInitials } from '../../../lib/common/common.utils';
+import { AppRoute } from '../../../route';
 import { theme } from '../../../styled/theme.styled';
+import CommonEmptyCard from '../../commons/CommonEmptyCard/CommonEmptyCard';
+import CommonErrorCard from '../../commons/CommonErrorCard/CommonErrorCard';
+import { StethoscopeIcon } from '../../ui/icons';
 
-export interface MyDoctorsSectionProps {
-  doctors: MyDoctorData[];
-  loading?: boolean;
-  emptyMessage?: string;
-  emptyActionLabel?: string;
-  onEmptyActionPress: () => void;
-  onSeeAllPress: () => void;
-  onDoctorPress: (doctor: MyDoctorData) => void;
-  onBookPress?: (doctor: MyDoctorData) => void;
-}
+const SkeletonRows: React.FC = () => {
+  const pulseAnim = useRef(new Animated.Value(0.3)).current;
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 0.9,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0.3,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [pulseAnim]);
 
-export const MyDoctorsSection: React.FC<MyDoctorsSectionProps> = ({
-  doctors,
-  emptyMessage = "You haven't added any doctors yet.",
-  emptyActionLabel = 'Find a Doctor',
-  onEmptyActionPress,
-  onSeeAllPress,
-  onDoctorPress,
-}) => {
-  const preview = doctors.slice(0, 3);
-  const showSeeAllHeader = doctors.length > 3;
+  return (
+    <View style={styles.card}>
+      {[1, 2].map((key, idx) => (
+        <Animated.View
+          key={key}
+          style={[styles.docRow, idx === 0 && styles.divider, { opacity: pulseAnim }]}
+        >
+          <View style={styles.skeletonAvatar} />
+          <View style={styles.docInfo}>
+            <View style={styles.skeletonLineLong} />
+            <View style={styles.skeletonLineShort} />
+          </View>
+          <View style={styles.skeletonBtn} />
+        </Animated.View>
+      ))}
+    </View>
+  );
+};
+
+export const MyDoctorsSection: React.FC = () => {
+  const naviagtion = useNavigation<any>();
+  const {
+    data: myDoctorsData,
+    isFetching: isPendingMyDoctors,
+    isError: isErrorMyDoctors,
+    refetch: refetchMyDoctors,
+  } = useGetMyDoctors();
+
+  const handleSeeAll = () => {
+    naviagtion.navigate(AppRoute.DOCTOR_SEARCH);
+  };
+
+  const handleDoctorPress = (doctorId: number, clinicId: number) => {
+    naviagtion.navigate(AppRoute.BOOK_APPOINTMENT, {
+      doctorId: doctorId,
+      clinicId: clinicId,
+    });
+  };
 
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>My Doctors</Text>
-        {showSeeAllHeader && (
-          <TouchableOpacity onPress={onSeeAllPress} activeOpacity={0.7}>
-            <Text style={styles.seeAllText}>See All</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity onPress={handleSeeAll} activeOpacity={0.7}>
+          <Text style={styles.seeAllText}>See All</Text>
+        </TouchableOpacity>
       </View>
 
-      {preview.length === 0 ? (
-        <View style={styles.emptyCard}>
-          <Text style={styles.emptyText}>{emptyMessage}</Text>
-          <TouchableOpacity
-            style={styles.emptyBtn}
-            onPress={onEmptyActionPress}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.emptyBtnText}>{emptyActionLabel}</Text>
-          </TouchableOpacity>
+      {isPendingMyDoctors ? (
+        <SkeletonRows />
+      ) : isErrorMyDoctors ? (
+        <View style={styles.card}>
+          <CommonErrorCard
+            title="Failed to Load Doctors"
+            message="We couldn't retrieve your doctors list. Please try again."
+            onRetry={refetchMyDoctors}
+            retryText="Retry"
+          />
         </View>
+      ) : myDoctorsData?.data?.length == 0 ? (
+        <CommonEmptyCard
+          title="No Doctors Added Yet"
+          message="Doctors you consult with will appear here for easy access and rebooking."
+          icon={<StethoscopeIcon size={28} color={theme.colors.primaryDark} />}
+        />
       ) : (
         <View style={styles.card}>
-          {preview.map((doc, idx) => {
-            const displayName = /^dr\.?\s/i.test(doc.doctor_name)
-              ? doc.doctor_name
-              : `Dr. ${doc.doctor_name}`;
-            const initials =
-              doc.initials ||
-              (doc.doctor_name
-                ? doc.doctor_name
-                    .split(' ')
-                    .map(n => n[0])
-                    .join('')
-                    .slice(0, 2)
-                    .toUpperCase()
-                : 'DR');
-            const showDivider = idx < preview.length - 1;
-
+          {myDoctorsData?.data?.map((doc: any, idx: number) => {
+            const showDivider = idx < myDoctorsData?.data?.length - 1;
             return (
-              <View
-                key={String(doc.doctor_user_id || idx)}
+              <TouchableOpacity
+                key={String(doc.doctor_id || doc.user_id || idx)}
                 style={[styles.docRow, showDivider && styles.divider]}
+                onPress={() => handleDoctorPress(doc.doctor_id, doc.clinic_id)}
+                activeOpacity={0.75}
               >
                 {doc.profile_image ? (
                   <Image source={{ uri: doc.profile_image }} style={styles.avatarImage} />
                 ) : (
                   <View style={styles.avatarCircle}>
-                    <Text style={styles.avatarText}>{initials}</Text>
+                    <Text style={styles.avatarText}>{getInitials(doc?.name || '')}</Text>
                   </View>
                 )}
 
                 <View style={styles.docInfo}>
                   <Text style={styles.docName} numberOfLines={1}>
-                    {displayName}
+                    {doc?.name || ''}
                   </Text>
                   <Text style={styles.docSpec} numberOfLines={1}>
                     {doc.specialization}
                   </Text>
+                  {doc?.clinic?.name ? (
+                    <Text style={styles.clinicName} numberOfLines={1}>
+                      {doc.clinic.name}
+                    </Text>
+                  ) : null}
                 </View>
 
                 <TouchableOpacity
                   style={styles.consultBtn}
-                  onPress={() => onDoctorPress(doc)}
+                  onPress={() => handleDoctorPress(doc.doctor_id, doc.clinic_id)}
                   activeOpacity={0.85}
                 >
                   <Text style={styles.consultBtnText}>Consult</Text>
                 </TouchableOpacity>
-              </View>
+              </TouchableOpacity>
             );
           })}
         </View>
@@ -106,7 +147,7 @@ export const MyDoctorsSection: React.FC<MyDoctorsSectionProps> = ({
 const styles = StyleSheet.create({
   section: {
     marginTop: 20,
-    marginBottom: 8,
+    marginBottom: 17,
     width: '100%',
   },
   sectionHeader: {
@@ -142,7 +183,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingVertical: 14,
   },
   divider: {
     borderBottomWidth: 1,
@@ -175,21 +216,27 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   docName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: theme.colors.textPrimary,
-    marginBottom: 3,
+    marginBottom: 2,
   },
   docSpec: {
     fontSize: 13,
     color: theme.colors.textSecondary,
     fontWeight: '500',
   },
+  clinicName: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: theme.colors.primaryDark,
+    marginTop: 2,
+  },
   consultBtn: {
     backgroundColor: theme.colors.primary,
-    paddingHorizontal: 18,
-    paddingVertical: 9,
-    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -207,21 +254,66 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: 'center',
   },
-  emptyText: {
-    fontSize: 14,
-    color: theme.colors.textSlate,
+  emptyIconWrapper: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: theme.colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 12,
   },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: theme.colors.textPrimary,
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  emptySubText: {
+    fontSize: 13,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 16,
+    paddingHorizontal: 12,
+  },
   emptyBtn: {
-    backgroundColor: theme.colors.primarySoft,
-    paddingHorizontal: 18,
-    paddingVertical: 9,
+    backgroundColor: theme.colors.primaryDark,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
     borderRadius: 12,
   },
   emptyBtnText: {
     fontSize: 13,
     fontWeight: '700',
-    color: theme.colors.primary,
+    color: theme.colors.surface,
+  },
+  skeletonAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#E2E8F0',
+    marginRight: 14,
+  },
+  skeletonLineLong: {
+    width: '60%',
+    height: 14,
+    borderRadius: 4,
+    backgroundColor: '#E2E8F0',
+    marginBottom: 6,
+  },
+  skeletonLineShort: {
+    width: '40%',
+    height: 11,
+    borderRadius: 4,
+    backgroundColor: '#F1F5F9',
+  },
+  skeletonBtn: {
+    width: 76,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: '#E2E8F0',
   },
 });
 

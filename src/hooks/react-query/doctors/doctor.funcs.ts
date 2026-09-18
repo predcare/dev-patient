@@ -5,6 +5,7 @@ import {
   AllDoctorsRoot,
   DoctorAvailTimeSlotsRoot,
   DoctorDetailsRoot,
+  MyDoctorsRoot,
 } from '../../../typescripts/interfaces/doctors.interfaces';
 
 export interface IGetDoctorsQueryParams {
@@ -59,5 +60,10 @@ export const getDoctorTimingsByDate = async (params?: {
       params,
     }
   );
+  return res.data;
+};
+
+export const getMyDoctors = async () => {
+  const res = await axiosInstance.get<MyDoctorsRoot>(endpoints.doctors.myDocs);
   return res.data;
 };

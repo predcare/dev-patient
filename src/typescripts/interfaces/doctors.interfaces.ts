@@ -3,6 +3,7 @@ import { IRootResponse } from './common.interfaces';
 export type AllDoctorsRoot = IRootResponse<IAllDoctorData>;
 export type DoctorDetailsRoot = IRootResponse<IDoctorDetailsDoc>;
 export type DoctorAvailTimeSlotsRoot = IRootResponse<IDoctorAvailTimeSlots>;
+export type MyDoctorsRoot = IRootResponse<MyDoctorsDoc[]>;
 
 export interface IAllDoctorData {
   doctors: IDoctorDoc[];
@@ -102,4 +103,18 @@ export interface ITimeSlotsDoc {
   hide_fee: boolean;
   require_payment: boolean;
   slot_duration: number;
+}
+
+export interface MyDoctorsDoc {
+  id: string;
+  user_id: string;
+  doctor_id: string;
+  name: string;
+  profile_image: any;
+  specialization: string;
+  sub_specializations: string[];
+  clinic: {
+    id: string;
+    name: string;
+  };
 }

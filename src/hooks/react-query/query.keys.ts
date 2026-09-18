@@ -30,4 +30,5 @@ export enum DoctorQueryKeys {
   GET_DETAILS = 'GET_DETAILS',
   GET_AVAIL_DATES = 'GET_AVAIL_DATES',
   GET_SLOTS_BY_DATE = 'GET_SLOTS_BY_DATE',
+  MY_DOCS = 'MY_DOCS',
 }

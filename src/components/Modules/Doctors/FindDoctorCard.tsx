@@ -22,7 +22,7 @@ export const FindDoctorCard: React.FC<FindDoctorCardProps> = ({ onExplorePress }
   };
 
   return (
-    <View style={doctorStyles.findCard}>
+    <TouchableOpacity style={doctorStyles.findCard} onPress={handlePress} activeOpacity={0.9}>
       <View style={doctorStyles.findPlus}>
         <PlusIcon size={24} color={theme.colors.primaryDark} />
       </View>
@@ -30,15 +30,11 @@ export const FindDoctorCard: React.FC<FindDoctorCardProps> = ({ onExplorePress }
       <Text style={doctorStyles.findSub}>
         Browse our network of top specialists and book instant consultations.
       </Text>
-      <TouchableOpacity
-        style={doctorStyles.findLinkRow}
-        onPress={handlePress}
-        activeOpacity={0.8}
-      >
+      <View style={doctorStyles.findLinkRow}>
         <Text style={doctorStyles.findLink}>Find a Specialist</Text>
         <ChevronRightIcon size={16} color={theme.colors.primaryDark} />
-      </TouchableOpacity>
-    </View>
+      </View>
+    </TouchableOpacity>
   );
 };
 

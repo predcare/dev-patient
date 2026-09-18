@@ -28,6 +28,7 @@ export const AppRoute = {
   MEETING: 'Meeting',
   CONSULTATION_COMPLETED: 'ConsultationCompleted',
   CLINIC_DETAILS: 'ClinicDetails',
+  DOCTOR_PROFILE: 'DoctorProfile',
 } as const;
 
 export type RouteNames = (typeof AppRoute)[keyof typeof AppRoute];
