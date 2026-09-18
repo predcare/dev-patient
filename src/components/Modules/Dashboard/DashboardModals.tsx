@@ -1,5 +1,6 @@
 import React from 'react';
 import { Image, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { mediaPaths } from '../../../api/endpoints';
 import { getInitials } from '../../../lib/common/common.utils';
 import { dashboardStyles } from '../../../styled/DashboardScreen.styled';
 import { theme } from '../../../styled/theme.styled';
@@ -38,7 +39,7 @@ export const DashboardModals: React.FC<DashboardModalsProps> = ({
             <View style={dashboardStyles.profileSection}>
               {userData?.profile_image ? (
                 <Image
-                  source={{ uri: userData.profile_image }}
+                  source={{ uri: mediaPaths(userData.profile_image) }}
                   style={{ width: 88, height: 88, borderRadius: 44 }}
                 />
               ) : (

@@ -1,7 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryClient } from '../../../components/providers/ReactQueryProvider';
 import { ProfileQueryKeys } from '../query.keys';
-import { getProfile } from './profile.funcs';
+import { getProfile, updateProfile } from './profile.funcs';
 
 export const useProfile = () =>
   useQuery({
@@ -18,3 +18,12 @@ export const fetchProfileQuery = async (forceFetch = false) => {
   });
 };
 
+export const useUpdateProfile = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (formData: FormData) => updateProfile(formData),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [ProfileQueryKeys.Profile] });
+    },
+  });
+};

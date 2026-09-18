@@ -1,51 +1,109 @@
+import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import dayjs from 'dayjs';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import {
   ActivityIndicator,
   Image,
+  PermissionsAndroid,
+  Platform,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import { mediaPaths } from '../../api/endpoints';
+import UploadOptionsModal from '../../components/commons/UploadOptionsModal/UploadOptionsModal';
 import { DropdownPickerModal } from '../../components/Modules/MemberManagement';
 import AppHeader from '../../components/ui/AppHeader';
 import { CalendarIcon, ChevronDownIcon, EditIcon, UploadIcon } from '../../components/ui/icons';
 import WheelDatePickerModal from '../../components/ui/WheelDatePickerModal';
-import { useProfile } from '../../hooks/react-query/profile/profile.hooks';
+import {
+  useCitiesBySId,
+  useCountries,
+  useStatesByCId,
+} from '../../hooks/react-query/common/common.hooks';
+import { useProfile, useUpdateProfile } from '../../hooks/react-query/profile/profile.hooks';
 import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
-import { MOCK_CITIES, MOCK_STATES, MOCK_USER_PROFILE } from '../../resources/mockData';
+import { showInfoToast, showSuccessToast } from '../../lib/common/toast.utils';
+import { ProfileSetupSchema, TProfileSetupSchemaType } from '../../lib/schemas/profile.schemas';
 import { memberStyles } from '../../styled/MemberScreen.styled';
 import { theme } from '../../styled/theme.styled';
 
 export const ProfileSetupScreen: React.FC = () => {
   const navigation = useNavigation<any>();
 
-  const [name, setName] = useState<string>(MOCK_USER_PROFILE.name);
-  const [email] = useState<string>(MOCK_USER_PROFILE.email);
-  const [phoneNumber] = useState<string>(MOCK_USER_PROFILE.phone);
-  const [gender, setGender] = useState<string>('male');
-  const [dobDate, setDobDate] = useState<Date | null>(new Date(1988, 7, 15));
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
-  const [profilePic, setProfilePic] = useState<string | null>(
-    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500'
-  );
-
-  const [address, setAddress] = useState<string>(MOCK_USER_PROFILE.address);
-  const [stateName, setStateName] = useState<string>(MOCK_USER_PROFILE.state);
-  const [cityName, setCityName] = useState<string>(MOCK_USER_PROFILE.city);
-  const [postalCode, setPostalCode] = useState<string>(MOCK_USER_PROFILE.postalCode);
-  const [alternatePhone, setAlternatePhone] = useState<string>('9876543211');
-
+  const [showCountryPicker, setShowCountryPicker] = useState<boolean>(false);
   const [showStatePicker, setShowStatePicker] = useState<boolean>(false);
   const [showCityPicker, setShowCityPicker] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [showUploadOptions, setShowUploadOptions] = useState<boolean>(false);
 
-  const { data: profileData, isPending: profilePending } = useProfile();
-  console.log('profileData', profileData)
-  const stateOptions = MOCK_STATES.map(s => ({ label: s.name, value: s.name }));
-  const cityOptions = MOCK_CITIES.map(c => ({ label: c.name, value: c.name }));
+  const { data: profileData } = useProfile();
+  const { mutate: updateProfileMutation, isPending } = useUpdateProfile();
+
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<TProfileSetupSchemaType>({
+    resolver: yupResolver(ProfileSetupSchema),
+  });
+
+  const currentProfilePic = watch('profilePic');
+  const currentDob = watch('dob');
+  const currentCountry = watch('country');
+  const currentState = watch('state');
+  const currentCity = watch('city');
+  const currentGender = watch('gender');
+
+  // Location API Integration
+  const { data: countriesData } = useCountries();
+
+  const selectedCountryId = useMemo(() => {
+    if (!countriesData || !countriesData.length) return undefined;
+    if (currentCountry) {
+      const match = countriesData.find(
+        (c: any) => c.name?.toLowerCase() === currentCountry.toLowerCase()
+      );
+      if (match) return match.id;
+    }
+    const defaultMatch = countriesData.find(
+      (c: any) => c.name?.toLowerCase() === 'india' || c.code?.toLowerCase() === 'in'
+    );
+    return defaultMatch ? defaultMatch.id : countriesData[0]?.id;
+  }, [countriesData, currentCountry]);
+
+  const countryOptions = useMemo(
+    () => (countriesData || []).map((c: any) => ({ label: c.name, value: c.name })),
+    [countriesData]
+  );
+
+  const { data: statesData } = useStatesByCId({ cId: selectedCountryId });
+
+  const selectedStateId = useMemo(() => {
+    if (!statesData || !statesData.length || !currentState) return undefined;
+    const match = statesData.find((s: any) => s.name?.toLowerCase() === currentState.toLowerCase());
+    return match ? match.id : undefined;
+  }, [statesData, currentState]);
+
+  const { data: citiesData } = useCitiesBySId({ sId: selectedStateId });
+
+  const stateOptions = useMemo(
+    () => (statesData || []).map((s: any) => ({ label: s.name, value: s.name })),
+    [statesData]
+  );
+
+  const cityOptions = useMemo(
+    () => (citiesData || []).map((c: any) => ({ label: c.name, value: c.name })),
+    [citiesData]
+  );
 
   const formatDateLabel = (date: Date | null) => {
     if (!date) return '';
@@ -60,21 +118,171 @@ export const ProfileSetupScreen: React.FC = () => {
     }
   };
 
-  const handlePickPhoto = () => {
-    setProfilePic('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500');
+  const handleCamera = async () => {
+    try {
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA, {
+          title: 'Camera Permission Required',
+          message: 'App requires access to your camera to take profile photos.',
+          buttonPositive: 'OK',
+          buttonNegative: 'Cancel',
+        });
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          showInfoToast('Camera permission is required to capture photos', 'Camera Permission');
+          return;
+        }
+      }
+
+      setShowUploadOptions(false);
+
+      setTimeout(
+        () => {
+          launchCamera(
+            {
+              mediaType: 'photo',
+              quality: 0.8,
+              saveToPhotos: false,
+              includeBase64: false,
+            },
+            res => {
+              if (res.didCancel) return;
+              if (res.errorCode) {
+                console.warn('launchCamera errorCode:', res.errorCode, res.errorMessage);
+                showInfoToast(
+                  res.errorMessage || `Camera Error: ${res.errorCode}`,
+                  'Camera Failure'
+                );
+                return;
+              }
+              if (res.assets && res.assets[0]) {
+                const asset = res.assets[0];
+                const fileObj = {
+                  uri: asset.uri || '',
+                  name: asset.fileName || `profile_${Date.now()}.jpg`,
+                  type: asset.type || 'image/jpeg',
+                };
+                setValue('profilePic', fileObj, { shouldValidate: true });
+                showInfoToast('Photo captured successfully', 'Camera');
+              }
+            }
+          );
+        },
+        Platform.OS === 'android' ? 200 : 50
+      );
+    } catch (err: any) {
+      console.warn('handleCamera error:', err);
+      showInfoToast('Could not open camera', 'Camera Error');
+    }
+  };
+
+  const handleGallery = () => {
+    try {
+      setShowUploadOptions(false);
+
+      setTimeout(
+        () => {
+          launchImageLibrary(
+            {
+              mediaType: 'photo',
+              quality: 0.8,
+              selectionLimit: 1,
+              includeBase64: false,
+            },
+            res => {
+              if (res.didCancel) return;
+              if (res.errorCode) {
+                console.warn('launchImageLibrary errorCode:', res.errorCode, res.errorMessage);
+                showInfoToast(
+                  res.errorMessage || `Gallery Error: ${res.errorCode}`,
+                  'Gallery Failure'
+                );
+                return;
+              }
+              if (res.assets && res.assets[0]) {
+                const asset = res.assets[0];
+                const fileObj = {
+                  uri: asset.uri || '',
+                  name: asset.fileName || `profile_${Date.now()}.png`,
+                  type: asset.type || 'image/png',
+                };
+                setValue('profilePic', fileObj, { shouldValidate: true });
+                showInfoToast('Image selected from gallery', 'Gallery');
+              }
+            }
+          );
+        },
+        Platform.OS === 'android' ? 200 : 50
+      );
+    } catch (err: any) {
+      console.warn('handleGallery error:', err);
+      showInfoToast('Could not open gallery', 'Gallery Error');
+    }
   };
 
   const handleRemovePhoto = () => {
-    setProfilePic(null);
+    setValue('profilePic', null, { shouldValidate: true });
   };
 
-  const handleSaveProfile = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      navigation.goBack();
-    }, 600);
+  const onSubmit = (data: TProfileSetupSchemaType) => {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    if (data.email) formData.append('email', data.email);
+    if (data.phoneNumber) formData.append('phone_number', data.phoneNumber);
+    if (data.alternatePhone) formData.append('alternate_number', data.alternatePhone);
+    if (data.gender) formData.append('gender', data.gender);
+    if (data.dob) {
+      formData.append('date_of_birth', dayjs(data.dob).format('YYYY-MM-DD'));
+    }
+    if (data.address) formData.append('address', data.address);
+    if (data.country) formData.append('country', data.country);
+    if (data.state) formData.append('state', data.state);
+    if (data.city) formData.append('city', data.city);
+    if (data.postalCode) formData.append('postal_code', data.postalCode);
+
+    if (data.profilePic && typeof data.profilePic === 'object' && (data.profilePic as any).uri) {
+      const picObj = data.profilePic as any;
+      formData.append('profile_image', {
+        uri: picObj.uri,
+        name: picObj.name || `profile_${Date.now()}.jpg`,
+        type: picObj.type || 'image/jpeg',
+      } as any);
+    }
+
+    updateProfileMutation(formData, {
+      onSuccess: res => {
+        if (res?.success) {
+          showSuccessToast('Profile updated successfully!', 'Profile Update');
+          navigation.goBack();
+        }
+      },
+    });
   };
+
+  useEffect(() => {
+    if (profileData) {
+      reset({
+        name: profileData.name || '',
+        email: profileData.email || '',
+        phoneNumber: profileData.phone_number || '',
+        gender: profileData.gender || '',
+        dob: profileData.date_of_birth ? new Date(profileData.date_of_birth) : undefined,
+        address: profileData.address || '',
+        country: profileData.country || 'India',
+        state: profileData.state || '',
+        city: profileData.city || '',
+        postalCode: profileData.postal_code || '',
+        alternatePhone: profileData.alternate_number || '',
+        profilePic: profileData.profile_image ? mediaPaths(profileData?.profile_image) : '',
+      });
+    }
+  }, [profileData, reset]);
+
+  const profileImageUri =
+    typeof currentProfilePic === 'string'
+      ? currentProfilePic
+      : currentProfilePic && typeof currentProfilePic === 'object'
+      ? (currentProfilePic as any).uri
+      : null;
 
   return (
     <SafeAreaWrapper style={memberStyles.screen}>
@@ -85,15 +293,14 @@ export const ProfileSetupScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Profile Photo Section */}
         <View style={memberStyles.profilePicSection}>
           <TouchableOpacity
             style={memberStyles.profilePicContainer}
-            onPress={handlePickPhoto}
+            onPress={() => setShowUploadOptions(true)}
             activeOpacity={0.85}
           >
-            {profilePic ? (
-              <Image source={{ uri: profilePic }} style={memberStyles.profileImage} />
+            {profileImageUri ? (
+              <Image source={{ uri: profileImageUri }} style={memberStyles.profileImage} />
             ) : (
               <View style={memberStyles.uploadCircle}>
                 <UploadIcon size={24} color={theme.colors.primaryDark} />
@@ -104,222 +311,351 @@ export const ProfileSetupScreen: React.FC = () => {
               <EditIcon size={16} color={theme.colors.surface} />
             </View>
           </TouchableOpacity>
-
-          {profilePic ? (
-            <TouchableOpacity style={memberStyles.removeImageButton} onPress={handleRemovePhoto}>
-              <Text style={memberStyles.removeImageText}>Remove Photo</Text>
-            </TouchableOpacity>
-          ) : null}
         </View>
 
-        {/* Section: Personal Details */}
         <View style={memberStyles.formSection}>
-          {/* Full Name */}
-          <View style={memberStyles.inputWrapper}>
-            <Text style={memberStyles.label}>
-              FULL NAME <Text style={memberStyles.required}>*</Text>
-            </Text>
-            <TextInput
-              style={memberStyles.input}
-              placeholder="Enter full name"
-              placeholderTextColor={theme.colors.textMuted}
-              value={name}
-              onChangeText={setName}
-            />
-          </View>
+          <Controller
+            control={control}
+            name="name"
+            render={({ field: { onChange, value } }) => (
+              <View style={memberStyles.inputWrapper}>
+                <Text style={memberStyles.label}>
+                  FULL NAME <Text style={memberStyles.required}>*</Text>
+                </Text>
+                <TextInput
+                  style={memberStyles.input}
+                  placeholder="Enter full name"
+                  placeholderTextColor={theme.colors.textMuted}
+                  value={value}
+                  onChangeText={onChange}
+                />
+                {errors.name && (
+                  <Text style={{ color: theme.colors.errorRed, fontSize: 12, marginTop: 4 }}>
+                    {errors.name.message}
+                  </Text>
+                )}
+              </View>
+            )}
+          />
 
-          {/* Email Address */}
-          <View style={memberStyles.inputWrapper}>
-            <Text style={memberStyles.label}>
-              EMAIL ADDRESS <Text style={memberStyles.required}>*</Text>
-            </Text>
-            <TextInput
-              style={[memberStyles.input, memberStyles.inputDisabled]}
-              value={email}
-              editable={false}
-            />
-          </View>
+          <Controller
+            control={control}
+            name="email"
+            render={({ field: { value } }) => (
+              <View style={memberStyles.inputWrapper}>
+                <Text style={memberStyles.label}>EMAIL ADDRESS</Text>
+                <TextInput
+                  style={[memberStyles.input, memberStyles.inputDisabled]}
+                  value={value || ''}
+                  editable={false}
+                />
+              </View>
+            )}
+          />
 
-          {/* Phone Number */}
-          <View style={memberStyles.inputWrapper}>
-            <Text style={memberStyles.label}>
-              PHONE NUMBER <Text style={memberStyles.required}>*</Text>
-            </Text>
-            <TextInput
-              style={[memberStyles.input, memberStyles.inputDisabled]}
-              value={phoneNumber}
-              editable={false}
-            />
-          </View>
+          <Controller
+            control={control}
+            name="phoneNumber"
+            render={({ field: { value } }) => (
+              <View style={memberStyles.inputWrapper}>
+                <Text style={memberStyles.label}>PHONE NUMBER</Text>
+                <TextInput
+                  style={[memberStyles.input, memberStyles.inputDisabled]}
+                  value={value || ''}
+                  editable={false}
+                />
+              </View>
+            )}
+          />
 
-          {/* Gender */}
-          <View style={memberStyles.inputWrapper}>
-            <Text style={memberStyles.label}>
-              GENDER <Text style={memberStyles.required}>*</Text>
-            </Text>
-            <View style={memberStyles.genderContainer}>
-              {['male', 'female', 'others'].map(g => (
+          <Controller
+            control={control}
+            name="gender"
+            render={({ field: { onChange } }) => (
+              <View style={memberStyles.inputWrapper}>
+                <Text style={memberStyles.label}>
+                  GENDER <Text style={memberStyles.required}>*</Text>
+                </Text>
+                <View style={memberStyles.genderContainer}>
+                  {['male', 'female', 'others'].map(g => (
+                    <TouchableOpacity
+                      key={g}
+                      style={[
+                        memberStyles.genderButton,
+                        currentGender === g && memberStyles.genderButtonActive,
+                      ]}
+                      onPress={() => onChange(g)}
+                      activeOpacity={0.8}
+                    >
+                      <Text
+                        style={[
+                          memberStyles.genderButtonText,
+                          currentGender === g && memberStyles.genderButtonTextActive,
+                        ]}
+                      >
+                        {g.charAt(0).toUpperCase() + g.slice(1)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                {errors.gender && (
+                  <Text style={{ color: theme.colors.errorRed, fontSize: 12, marginTop: 4 }}>
+                    {errors.gender.message}
+                  </Text>
+                )}
+              </View>
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="dob"
+            render={() => (
+              <View style={memberStyles.inputWrapper}>
+                <Text style={memberStyles.label}>
+                  DATE OF BIRTH <Text style={memberStyles.required}>*</Text>
+                </Text>
                 <TouchableOpacity
-                  key={g}
-                  style={[
-                    memberStyles.genderButton,
-                    gender === g && memberStyles.genderButtonActive,
-                  ]}
-                  onPress={() => setGender(g)}
+                  style={memberStyles.dropdownTrigger}
+                  onPress={() => setShowDatePicker(true)}
                   activeOpacity={0.8}
                 >
-                  <Text
-                    style={[
-                      memberStyles.genderButtonText,
-                      gender === g && memberStyles.genderButtonTextActive,
-                    ]}
-                  >
-                    {g.charAt(0).toUpperCase() + g.slice(1)}
+                  <Text style={memberStyles.dropdownValue}>
+                    {currentDob ? formatDateLabel(currentDob) : 'Select Date of Birth'}
                   </Text>
+                  <CalendarIcon size={18} color={theme.colors.textMuted} />
                 </TouchableOpacity>
-              ))}
-            </View>
-          </View>
+                {errors.dob && (
+                  <Text style={{ color: theme.colors.errorRed, fontSize: 12, marginTop: 4 }}>
+                    {errors.dob.message}
+                  </Text>
+                )}
+              </View>
+            )}
+          />
 
-          {/* Date of Birth */}
-          <View style={memberStyles.inputWrapper}>
-            <Text style={memberStyles.label}>
-              DATE OF BIRTH <Text style={memberStyles.required}>*</Text>
-            </Text>
-            <TouchableOpacity
-              style={memberStyles.dropdownTrigger}
-              onPress={() => setShowDatePicker(true)}
-              activeOpacity={0.8}
-            >
-              <Text style={memberStyles.dropdownValue}>
-                {dobDate ? formatDateLabel(dobDate) : 'Select Date of Birth'}
-              </Text>
-              <CalendarIcon size={18} color={theme.colors.textMuted} />
-            </TouchableOpacity>
-          </View>
+          <Controller
+            control={control}
+            name="address"
+            render={({ field: { onChange, value } }) => (
+              <View style={memberStyles.inputWrapper}>
+                <Text style={memberStyles.label}>
+                  ADDRESS <Text style={memberStyles.required}>*</Text>
+                </Text>
+                <TextInput
+                  style={memberStyles.input}
+                  placeholder="Enter street address"
+                  placeholderTextColor={theme.colors.textMuted}
+                  value={value}
+                  onChangeText={onChange}
+                  multiline
+                />
+                {errors.address && (
+                  <Text style={{ color: theme.colors.errorRed, fontSize: 12, marginTop: 4 }}>
+                    {errors.address.message}
+                  </Text>
+                )}
+              </View>
+            )}
+          />
 
-          {/* Address */}
-          <View style={memberStyles.inputWrapper}>
-            <Text style={memberStyles.label}>
-              ADDRESS <Text style={memberStyles.required}>*</Text>
-            </Text>
-            <TextInput
-              style={memberStyles.input}
-              placeholder="Enter street address"
-              placeholderTextColor={theme.colors.textMuted}
-              value={address}
-              onChangeText={setAddress}
-              multiline
-            />
-          </View>
+          <Controller
+            control={control}
+            name="country"
+            render={() => (
+              <View style={memberStyles.inputWrapper}>
+                <Text style={memberStyles.label}>
+                  COUNTRY <Text style={memberStyles.required}>*</Text>
+                </Text>
+                <TouchableOpacity
+                  style={memberStyles.dropdownTrigger}
+                  onPress={() => setShowCountryPicker(true)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={memberStyles.dropdownValue}>
+                    {currentCountry || 'Select Country'}
+                  </Text>
+                  <ChevronDownIcon size={18} color={theme.colors.textMuted} />
+                </TouchableOpacity>
+                {errors.country && (
+                  <Text style={{ color: theme.colors.errorRed, fontSize: 12, marginTop: 4 }}>
+                    {errors.country.message}
+                  </Text>
+                )}
+              </View>
+            )}
+          />
 
-          {/* State */}
-          <View style={memberStyles.inputWrapper}>
-            <Text style={memberStyles.label}>
-              STATE <Text style={memberStyles.required}>*</Text>
-            </Text>
-            <TouchableOpacity
-              style={memberStyles.dropdownTrigger}
-              onPress={() => setShowStatePicker(true)}
-              activeOpacity={0.8}
-            >
-              <Text style={memberStyles.dropdownValue}>{stateName || 'Select State'}</Text>
-              <ChevronDownIcon size={18} color={theme.colors.textMuted} />
-            </TouchableOpacity>
-          </View>
+          <Controller
+            control={control}
+            name="state"
+            render={() => (
+              <View style={memberStyles.inputWrapper}>
+                <Text style={memberStyles.label}>
+                  STATE <Text style={memberStyles.required}>*</Text>
+                </Text>
+                <TouchableOpacity
+                  style={memberStyles.dropdownTrigger}
+                  onPress={() => setShowStatePicker(true)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={memberStyles.dropdownValue}>{currentState || 'Select State'}</Text>
+                  <ChevronDownIcon size={18} color={theme.colors.textMuted} />
+                </TouchableOpacity>
+                {errors.state && (
+                  <Text style={{ color: theme.colors.errorRed, fontSize: 12, marginTop: 4 }}>
+                    {errors.state.message}
+                  </Text>
+                )}
+              </View>
+            )}
+          />
 
-          {/* City */}
-          <View style={memberStyles.inputWrapper}>
-            <Text style={memberStyles.label}>
-              CITY <Text style={memberStyles.required}>*</Text>
-            </Text>
-            <TouchableOpacity
-              style={memberStyles.dropdownTrigger}
-              onPress={() => setShowCityPicker(true)}
-              activeOpacity={0.8}
-            >
-              <Text style={memberStyles.dropdownValue}>{cityName || 'Select City'}</Text>
-              <ChevronDownIcon size={18} color={theme.colors.textMuted} />
-            </TouchableOpacity>
-          </View>
+          <Controller
+            control={control}
+            name="city"
+            render={() => (
+              <View style={memberStyles.inputWrapper}>
+                <Text style={memberStyles.label}>
+                  CITY <Text style={memberStyles.required}>*</Text>
+                </Text>
+                <TouchableOpacity
+                  style={memberStyles.dropdownTrigger}
+                  onPress={() => setShowCityPicker(true)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={memberStyles.dropdownValue}>{currentCity || 'Select City'}</Text>
+                  <ChevronDownIcon size={18} color={theme.colors.textMuted} />
+                </TouchableOpacity>
+                {errors.city && (
+                  <Text style={{ color: theme.colors.errorRed, fontSize: 12, marginTop: 4 }}>
+                    {errors.city.message}
+                  </Text>
+                )}
+              </View>
+            )}
+          />
 
-          {/* Postal Code */}
-          <View style={memberStyles.inputWrapper}>
-            <Text style={memberStyles.label}>
-              POSTAL CODE <Text style={memberStyles.required}>*</Text>
-            </Text>
-            <TextInput
-              style={memberStyles.input}
-              placeholder="Enter postal code"
-              placeholderTextColor={theme.colors.textMuted}
-              keyboardType="numeric"
-              value={postalCode}
-              onChangeText={setPostalCode}
-              maxLength={6}
-            />
-          </View>
+          <Controller
+            control={control}
+            name="postalCode"
+            render={({ field: { onChange, value } }) => (
+              <View style={memberStyles.inputWrapper}>
+                <Text style={memberStyles.label}>
+                  POSTAL CODE <Text style={memberStyles.required}>*</Text>
+                </Text>
+                <TextInput
+                  style={memberStyles.input}
+                  placeholder="Enter postal code"
+                  placeholderTextColor={theme.colors.textMuted}
+                  keyboardType="numeric"
+                  value={value}
+                  onChangeText={onChange}
+                  maxLength={6}
+                />
+                {errors.postalCode && (
+                  <Text style={{ color: theme.colors.errorRed, fontSize: 12, marginTop: 4 }}>
+                    {errors.postalCode.message}
+                  </Text>
+                )}
+              </View>
+            )}
+          />
 
-          {/* Alternate Phone */}
-          <View style={memberStyles.inputWrapper}>
-            <Text style={memberStyles.label}>ALTERNATE PHONE</Text>
-            <TextInput
-              style={memberStyles.input}
-              placeholder="Enter alternate phone"
-              placeholderTextColor={theme.colors.textMuted}
-              keyboardType="phone-pad"
-              value={alternatePhone}
-              onChangeText={setAlternatePhone}
-              maxLength={10}
-            />
-          </View>
+          <Controller
+            control={control}
+            name="alternatePhone"
+            render={({ field: { onChange, value } }) => (
+              <View style={memberStyles.inputWrapper}>
+                <Text style={memberStyles.label}>ALTERNATE PHONE</Text>
+                <TextInput
+                  style={memberStyles.input}
+                  placeholder="Enter alternate phone"
+                  placeholderTextColor={theme.colors.textMuted}
+                  keyboardType="phone-pad"
+                  value={value || ''}
+                  onChangeText={onChange}
+                  maxLength={10}
+                />
+                {errors.alternatePhone && (
+                  <Text style={{ color: theme.colors.errorRed, fontSize: 12, marginTop: 4 }}>
+                    {errors.alternatePhone.message}
+                  </Text>
+                )}
+              </View>
+            )}
+          />
         </View>
 
-        {/* Save Button */}
         <TouchableOpacity
-          style={[memberStyles.saveButton, loading && memberStyles.saveButtonDisabled]}
-          onPress={handleSaveProfile}
-          disabled={loading}
+          style={[memberStyles.saveButton, isPending && memberStyles.saveButtonDisabled]}
+          onPress={handleSubmit(onSubmit)}
+          disabled={isPending}
           activeOpacity={0.85}
         >
-          {loading ? (
+          {isPending ? (
             <ActivityIndicator color={theme.colors.surface} size="small" />
           ) : (
             <Text style={memberStyles.saveButtonText}>Save Changes</Text>
           )}
         </TouchableOpacity>
       </ScrollView>
-
-      {/* Wheel Date Picker Modal */}
       <WheelDatePickerModal
         visible={showDatePicker}
-        value={dobDate || new Date(1988, 7, 15)}
+        value={currentDob || new Date(1988, 7, 15)}
         maximumDate={new Date()}
         title="Date of Birth"
         onCancel={() => setShowDatePicker(false)}
         onConfirm={date => {
-          setDobDate(date);
+          setValue('dob', date, { shouldValidate: true });
           setShowDatePicker(false);
         }}
       />
 
-      {/* State Picker Modal */}
+      <DropdownPickerModal
+        visible={showCountryPicker}
+        title="Select Country"
+        options={countryOptions}
+        selectedValue={currentCountry}
+        onSelect={val => {
+          setValue('country', val, { shouldValidate: true });
+          setValue('state', '', { shouldValidate: true });
+          setValue('city', '', { shouldValidate: true });
+          setShowCountryPicker(false);
+        }}
+        onClose={() => setShowCountryPicker(false)}
+      />
+
       <DropdownPickerModal
         visible={showStatePicker}
         title="Select State"
         options={stateOptions}
-        selectedValue={stateName}
-        onSelect={val => setStateName(val)}
+        selectedValue={currentState}
+        onSelect={val => {
+          setValue('state', val, { shouldValidate: true });
+          setValue('city', '', { shouldValidate: true });
+          setShowStatePicker(false);
+        }}
         onClose={() => setShowStatePicker(false)}
       />
-
-      {/* City Picker Modal */}
       <DropdownPickerModal
         visible={showCityPicker}
         title="Select City"
         options={cityOptions}
-        selectedValue={cityName}
-        onSelect={val => setCityName(val)}
+        selectedValue={currentCity}
+        onSelect={val => {
+          setValue('city', val, { shouldValidate: true });
+          setShowCityPicker(false);
+        }}
         onClose={() => setShowCityPicker(false)}
+      />
+      <UploadOptionsModal
+        visible={showUploadOptions}
+        title="Upload Profile Picture"
+        subtitle="Choose a source to attach your photo"
+        onClose={() => setShowUploadOptions(false)}
+        onSelectCamera={handleCamera}
+        onSelectGallery={handleGallery}
       />
     </SafeAreaWrapper>
   );

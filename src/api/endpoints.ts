@@ -9,12 +9,12 @@ export const mediaPaths = (fileName?: string) => {
     return rawImg;
   }
   if (rawImg.startsWith('/')) {
-    return `${baseUrl}${rawImg}`;
+    return `${localBaseUrl}${rawImg}`;
   }
   if (rawImg.startsWith('storage/')) {
-    return `${baseUrl}/${rawImg}`;
+    return `${localBaseUrl}/${rawImg}`;
   }
-  return `${baseUrl}/storage/${rawImg}`;
+  return `${localBaseUrl}/storage/${rawImg}`;
 };
 
 export const endpoints = {
@@ -31,7 +31,7 @@ export const endpoints = {
   },
   profile: {
     get: '/users/profile',
-    update: '/doctors/user/',
+    update: '/users/profile-update',
   },
   doctors: {
     getAll: '/patients/doctors',

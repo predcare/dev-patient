@@ -6,6 +6,7 @@ import NotificationModal, {
   NotificationItem,
 } from '../components/commons/NotificationModal/NotificationModal';
 import { BellIcon, GlobeIcon } from '../components/ui/icons';
+import { mediaPaths } from '../api/endpoints';
 import { getInitials } from '../lib/common/common.utils';
 import { MOCK_NOTIFICATIONS, MOCK_USER_PROFILE } from '../resources/mockData';
 import { headerStyles } from '../styled/Header.styled';
@@ -74,7 +75,10 @@ export const Header: React.FC<HeaderProps> = ({
           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
         >
           {userData?.profile_image ? (
-            <Image source={{ uri: userData?.profile_image }} style={headerStyles.avatarImage} />
+            <Image
+              source={{ uri: mediaPaths(userData.profile_image) }}
+              style={headerStyles.avatarImage}
+            />
           ) : (
             <View style={[headerStyles.avatar, { backgroundColor: avatarColor }]}>
               <Text style={headerStyles.avatarText}>{getInitials(userData?.name || '')}</Text>

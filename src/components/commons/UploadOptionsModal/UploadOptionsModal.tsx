@@ -38,15 +38,7 @@ const CameraBadgeIcon = () => (
 
 const GalleryBadgeIcon = () => (
   <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-    <Rect
-      x="3"
-      y="3"
-      width="18"
-      height="18"
-      rx="3"
-      stroke="#6366F1"
-      strokeWidth="2"
-    />
+    <Rect x="3" y="3" width="18" height="18" rx="3" stroke="#6366F1" strokeWidth="2" />
     <Circle cx="8.5" cy="8.5" r="1.5" fill="#6366F1" />
     <Path
       d="M21 15l-5-5L5 21"
@@ -117,13 +109,9 @@ export const UploadOptionsModal: React.FC<UploadOptionsModalProps> = ({
 
   if (!visible) return null;
 
-  const displayTitle =
-    title || `Upload ${type === 'logo' ? 'Clinic Logo' : 'Doctor Signature'}`;
+  const displayTitle = title || `Upload ${type === 'logo' ? 'Clinic Logo' : 'Doctor Signature'}`;
   const displaySubtitle =
-    subtitle ||
-    `Choose a source to add your ${
-      type === 'logo' ? 'logo image' : 'signature'
-    }`;
+    subtitle || `Choose a source to add your ${type === 'logo' ? 'logo image' : 'signature'}`;
 
   return (
     <Modal
@@ -154,11 +142,7 @@ export const UploadOptionsModal: React.FC<UploadOptionsModalProps> = ({
                   <Text style={styles.sheetTitle}>{displayTitle}</Text>
                   <Text style={styles.sheetSubtitle}>{displaySubtitle}</Text>
                 </View>
-                <TouchableOpacity
-                  onPress={onClose}
-                  style={styles.closeBtn}
-                  activeOpacity={0.7}
-                >
+                <TouchableOpacity onPress={onClose} style={styles.closeBtn} activeOpacity={0.7}>
                   <CloseIcon />
                 </TouchableOpacity>
               </View>
@@ -176,12 +160,7 @@ export const UploadOptionsModal: React.FC<UploadOptionsModalProps> = ({
                   }}
                   activeOpacity={0.8}
                 >
-                  <View
-                    style={[
-                      styles.iconCircle,
-                      { backgroundColor: theme.colors.primarySoft },
-                    ]}
-                  >
+                  <View style={[styles.iconCircle, { backgroundColor: theme.colors.primarySoft }]}>
                     <CameraBadgeIcon />
                   </View>
                   <View style={styles.optionTextWrap}>
@@ -206,9 +185,7 @@ export const UploadOptionsModal: React.FC<UploadOptionsModalProps> = ({
                   }}
                   activeOpacity={0.8}
                 >
-                  <View
-                    style={[styles.iconCircle, { backgroundColor: '#EEF2FF' }]}
-                  >
+                  <View style={[styles.iconCircle, { backgroundColor: '#EEF2FF' }]}>
                     <GalleryBadgeIcon />
                   </View>
                   <View style={styles.optionTextWrap}>
@@ -222,11 +199,7 @@ export const UploadOptionsModal: React.FC<UploadOptionsModalProps> = ({
               </View>
 
               {/* Cancel Button */}
-              <TouchableOpacity
-                style={styles.cancelBtn}
-                onPress={onClose}
-                activeOpacity={0.8}
-              >
+              <TouchableOpacity style={styles.cancelBtn} onPress={onClose} activeOpacity={0.8}>
                 <Text style={styles.cancelBtnText}>Cancel</Text>
               </TouchableOpacity>
             </Animated.View>
