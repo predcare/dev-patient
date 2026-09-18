@@ -142,6 +142,27 @@ export const DoctorSearchScreen: React.FC = () => {
   const [showSpecialtyModal, setShowSpecialtyModal] = useState<boolean>(false);
   const [showCityModal, setShowCityModal] = useState<boolean>(false);
 
+  const hasActiveFilters = useMemo(() => {
+    return (
+      !!filterStates.searchQuery ||
+      !!filterStates.selectedSpecialty ||
+      !!filterStates.selectedSubSpecialty ||
+      !!filterStates.selectedCity ||
+      filterStates.todayOnly ||
+      filterStates.videoOnly ||
+      !!filterStates.gender ||
+      !!filterStates.experience ||
+      !!filterStates.consultationType ||
+      !!filterStates.availability ||
+      filterStates.minFee != null ||
+      filterStates.maxFee != null
+    );
+  }, [filterStates]);
+
+  const handleResetFilters = () => {
+    setFilterStates(defaultFilterStates);
+  };
+
   const combinedList: ListItemType[] = useMemo(() => {
     if (!infiniteData?.pages) return [];
     const clinics = infiniteData.pages.flatMap(
@@ -344,7 +365,34 @@ export const DoctorSearchScreen: React.FC = () => {
           </View>
         </View>
 
-        <Text style={doctorSearchStyles.sectionTitle}>Specialists & Clinics for you</Text>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 14,
+          }}
+        >
+          <Text style={[doctorSearchStyles.sectionTitle, { marginBottom: 0 }]}>
+            Specialists & Clinics for you
+          </Text>
+          {hasActiveFilters && (
+            <TouchableOpacity
+              onPress={handleResetFilters}
+              activeOpacity={0.7}
+              style={{
+                paddingHorizontal: 10,
+                paddingVertical: 4,
+                borderRadius: 12,
+                backgroundColor: theme.colors.primary || '#FEE2E2',
+              }}
+            >
+              <Text style={{ fontSize: 12, fontWeight: '600', color: theme.colors.surface }}>
+                Clear All
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       {isPending && !isFetchingNextPage ? (
