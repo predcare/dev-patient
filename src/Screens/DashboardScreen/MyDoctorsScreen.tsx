@@ -1,7 +1,6 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
-import { FlatList, RefreshControl, Text, View } from 'react-native';
-import { AlertType } from '../../components/commons/PopupAlert/PopupAlert';
+import { FlatList, RefreshControl, Text, TouchableOpacity, View } from 'react-native';
 import { DoctorCard, FindDoctorCard } from '../../components/Modules/Doctors';
 import { MyDoctorsSkeleton } from '../../components/Skeletons/MyDoctorsSkeleton';
 import { StethoscopeIcon } from '../../components/ui/icons';
@@ -13,24 +12,18 @@ import { AppRoute } from '../../route';
 import { doctorStyles } from '../../styled/DoctorScreen.styled';
 import { theme } from '../../styled/theme.styled';
 
-interface PopupAlertState {
-  visible: boolean;
-  type?: AlertType;
-  title?: string;
-  message?: string;
-  buttonText?: string;
-  onPress?: () => void;
-}
-
 export const MyDoctorsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const rootNav = navigation.getParent() || navigation;
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const {
     data: myDoctorsData,
-    isFetching: isPendingMyDoctors,
+    isLoading: isLoadingMyDoctors,
     refetch: refetchMyDoctors,
   } = useGetMyDoctors();
+
+  const doctorsList = myDoctorsData?.data || [];
+  const hasDoctors = doctorsList.length > 0;
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -38,7 +31,7 @@ export const MyDoctorsScreen: React.FC = () => {
     setRefreshing(false);
   };
   const handleExploreDoctors = () => {
-    rootNav.navigate('DoctorSearch');
+    rootNav.navigate(AppRoute.DOCTOR_SEARCH);
   };
 
   const handleNavigate = (type: string, options: { doctorId: number; clinicId: number }) => {
@@ -69,11 +62,11 @@ export const MyDoctorsScreen: React.FC = () => {
   return (
     <SafeAreaWrapper style={doctorStyles.container}>
       <Header />
-      {isPendingMyDoctors && !refreshing ? (
+      {isLoadingMyDoctors && !refreshing && !myDoctorsData ? (
         <MyDoctorsSkeleton />
       ) : (
         <FlatList
-          data={myDoctorsData?.data || []}
+          data={doctorsList}
           keyExtractor={item => String(item.doctor_id)}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={doctorStyles.scrollContent}
@@ -110,11 +103,18 @@ export const MyDoctorsScreen: React.FC = () => {
                 Doctors you consult with or book appointments with will automatically appear here
                 for easy access and rebooking.
               </Text>
+              <TouchableOpacity
+                style={doctorStyles.emptyActionButton}
+                onPress={handleExploreDoctors}
+                activeOpacity={0.8}
+              >
+                <Text style={doctorStyles.emptyActionButtonText}>Find & Book a Doctor</Text>
+              </TouchableOpacity>
             </View>
           }
           ListFooterComponent={
             <>
-              <FindDoctorCard onExplorePress={handleExploreDoctors} />
+              {hasDoctors && <FindDoctorCard onExplorePress={handleExploreDoctors} />}
               <View style={doctorStyles.bottomPadding} />
             </>
           }

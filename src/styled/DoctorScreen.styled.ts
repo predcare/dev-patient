@@ -53,6 +53,20 @@ export const doctorStyles = StyleSheet.create({
     lineHeight: 20,
     paddingHorizontal: 24,
   },
+  emptyActionButton: {
+    marginTop: 24,
+    backgroundColor: theme.colors.primaryDark,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyActionButtonText: {
+    color: theme.colors.surface,
+    fontWeight: '700',
+    fontSize: 14,
+  },
   doctorsList: {
     gap: 14,
   },
