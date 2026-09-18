@@ -6,7 +6,6 @@ export const headerStyles = StyleSheet.create({
     backgroundColor: theme.colors.background,
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.sm,
-    paddingBottom: theme.spacing.sm + 2,
     zIndex: 10,
     ...globalShadows.card,
   },

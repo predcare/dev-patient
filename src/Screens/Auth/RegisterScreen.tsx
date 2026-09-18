@@ -1,10 +1,11 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigation } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
   ActivityIndicator,
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -16,7 +17,6 @@ import {
 } from 'react-native';
 import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import OtpInput from '../../components/commons/OtpInput';
-import { queryClient } from '../../components/providers/ReactQueryProvider';
 import { MailIcon, PhoneIcon, ProfileIcon } from '../../components/ui/icons';
 import useFcmToken from '../../hooks/commons/useFcmToken';
 import {
@@ -43,6 +43,12 @@ export interface RegisterScreenProps {
 
 type ScreenStep = 'form' | 'otp';
 
+interface RegisterState {
+  step: ScreenStep;
+  resendTimer: number;
+  canResend: boolean;
+}
+
 export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: propNavigation }) => {
   const { width } = useWindowDimensions();
   const cardWidth = Math.min(width - 32, 480);
@@ -52,13 +58,28 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: prop
   const setUserData = useAuthStore(state => state.setUserData);
   const { fcmToken, deviceInfo } = useFcmToken();
 
-  const [step, setStep] = useState<ScreenStep>('form');
+  const [state, setState] = useState<RegisterState>({
+    step: 'form',
+    resendTimer: 60,
+    canResend: false,
+  });
+
+  const updateState = useCallback(
+    (patch: Partial<RegisterState> | ((prev: RegisterState) => Partial<RegisterState>)) => {
+      setState(prev => ({
+        ...prev,
+        ...(typeof patch === 'function' ? patch(prev) : patch),
+      }));
+    },
+    []
+  );
 
   const {
     control,
     handleSubmit,
     watch,
     getValues,
+    setValue,
     formState: { errors },
   } = useForm<TPatientRegisterSchemaType>({
     resolver: yupResolver(PatientRegisterSchema),
@@ -82,21 +103,6 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: prop
   const { mutate: verifyOtp, isPending: isVerifying } = usePatientVerifyOTP();
   const { mutate: resendOtp, isPending: isResending } = useReSendOtp();
 
-  // Timer for OTP resend
-  const [resendTimer, setResendTimer] = useState(60);
-  const [canResend, setCanResend] = useState(false);
-
-  useEffect(() => {
-    if (step !== 'otp') return;
-    let timer: NodeJS.Timeout;
-    if (resendTimer > 0) {
-      timer = setTimeout(() => setResendTimer(prev => prev - 1), 1000);
-    } else {
-      setCanResend(true);
-    }
-    return () => clearTimeout(timer);
-  }, [resendTimer, step]);
-
   const onRegisterSubmit = (formData: TPatientRegisterSchemaType) => {
     register(
       {
@@ -112,9 +118,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: prop
       {
         onSuccess: res => {
           if (res?.success) {
-            setStep('otp');
-            setResendTimer(60);
-            setCanResend(false);
+            updateState({ step: 'otp', resendTimer: 60, canResend: false });
+            setValue('otp', '');
           }
         },
       }
@@ -186,13 +191,25 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: prop
         user_type: 'patient',
       },
       {
-        onSuccess: () => {
-          setResendTimer(60);
-          setCanResend(false);
+        onSuccess: res => {
+          if (res?.success) {
+            updateState({ resendTimer: 60, canResend: false });
+          }
         },
       }
     );
   };
+
+  useEffect(() => {
+    if (state.step !== 'otp') return;
+    let timer: NodeJS.Timeout;
+    if (state.resendTimer > 0) {
+      timer = setTimeout(() => updateState(prev => ({ resendTimer: prev.resendTimer - 1 })), 1000);
+    } else {
+      updateState({ canResend: true });
+    }
+    return () => clearTimeout(timer);
+  }, [state.resendTimer, state.step, updateState]);
 
   return (
     <SafeAreaWrapper style={registerStyles.safeArea}>
@@ -214,13 +231,13 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: prop
             <View style={registerStyles.titleContainer}>
               <Text style={registerStyles.title}>Create Account</Text>
               <Text style={registerStyles.subtitle}>
-                {step === 'form'
+                {state.step === 'form'
                   ? 'Fill in your details to get started'
                   : `OTP sent to +91 ${phoneNumber}`}
               </Text>
             </View>
 
-            {step === 'form' && (
+            {state.step === 'form' && (
               <>
                 <View style={registerStyles.fieldGroup}>
                   <Text style={registerStyles.label}>Full Name</Text>
@@ -253,7 +270,6 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: prop
                   ) : null}
                 </View>
 
-                {/* Email Address */}
                 <View style={registerStyles.fieldGroup}>
                   <Text style={registerStyles.label}>Email Address</Text>
                   <View
@@ -340,14 +356,25 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: prop
             )}
 
             {/* Step: OTP */}
-            {step === 'otp' && (
+            {state?.step === 'otp' && (
               <View style={registerStyles.otpSection}>
                 <Text style={registerStyles.label}>Enter 6-digit OTP</Text>
                 <Controller
                   control={control}
                   name="otp"
-                  render={({ field: { onChange, value } }) => (
-                    <OtpInput value={value || ''} onChange={onChange} numInputs={6} />
+                  render={({ field: { onChange, value = '' } }) => (
+                    <OtpInput
+                      value={value}
+                      onChange={val => {
+                        onChange(val);
+                        if (val.length === 6 && !isVerifying) {
+                          Keyboard.dismiss();
+                          const currentValues = getValues();
+                          onVerifyOtpSubmit({ ...currentValues, otp: val });
+                        }
+                      }}
+                      numInputs={6}
+                    />
                   )}
                 />
                 {errors.otp ? (
@@ -357,7 +384,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: prop
                 {/* Resend Container */}
                 <View style={registerStyles.resendContainer}>
                   <Text style={registerStyles.resendText}>Didn't receive OTP? </Text>
-                  {canResend ? (
+                  {state?.canResend ? (
                     <Pressable
                       disabled={isResending}
                       onPress={handleResendOtp}
@@ -369,7 +396,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: prop
                     </Pressable>
                   ) : (
                     <Text style={registerStyles.timerText}>
-                      Resend in <Text style={registerStyles.timerBold}>{resendTimer}s</Text>
+                      Resend in <Text style={registerStyles.timerBold}>{state?.resendTimer}s</Text>
                     </Text>
                   )}
                 </View>
@@ -397,20 +424,22 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: prop
                     registerStyles.changeNumberBtn,
                     pressed && { opacity: 0.6 },
                   ]}
-                  onPress={() => setStep('form')}
+                  onPress={() => {
+                    updateState({ step: 'form' });
+                    setValue('otp', '');
+                  }}
                 >
                   <Text style={registerStyles.changeNumberText}>← Change Details</Text>
                 </Pressable>
               </View>
             )}
 
-            {/* Bottom Login Link */}
             <View style={registerStyles.bottomSection}>
               <View style={registerStyles.loginContainer}>
                 <Text style={registerStyles.loginText}>Already have an account? </Text>
                 <Pressable
                   onPress={() => navigation.navigate('Login')}
-                  style={({ pressed }) => [pressed && { opacity: 0.7 }]}
+                  style={({ pressed }) => [pressed && { opacity: 1 }]}
                 >
                   <Text style={registerStyles.loginLink}>Sign In</Text>
                 </Pressable>

@@ -126,7 +126,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: propNaviga
       });
     } else {
       sendOtpMutation(payload, {
-        onSuccess: (res: any) => {
+        onSuccess: res => {
           if (res?.success) {
             setOtpSent(true);
             setValue('otp', '');
@@ -430,7 +430,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: propNaviga
                 <Text style={loginStyles.signupText}>Don't have an account? </Text>
                 <Pressable
                   onPress={() => navigation.navigate(AppRoute.REGISTER)}
-                  style={({ pressed }) => [pressed && { opacity: 0.7 }]}
+                  style={({ pressed }) => [pressed && { opacity: 1 }]}
                 >
                   <Text style={loginStyles.signupLink}>Register Now</Text>
                 </Pressable>

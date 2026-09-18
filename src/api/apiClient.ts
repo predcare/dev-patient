@@ -25,7 +25,6 @@ axiosInstance.interceptors.request.use(async config => {
 axiosInstance.interceptors.response.use(
   (res: AxiosResponse<IBaseApiRoot>) => {
     const requestUrl = res.config?.url || '';
-    console.log('requestUrl', res);
     console.log('requestUrl', requestUrl);
     const method = res.config?.method?.toLowerCase() || '';
     const successMethods = ['post', 'put', 'patch', 'delete'];

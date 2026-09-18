@@ -14,6 +14,7 @@ export enum ProfileQueryKeys {
   Profile = 'Profile',
   UpdateProfile = 'UpdateProfile',
   DoctorProfile = 'DoctorProfile',
+  FAMILY_MEMBER_LIST = 'FAMILY_MEMBER_LIST',
 }
 
 export enum CommonQueryKeys {

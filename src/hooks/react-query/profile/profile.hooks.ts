@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryClient } from '../../../components/providers/ReactQueryProvider';
 import { ProfileQueryKeys } from '../query.keys';
-import { getProfile, updateProfile } from './profile.funcs';
+import { addFamilyMember, getProfile, updateProfile } from './profile.funcs';
 
 export const useProfile = () =>
   useQuery({
@@ -25,5 +25,12 @@ export const useUpdateProfile = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [ProfileQueryKeys.Profile] });
     },
+  });
+};
+
+// Add Family Member
+export const useAddFamilyMember = () => {
+  return useMutation({
+    mutationFn: addFamilyMember,
   });
 };

@@ -38,3 +38,16 @@ export const ProfileSetupSchema = yup.object().shape({
 });
 
 export type TProfileSetupSchemaType = yup.InferType<typeof ProfileSetupSchema>;
+
+export const AddFamilySchema = yup.object().shape({
+  name: yup
+    .string()
+    .trim()
+    .required('Full name is required')
+    .min(2, 'Name must be at least 2 characters'),
+  gender: yup.string().trim().required('Gender is required'),
+  date_of_birth: yup.string().trim().required('Date of birth is required'),
+  relation: yup.string().trim().required('Relation is required'),
+});
+
+export type TAddFamilySchemaType = yup.InferType<typeof AddFamilySchema>;
