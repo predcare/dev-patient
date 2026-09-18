@@ -4,7 +4,6 @@ import {
   Alert,
   FlatList,
   RefreshControl,
-  SafeAreaView,
   StatusBar,
   Text,
   TextInput,
@@ -17,16 +16,10 @@ import {
   PrescriptionFilterModal,
   PrescriptionFilterValues,
 } from '../../components/Modules/Prescriptions';
-import {
-  FilterIcon,
-  PrescriptionIcon,
-  SearchIcon,
-} from '../../components/ui/icons';
+import { FilterIcon, PrescriptionIcon, SearchIcon } from '../../components/ui/icons';
 import { Header } from '../../Layout/Header';
-import {
-  MOCK_PRESCRIPTIONS,
-  PrescriptionDetailData,
-} from '../../resources/mockData';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
+import { MOCK_PRESCRIPTIONS, PrescriptionDetailData } from '../../resources/mockData';
 import { prescriptionsStyles } from '../../styled/PrescriptionsScreen.styled';
 import { theme } from '../../styled/theme.styled';
 
@@ -73,12 +66,12 @@ export const PrescriptionsListScreen: React.FC = () => {
     Alert.alert(
       'Download Prescription',
       `Prescription ${item.rx_number} downloaded successfully to device Downloads folder.`,
-      [{ text: 'OK' }],
+      [{ text: 'OK' }]
     );
   };
 
   return (
-    <SafeAreaView style={prescriptionsStyles.screen}>
+    <SafeAreaWrapper style={prescriptionsStyles.screen}>
       <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
       <Header greeting="Rx Prescriptions" userName="My Medical Records" unreadCount={1} />
 
@@ -156,7 +149,7 @@ export const PrescriptionsListScreen: React.FC = () => {
           setFilterVisible(false);
         }}
       />
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 

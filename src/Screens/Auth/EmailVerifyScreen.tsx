@@ -9,12 +9,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   Text,
   useWindowDimensions,
   View,
 } from 'react-native';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import OtpInput from '../../components/commons/OtpInput';
 import { MailIcon } from '../../components/ui/icons';
 import { useResendEmailOtp, useVerifyEmail } from '../../hooks/react-query/auth/auth.hooks';
@@ -164,7 +164,7 @@ export const EmailVerifyScreen: React.FC<EmailVerifyScreenProps> = ({
   }, [resendTimer]);
 
   return (
-    <SafeAreaView style={emailVerifyStyles.safeArea}>
+    <SafeAreaWrapper style={emailVerifyStyles.safeArea}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={emailVerifyStyles.keyboardAvoid}
@@ -259,7 +259,7 @@ export const EmailVerifyScreen: React.FC<EmailVerifyScreenProps> = ({
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 

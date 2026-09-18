@@ -8,13 +8,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   Text,
   TextInput,
   useWindowDimensions,
   View,
 } from 'react-native';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import OtpInput from '../../components/commons/OtpInput';
 import { queryClient } from '../../components/providers/ReactQueryProvider';
 import { MailIcon, PhoneIcon, ProfileIcon } from '../../components/ui/icons';
@@ -195,7 +195,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: prop
   };
 
   return (
-    <SafeAreaView style={registerStyles.safeArea}>
+    <SafeAreaWrapper style={registerStyles.safeArea}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={registerStyles.keyboardAvoid}
@@ -419,7 +419,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: prop
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 

@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 import { View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   HomeIcon,
   ReportsIcon,
@@ -47,10 +48,17 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<DashboardTabParamList>();
 
 const DashboardTabNavigator: React.FC = () => {
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = 62 + insets.bottom;
+  const tabBarPaddingBottom = Math.max(insets.bottom, 6);
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarStyle: navigationStyles.tabBar,
+        tabBarStyle: {
+          ...navigationStyles.tabBar,
+          height: tabBarHeight,
+          paddingBottom: tabBarPaddingBottom,
+        },
         tabBarItemStyle: navigationStyles.tabItem,
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.textSlate,

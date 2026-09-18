@@ -2,13 +2,12 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
   Alert,
-  SafeAreaView,
   ScrollView,
-  StatusBar,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import {
   AlertIcon,
   BackIcon,
@@ -79,8 +78,7 @@ export const PrescriptionDetailScreen: React.FC = () => {
   const hasHistory = !!item.drug_allergies || !!item.chronic_conditions;
 
   return (
-    <SafeAreaView style={prescriptionsStyles.screen}>
-      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.surface} />
+    <SafeAreaWrapper style={prescriptionsStyles.screen}>
 
       {/* Header */}
       <View
@@ -337,7 +335,7 @@ export const PrescriptionDetailScreen: React.FC = () => {
           </Text>
         </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 

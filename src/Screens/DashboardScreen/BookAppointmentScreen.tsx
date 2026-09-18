@@ -2,13 +2,13 @@ import { useRoute } from '@react-navigation/native';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Image,
-  SafeAreaView,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import { AvailableDatesPicker, TimeSlotPicker } from '../../components/Modules/Appointments';
 import { CalendarDatePickerModal } from '../../components/Modules/Doctors';
 import { DoctorClinicCardSkeleton } from '../../components/Skeletons/DoctorClinicCardSkeleton';
@@ -123,7 +123,7 @@ export const BookAppointmentScreen: React.FC = () => {
   const selectedDateFormatted = formatDateChip(selectedDate);
 
   return (
-    <SafeAreaView style={bookAppointmentStyles.container}>
+    <SafeAreaWrapper style={bookAppointmentStyles.container}>
       <AppHeader title="Book Appointment" showBack={true} />
 
       <ScrollView
@@ -357,7 +357,7 @@ export const BookAppointmentScreen: React.FC = () => {
         }}
         onClose={() => setShowCalendarModal(false)}
       />
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 

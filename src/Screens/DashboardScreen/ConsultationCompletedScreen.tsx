@@ -1,13 +1,12 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React from 'react';
 import {
-  SafeAreaView,
   ScrollView,
-  StatusBar,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import { ConsultationPeopleCard } from '../../components/Modules/Appointments';
 import { BellIcon, CalendarIcon, CheckIcon, PrescriptionIcon } from '../../components/ui/icons';
 import { Header } from '../../Layout/Header';
@@ -39,8 +38,7 @@ export const ConsultationCompletedScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={consultationCompletedStyles.screen}>
-      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.surface} />
+    <SafeAreaWrapper style={consultationCompletedStyles.screen}>
       <Header greeting="Consultation Ended" userName="Visit Summary" unreadCount={1} />
 
       <ScrollView
@@ -93,7 +91,7 @@ export const ConsultationCompletedScreen: React.FC = () => {
           <Text style={consultationCompletedStyles.homeLinkTxt}>BACK TO HOME →</Text>
         </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 

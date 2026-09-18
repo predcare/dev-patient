@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Image,
-  SafeAreaView,
   ScrollView,
   Text,
   TextInput,
@@ -20,6 +19,7 @@ import {
   HelpIcon,
   UploadIcon,
 } from '../../components/ui/icons';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import { MOCK_SUPPORT_CATEGORIES, SupportCategory } from '../../resources/mockData';
 import { supportStyles } from '../../styled/SupportScreen.styled';
 import { theme } from '../../styled/theme.styled';
@@ -80,7 +80,7 @@ export const NewSupportTicketScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={supportStyles.screen}>
+    <SafeAreaWrapper style={supportStyles.screen}>
       <AppHeader
         title="New Ticket"
         showBack={true}
@@ -100,8 +100,8 @@ export const NewSupportTicketScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
       >
         <Text style={supportStyles.intro}>
-          How can we help you today? Our support team typically responds within 2 hours
-          during business hours.
+          How can we help you today? Our support team typically responds within 2 hours during
+          business hours.
         </Text>
 
         <View style={supportStyles.formCard}>
@@ -112,12 +112,7 @@ export const NewSupportTicketScreen: React.FC = () => {
             onPress={() => setShowCatModal(true)}
             activeOpacity={0.85}
           >
-            <Text
-              style={[
-                supportStyles.selectTxt,
-                !selectedCategory && supportStyles.placeholder,
-              ]}
-            >
+            <Text style={[supportStyles.selectTxt, !selectedCategory && supportStyles.placeholder]}>
               {selectedCategory ? selectedCategory.name : 'Select a category'}
             </Text>
             <ChevronDownIcon size={18} color={theme.colors.textMuted} />
@@ -142,9 +137,7 @@ export const NewSupportTicketScreen: React.FC = () => {
             activeOpacity={0.85}
           >
             <UploadIcon size={28} color={theme.colors.primary} />
-            <Text style={supportStyles.attachTxt}>
-              Attach screenshots or documents (optional)
-            </Text>
+            <Text style={supportStyles.attachTxt}>Attach screenshots or documents (optional)</Text>
             <Text style={supportStyles.attachHint}>
               Up to {MAX_IMAGES} images • {images.length}/{MAX_IMAGES} selected
             </Text>
@@ -173,8 +166,8 @@ export const NewSupportTicketScreen: React.FC = () => {
         <View style={supportStyles.infoRow}>
           <HelpIcon size={14} color={theme.colors.textMuted} />
           <Text style={supportStyles.infoTxt}>
-            Please ensure you do not include sensitive medical information such as full
-            prescription details or passwords.
+            Please ensure you do not include sensitive medical information such as full prescription
+            details or passwords.
           </Text>
         </View>
 
@@ -201,7 +194,7 @@ export const NewSupportTicketScreen: React.FC = () => {
         onSelect={setSelectedCategory}
         onClose={() => setShowCatModal(false)}
       />
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 

@@ -1,14 +1,6 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useState } from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ScrollView, StatusBar, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import {
   BackIcon,
   CalendarIcon,
@@ -18,6 +10,7 @@ import {
   MoonIcon,
   SunIcon,
 } from '../../components/ui/icons';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import { rescheduleStyles } from '../../styled/RescheduleAppointmentScreen.styled';
 import { theme } from '../../styled/theme.styled';
 
@@ -37,12 +30,48 @@ interface TimeSlotOption {
 }
 
 const MOCK_DATE_OPTIONS: DateOption[] = [
-  { dateStr: '2026-08-25', dayName: 'TUE', dayNum: '25', monthName: 'August 2026', longFormat: 'Tuesday, Aug 25, 2026' },
-  { dateStr: '2026-08-26', dayName: 'WED', dayNum: '26', monthName: 'August 2026', longFormat: 'Wednesday, Aug 26, 2026' },
-  { dateStr: '2026-08-27', dayName: 'THU', dayNum: '27', monthName: 'August 2026', longFormat: 'Thursday, Aug 27, 2026' },
-  { dateStr: '2026-08-28', dayName: 'FRI', dayNum: '28', monthName: 'August 2026', longFormat: 'Friday, Aug 28, 2026' },
-  { dateStr: '2026-08-29', dayName: 'SAT', dayNum: '29', monthName: 'August 2026', longFormat: 'Saturday, Aug 29, 2026' },
-  { dateStr: '2026-08-31', dayName: 'MON', dayNum: '31', monthName: 'August 2026', longFormat: 'Monday, Aug 31, 2026' },
+  {
+    dateStr: '2026-08-25',
+    dayName: 'TUE',
+    dayNum: '25',
+    monthName: 'August 2026',
+    longFormat: 'Tuesday, Aug 25, 2026',
+  },
+  {
+    dateStr: '2026-08-26',
+    dayName: 'WED',
+    dayNum: '26',
+    monthName: 'August 2026',
+    longFormat: 'Wednesday, Aug 26, 2026',
+  },
+  {
+    dateStr: '2026-08-27',
+    dayName: 'THU',
+    dayNum: '27',
+    monthName: 'August 2026',
+    longFormat: 'Thursday, Aug 27, 2026',
+  },
+  {
+    dateStr: '2026-08-28',
+    dayName: 'FRI',
+    dayNum: '28',
+    monthName: 'August 2026',
+    longFormat: 'Friday, Aug 28, 2026',
+  },
+  {
+    dateStr: '2026-08-29',
+    dayName: 'SAT',
+    dayNum: '29',
+    monthName: 'August 2026',
+    longFormat: 'Saturday, Aug 29, 2026',
+  },
+  {
+    dateStr: '2026-08-31',
+    dayName: 'MON',
+    dayNum: '31',
+    monthName: 'August 2026',
+    longFormat: 'Monday, Aug 31, 2026',
+  },
 ];
 
 const MOCK_TIME_SLOTS: TimeSlotOption[] = [
@@ -79,7 +108,8 @@ export const RescheduleAppointmentScreen: React.FC = () => {
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [rescheduling, setRescheduling] = useState<boolean>(false);
 
-  const selectedDateObj = MOCK_DATE_OPTIONS.find(d => d.dateStr === selectedDate) || MOCK_DATE_OPTIONS[1];
+  const selectedDateObj =
+    MOCK_DATE_OPTIONS.find(d => d.dateStr === selectedDate) || MOCK_DATE_OPTIONS[1];
   const selectedSlotObj = MOCK_TIME_SLOTS.find(t => t.id === selectedSlotId) || MOCK_TIME_SLOTS[4];
 
   const handleConfirmReschedule = () => {
@@ -109,8 +139,7 @@ export const RescheduleAppointmentScreen: React.FC = () => {
   // Success Confirmation Screen
   if (isSuccess) {
     return (
-      <SafeAreaView style={rescheduleStyles.screen}>
-        <StatusBar barStyle="dark-content" backgroundColor={theme.colors.surface} />
+      <SafeAreaWrapper style={rescheduleStyles.screen}>
         {/* Header */}
         <View
           style={{
@@ -192,7 +221,9 @@ export const RescheduleAppointmentScreen: React.FC = () => {
               <View style={{ flex: 1 }}>
                 <Text style={rescheduleStyles.infoBlueLbl}>CONSULTATION</Text>
                 <Text style={rescheduleStyles.infoBlueTitle}>
-                  {appointment.consultation_type === 'video' ? 'Video Consultation' : 'In-Person Visit'}
+                  {appointment.consultation_type === 'video'
+                    ? 'Video Consultation'
+                    : 'In-Person Visit'}
                 </Text>
                 <Text style={rescheduleStyles.infoBlueSub}>
                   {appointment.clinic_name || 'ST. JUDE MEDICAL CENTER'}
@@ -211,12 +242,12 @@ export const RescheduleAppointmentScreen: React.FC = () => {
             <Text style={rescheduleStyles.primaryBtnTxt}>Go to Dashboard</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </SafeAreaWrapper>
     );
   }
 
   return (
-    <SafeAreaView style={rescheduleStyles.screen}>
+    <SafeAreaWrapper style={rescheduleStyles.screen}>
       <StatusBar barStyle="dark-content" backgroundColor={theme.colors.surface} />
 
       {/* Header */}
@@ -232,7 +263,11 @@ export const RescheduleAppointmentScreen: React.FC = () => {
           borderBottomColor: theme.colors.surfaceBorder,
         }}
       >
-        <TouchableOpacity onPress={() => navigation.goBack()} activeOpacity={0.7} style={{ padding: 4 }}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+          style={{ padding: 4 }}
+        >
           <BackIcon size={22} color={theme.colors.textPrimary} />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '700', color: theme.colors.textPrimary }}>
@@ -266,7 +301,9 @@ export const RescheduleAppointmentScreen: React.FC = () => {
             <View style={rescheduleStyles.metaRow}>
               <ClockIcon size={14} color={theme.colors.textPrimary} />
               <Text style={rescheduleStyles.metaTxt}>
-                {appointment.start_time ? `${appointment.start_time} - ${appointment.end_time || '11:00 AM'}` : '10:30 AM - 11:00 AM'}
+                {appointment.start_time
+                  ? `${appointment.start_time} - ${appointment.end_time || '11:00 AM'}`
+                  : '10:30 AM - 11:00 AM'}
               </Text>
             </View>
           </View>
@@ -279,7 +316,11 @@ export const RescheduleAppointmentScreen: React.FC = () => {
             <Text style={rescheduleStyles.monthLbl}>{selectedDateObj.monthName}</Text>
           </View>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={rescheduleStyles.dateRow}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={rescheduleStyles.dateRow}
+          >
             {MOCK_DATE_OPTIONS.map(item => {
               const selected = selectedDate === item.dateStr;
               return (
@@ -289,10 +330,20 @@ export const RescheduleAppointmentScreen: React.FC = () => {
                   onPress={() => setSelectedDate(item.dateStr)}
                   activeOpacity={0.8}
                 >
-                  <Text style={[rescheduleStyles.dateChipDay, selected && rescheduleStyles.dateChipTxtSelected]}>
+                  <Text
+                    style={[
+                      rescheduleStyles.dateChipDay,
+                      selected && rescheduleStyles.dateChipTxtSelected,
+                    ]}
+                  >
                     {item.dayName}
                   </Text>
-                  <Text style={[rescheduleStyles.dateChipNum, selected && rescheduleStyles.dateChipTxtSelected]}>
+                  <Text
+                    style={[
+                      rescheduleStyles.dateChipNum,
+                      selected && rescheduleStyles.dateChipTxtSelected,
+                    ]}
+                  >
                     {item.dayNum}
                   </Text>
                 </TouchableOpacity>
@@ -453,7 +504,7 @@ export const RescheduleAppointmentScreen: React.FC = () => {
           </Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 

@@ -2,13 +2,13 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
-  SafeAreaView,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import {
   DropdownPickerModal,
   DropdownPickerOption,
@@ -168,7 +168,7 @@ export const AddNewMemberScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={memberStyles.screen}>
+    <SafeAreaWrapper style={memberStyles.screen}>
       <AppHeader title="Add Family Member" showBack={true} />
 
       <ScrollView
@@ -319,7 +319,7 @@ export const AddNewMemberScreen: React.FC = () => {
           setShowDOBPicker(false);
         }}
       />
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 

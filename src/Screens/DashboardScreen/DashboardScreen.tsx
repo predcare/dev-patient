@@ -1,14 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import {
-  Alert,
-  RefreshControl,
-  SafeAreaView,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Alert, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import {
   DailyHealthTipsSection,
   DashboardModals,
@@ -19,6 +11,7 @@ import {
   UpcomingAppointmentsSection,
 } from '../../components/Modules/Dashboard';
 import { Header } from '../../Layout/Header';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import {
   DashboardNotificationItem,
   DashboardProfile,
@@ -164,7 +157,7 @@ export const DashboardScreen: React.FC = () => {
   ];
 
   return (
-    <SafeAreaView style={dashboardStyles.container}>
+    <SafeAreaWrapper style={dashboardStyles.container}>
       {profile.isFamilyMember && (
         <View style={dashboardStyles.memberBanner}>
           <Text style={dashboardStyles.memberBannerIcon}>👨‍👩‍👧</Text>
@@ -218,7 +211,7 @@ export const DashboardScreen: React.FC = () => {
         showProfileModal={showProfileModal}
         onCloseProfileModal={() => setShowProfileModal(false)}
       />
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 

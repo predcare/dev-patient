@@ -1,6 +1,7 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React from 'react';
-import { Image, SafeAreaView, ScrollView, Text, View } from 'react-native';
+import { Image, ScrollView, Text, View } from 'react-native';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import { ClinicBookingCard } from '../../components/Modules/Doctors';
 import DoctorDetailsSkeleton from '../../components/Skeletons/DoctorDetailsSkeleton';
 import CommonErrorCard from '../../components/commons/CommonErrorCard/CommonErrorCard';
@@ -33,7 +34,7 @@ export const DoctorDetailsScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={doctorDetailsStyles.screen}>
+    <SafeAreaWrapper style={doctorDetailsStyles.screen}>
       <AppHeader title="Doctor Profile" showBack={true} />
 
       {doctorDetailsPending ? (
@@ -144,7 +145,7 @@ export const DoctorDetailsScreen: React.FC = () => {
           )}
         </ScrollView>
       )}
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 

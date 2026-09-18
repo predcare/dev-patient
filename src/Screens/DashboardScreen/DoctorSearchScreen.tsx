@@ -4,7 +4,6 @@ import {
   ActivityIndicator,
   FlatList,
   RefreshControl,
-  SafeAreaView,
   Switch,
   Text,
   TextInput,
@@ -32,6 +31,7 @@ import {
 import { useDebounce } from '../../hooks/commons/useDebounce';
 import { useSpecializations } from '../../hooks/react-query/common/common.hooks';
 import { useGetAllDoctorsInfinite } from '../../hooks/react-query/doctors/doctor.hooks';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import { MOCK_CITIES_LIST, MOCK_SPECIALTIES } from '../../resources/mockData';
 import { doctorSearchStyles } from '../../styled/DoctorSearchScreen.styled';
 import { theme } from '../../styled/theme.styled';
@@ -102,7 +102,7 @@ export const DoctorSearchScreen: React.FC = () => {
     const params: Record<string, any> = {
       limit: 20,
     };
-    if (debouncedSearch.trim()) params.search = debouncedSearch.trim();
+    if (debouncedSearch.trim().length >= 3) params.search = debouncedSearch.trim();
     if (filterStates.selectedSpecialty) params.specialization = filterStates.selectedSpecialty;
     if (filterStates.selectedSubSpecialty)
       params.sub_specialization = filterStates.selectedSubSpecialty;
@@ -211,7 +211,7 @@ export const DoctorSearchScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={doctorSearchStyles.container}>
+    <SafeAreaWrapper style={doctorSearchStyles.container}>
       <AppHeader title="Find a Specialist" showBack={true} />
       <View style={doctorSearchStyles.searchChrome}>
         <View style={doctorSearchStyles.searchBox}>
@@ -456,7 +456,7 @@ export const DoctorSearchScreen: React.FC = () => {
         }}
         onClose={() => setShowCityModal(false)}
       />
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 

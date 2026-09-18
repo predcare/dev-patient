@@ -9,13 +9,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   Text,
   TextInput,
   useWindowDimensions,
   View,
 } from 'react-native';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import OtpInput from '../../components/commons/OtpInput';
 import { MailIcon, PhoneIcon } from '../../components/ui/icons';
 import useFcmToken from '../../hooks/commons/useFcmToken';
@@ -228,7 +228,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: propNaviga
   };
 
   return (
-    <SafeAreaView style={loginStyles.safeArea}>
+    <SafeAreaWrapper style={loginStyles.safeArea}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={loginStyles.keyboardAvoid}
@@ -439,7 +439,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: propNaviga
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 

@@ -5,12 +5,12 @@ import {
   Image,
   Pressable,
   RefreshControl,
-  SafeAreaView,
   ScrollView,
   Text,
   useWindowDimensions,
   View,
 } from 'react-native';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import PolicyViewerModal, {
   PolicyItemType,
 } from '../../components/commons/PolicyViewerModal/PolicyViewerModal';
@@ -188,7 +188,7 @@ export const PolicyAcceptanceScreen: React.FC<PolicyAcceptanceScreenProps> = ({
   };
 
   return (
-    <SafeAreaView style={policyStyles.safeArea}>
+    <SafeAreaWrapper style={policyStyles.safeArea}>
       <ScrollView
         style={policyStyles.scrollContainer}
         contentContainerStyle={policyStyles.scrollContent}
@@ -409,7 +409,7 @@ export const PolicyAcceptanceScreen: React.FC<PolicyAcceptanceScreenProps> = ({
         policy={selectedPolicyItem}
         onClose={() => setSelectedPolicyItem(null)}
       />
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 

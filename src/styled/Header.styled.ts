@@ -1,12 +1,13 @@
 import { StyleSheet } from 'react-native';
-import { theme } from './theme.styled';
+import { globalShadows, theme } from './theme.styled';
 
 export const headerStyles = StyleSheet.create({
   container: {
     backgroundColor: theme.colors.background,
-    paddingTop: 16,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.sm,
+    paddingBottom: theme.spacing.sm + 2,
+    ...globalShadows.card,
   },
   row: {
     flexDirection: 'row',

@@ -1,12 +1,13 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
-import { FlatList, RefreshControl, SafeAreaView, Text, View } from 'react-native';
+import { FlatList, RefreshControl, Text, View } from 'react-native';
 import { AlertType } from '../../components/commons/PopupAlert/PopupAlert';
 import { DoctorCard, FindDoctorCard } from '../../components/Modules/Doctors';
 import { MyDoctorsSkeleton } from '../../components/Skeletons/MyDoctorsSkeleton';
 import { StethoscopeIcon } from '../../components/ui/icons';
 import { useGetMyDoctors } from '../../hooks/react-query/doctors/doctor.hooks';
 import { Header } from '../../Layout/Header';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import { showErrorToast } from '../../lib/common/toast.utils';
 import { AppRoute } from '../../route';
 import { doctorStyles } from '../../styled/DoctorScreen.styled';
@@ -66,7 +67,7 @@ export const MyDoctorsScreen: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={doctorStyles.container}>
+    <SafeAreaWrapper style={doctorStyles.container}>
       <Header />
       {isPendingMyDoctors && !refreshing ? (
         <MyDoctorsSkeleton />
@@ -119,7 +120,7 @@ export const MyDoctorsScreen: React.FC = () => {
           }
         />
       )}
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 

@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Image,
-  SafeAreaView,
   ScrollView,
   Text,
   TextInput,
@@ -12,18 +11,11 @@ import {
 } from 'react-native';
 import { DropdownPickerModal } from '../../components/Modules/MemberManagement';
 import AppHeader from '../../components/ui/AppHeader';
-import {
-  CalendarIcon,
-  ChevronDownIcon,
-  EditIcon,
-  UploadIcon,
-} from '../../components/ui/icons';
+import { CalendarIcon, ChevronDownIcon, EditIcon, UploadIcon } from '../../components/ui/icons';
 import WheelDatePickerModal from '../../components/ui/WheelDatePickerModal';
-import {
-  MOCK_CITIES,
-  MOCK_STATES,
-  MOCK_USER_PROFILE,
-} from '../../resources/mockData';
+import { useProfile } from '../../hooks/react-query/profile/profile.hooks';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
+import { MOCK_CITIES, MOCK_STATES, MOCK_USER_PROFILE } from '../../resources/mockData';
 import { memberStyles } from '../../styled/MemberScreen.styled';
 import { theme } from '../../styled/theme.styled';
 
@@ -49,6 +41,8 @@ export const ProfileSetupScreen: React.FC = () => {
   const [showStatePicker, setShowStatePicker] = useState<boolean>(false);
   const [showCityPicker, setShowCityPicker] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+
+  const { data: profileData, isPending: profilePending } = useProfile();
 
   const stateOptions = MOCK_STATES.map(s => ({ label: s.name, value: s.name }));
   const cityOptions = MOCK_CITIES.map(c => ({ label: c.name, value: c.name }));
@@ -83,7 +77,7 @@ export const ProfileSetupScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={memberStyles.screen}>
+    <SafeAreaWrapper style={memberStyles.screen}>
       <AppHeader title="Edit Profile" showBack={true} />
 
       <ScrollView
@@ -112,10 +106,7 @@ export const ProfileSetupScreen: React.FC = () => {
           </TouchableOpacity>
 
           {profilePic ? (
-            <TouchableOpacity
-              style={memberStyles.removeImageButton}
-              onPress={handleRemovePhoto}
-            >
+            <TouchableOpacity style={memberStyles.removeImageButton} onPress={handleRemovePhoto}>
               <Text style={memberStyles.removeImageText}>Remove Photo</Text>
             </TouchableOpacity>
           ) : null}
@@ -330,7 +321,7 @@ export const ProfileSetupScreen: React.FC = () => {
         onSelect={val => setCityName(val)}
         onClose={() => setShowCityPicker(false)}
       />
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 

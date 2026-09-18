@@ -1,13 +1,12 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React from 'react';
 import {
-  SafeAreaView,
   ScrollView,
-  StatusBar,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import {
   BackIcon,
   ChevronRightIcon,
@@ -50,8 +49,11 @@ export const ClinicDetailsScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={clinicDetailsStyles.screen}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.colors.primary} />
+    <SafeAreaWrapper
+      style={clinicDetailsStyles.screen}
+      backgroundColor={theme.colors.primary}
+      barStyle="light-content"
+    >
 
       {/* Top Header Bar */}
       <View
@@ -218,7 +220,7 @@ export const ClinicDetailsScreen: React.FC = () => {
           <View style={{ height: 40 }} />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 

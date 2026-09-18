@@ -1,9 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import AppHeader from '../../components/ui/AppHeader';
 import CustomTabs from '../../components/ui/CustomTabs/CustomTabs';
 import { BellIcon, CheckIcon, PlusIcon } from '../../components/ui/icons';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import { MOCK_SUPPORT_TICKETS, SupportTicket } from '../../resources/mockData';
 import { supportStyles } from '../../styled/SupportScreen.styled';
 import { theme } from '../../styled/theme.styled';
@@ -46,7 +47,7 @@ export const SupportScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={supportStyles.screen}>
+    <SafeAreaWrapper style={supportStyles.screen}>
       <AppHeader
         title="Support"
         showBack={true}
@@ -144,7 +145,7 @@ export const SupportScreen: React.FC = () => {
       <TouchableOpacity style={supportStyles.fab} onPress={openNew} activeOpacity={0.85}>
         <PlusIcon size={26} color={theme.colors.surface} />
       </TouchableOpacity>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 

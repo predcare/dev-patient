@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { SafeAreaView, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import LanguageSwitcherModal, { LANGUAGES } from '../../components/commons/LanguageSwitcherModal';
 import LogoutOptionsModal from '../../components/commons/LogoutOptionsModal/LogoutOptionsModal';
 import PopupAlert, { AlertType } from '../../components/commons/PopupAlert/PopupAlert';
@@ -14,6 +14,7 @@ import { queryClient } from '../../components/providers/ReactQueryProvider';
 import { GlobeIcon, HelpIcon, LogoutIcon, ProfileIcon } from '../../components/ui/icons';
 import { useUserLogout } from '../../hooks/react-query/auth/auth.hooks';
 import { Header } from '../../Layout/Header';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import { resetToLogin } from '../../lib/common/navigation.utils';
 import { navigationRef } from '../../navigation/navigationRef';
 import { MOCK_FAMILY_MEMBERS } from '../../resources/mockData';
@@ -141,7 +142,7 @@ export const SettingScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={settingStyles.container}>
+    <SafeAreaWrapper style={settingStyles.container}>
       <Header onProfilePress={handleProfilePress} />
       <ScrollView
         style={settingStyles.scrollContainer}
@@ -227,7 +228,7 @@ export const SettingScreen: React.FC = () => {
         onPress={alertConfig.onPress}
         onCancel={alertConfig.onCancel || closeAlert}
       />
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 

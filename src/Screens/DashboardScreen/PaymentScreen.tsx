@@ -2,12 +2,12 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
-  SafeAreaView,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import AppHeader from '../../components/ui/AppHeader';
 import { paymentStyles } from '../../styled/PaymentScreen.styled';
 import { theme } from '../../styled/theme.styled';
@@ -38,7 +38,7 @@ export const PaymentScreen: React.FC = () => {
   const platformFee = bookingData.platformFee || 50;
 
   return (
-    <SafeAreaView style={paymentStyles.container}>
+    <SafeAreaWrapper style={paymentStyles.container}>
       <AppHeader
         title="Payment"
         subtitle="Complete your appointment booking"
@@ -132,7 +132,7 @@ export const PaymentScreen: React.FC = () => {
           </Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 

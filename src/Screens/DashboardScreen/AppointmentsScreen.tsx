@@ -2,13 +2,12 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
   RefreshControl,
-  SafeAreaView,
   ScrollView,
-  StatusBar,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import {
   AppointmentCancelModal,
   AppointmentCard,
@@ -81,8 +80,7 @@ export const AppointmentsScreen: React.FC = () => {
   console.log('called appointment screen');
 
   return (
-    <SafeAreaView style={appointmentsStyles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.surface} />
+    <SafeAreaWrapper style={appointmentsStyles.root}>
       <Header greeting="My Appointments" userName="Schedule & Visits" unreadCount={1} />
 
       {/* Segment Switcher */}
@@ -167,7 +165,7 @@ export const AppointmentsScreen: React.FC = () => {
         onClose={() => setSelectedDeleteApt(null)}
         onConfirmDelete={handleConfirmDelete}
       />
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 

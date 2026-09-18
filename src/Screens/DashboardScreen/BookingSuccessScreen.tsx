@@ -1,6 +1,7 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React from 'react';
-import { SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import AppHeader from '../../components/ui/AppHeader';
 import { CalendarIcon, CheckIcon, MapPinIcon, StethoscopeIcon } from '../../components/ui/icons';
 import { bookingSuccessStyles } from '../../styled/BookingSuccessScreen.styled';
@@ -25,7 +26,7 @@ export const BookingSuccessScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={bookingSuccessStyles.container}>
+    <SafeAreaWrapper style={bookingSuccessStyles.container}>
       <AppHeader title="Booking Confirmed" showBack={true} />
 
       <ScrollView
@@ -144,7 +145,7 @@ export const BookingSuccessScreen: React.FC = () => {
           </Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 

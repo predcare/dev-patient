@@ -1,12 +1,11 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
-  SafeAreaView,
-  StatusBar,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import {
   CamOffIcon,
   CamOnIcon,
@@ -51,8 +50,11 @@ export const MeetingScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={meetingStyles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0F172A" />
+    <SafeAreaWrapper
+      style={meetingStyles.container}
+      backgroundColor="#0F172A"
+      barStyle="light-content"
+    >
 
       {/* Video Stream Container */}
       <View style={meetingStyles.videoContainer}>
@@ -185,7 +187,7 @@ export const MeetingScreen: React.FC = () => {
           </View>
         </View>
       </View>
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 };
 
