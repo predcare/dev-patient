@@ -1,6 +1,6 @@
 import React from 'react';
-import { StatusBar, StyleProp, View, ViewStyle } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Platform, StatusBar, StyleProp, View, ViewStyle } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { safeAreaStyles } from '../styled/SafeAreaWrapper.styled';
 import { theme } from '../styled/theme.styled';
 
@@ -21,11 +21,33 @@ export const SafeAreaWrapper: React.FC<SafeAreaWrapperProps> = ({
 }) => {
   const insets = useSafeAreaInsets();
 
+  const topInset = edges.includes('top')
+    ? Platform.OS === 'android'
+      ? Math.max(insets.top, StatusBar.currentHeight || 0)
+      : insets.top
+    : 0;
+
+  const rightInset = edges.includes('right') ? insets.right : 0;
+  const bottomInset = edges.includes('bottom') ? insets.bottom : 0;
+  const leftInset = edges.includes('left') ? insets.left : 0;
+
   return (
-    <SafeAreaView style={[safeAreaStyles.container, { backgroundColor }, style]} edges={edges}>
-      <StatusBar barStyle={barStyle} backgroundColor={backgroundColor} translucent={false} />
+    <View
+      style={[
+        safeAreaStyles.container,
+        {
+          backgroundColor,
+          paddingTop: topInset,
+          paddingRight: rightInset,
+          paddingBottom: bottomInset,
+          paddingLeft: leftInset,
+        },
+        style,
+      ]}
+    >
+      <StatusBar barStyle={barStyle} backgroundColor={backgroundColor} translucent={true} />
       <View style={[safeAreaStyles.innerContainer, { backgroundColor }]}>{children}</View>
-    </SafeAreaView>
+    </View>
   );
 };
 

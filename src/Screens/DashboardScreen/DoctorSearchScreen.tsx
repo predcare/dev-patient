@@ -157,8 +157,8 @@ export const DoctorSearchScreen: React.FC = () => {
     navigation.navigate('DoctorDetails', { doctorId: doctorId });
   };
 
-  const handleBookPress = (doctor: IDoctorDoc) => {
-    navigation.navigate('BookAppointment', { doctorId: doctor.doctor_id || doctor.id, doctor });
+  const handleBookPress = (doctorId: number, clinicId: number) => {
+    navigation.navigate('BookAppointment', { doctorId, clinicId });
   };
 
   const handleClinicPress = (clinic: Partial<IClinicDoc> & { id: string }) => {
@@ -395,7 +395,9 @@ export const DoctorSearchScreen: React.FC = () => {
                 offersInPerson={item.data.offers_in_person}
                 offersVideo={item.data.offers_video}
                 onProfilePress={() => handleProfilePress(Number(item.data?.user_id))}
-                onBookPress={() => handleBookPress(item.data)}
+                onBookPress={() =>
+                  handleBookPress(Number(item?.data?.user_id), Number(item?.data?.clinic?.id))
+                }
               />
             ) : (
               <ClinicCard
