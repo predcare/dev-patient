@@ -57,12 +57,17 @@ export const useDoctorClinicSummary = (params: {
   });
 
 // Doctor Available Dates
-export const useDoctorAvailDates = (params: { doctorId: number; clinicId?: number }) =>
+export const useDoctorAvailDates = (params: {
+  doctorId: number;
+  consultation_type: string;
+  clinicId: number;
+}) =>
   useQuery({
     queryKey: [DoctorQueryKeys.GET_AVAIL_DATES, params],
     queryFn: () =>
       getDoctorAvailDates({
         doctor_id: params?.doctorId,
+        consultation_type: params?.consultation_type,
         clinic_id: params?.clinicId,
       }),
     select: v => v.data,
@@ -73,6 +78,7 @@ export const useDoctorAvailDates = (params: { doctorId: number; clinicId?: numbe
 export const useDoctorTimingsByDate = (params: {
   doctorId: number;
   date: string;
+  consultation_type: string;
   clinicId?: number;
 }) =>
   useQuery({
@@ -81,6 +87,7 @@ export const useDoctorTimingsByDate = (params: {
       getDoctorTimingsByDate({
         doctor_id: params?.doctorId,
         date: params?.date,
+        consultation_type: params?.consultation_type,
         clinic_id: params?.clinicId,
       }),
     select: v => {

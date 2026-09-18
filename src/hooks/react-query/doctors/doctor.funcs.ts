@@ -50,8 +50,12 @@ export const getDoctorClinicSummary = async (
   return res.data;
 };
 
-export const getDoctorAvailDates = async (params?: { doctor_id: number; clinic_id?: number }) => {
-  const res = await axiosInstance.get<IRootResponse<String[]>>(
+export const getDoctorAvailDates = async (params?: {
+  doctor_id: number;
+  consultation_type: string;
+  clinic_id: number;
+}) => {
+  const res = await axiosInstance.get<IRootResponse<string[]>>(
     `${endpoints.doctors.doctorAvailDates}`,
     {
       params,
@@ -63,6 +67,7 @@ export const getDoctorAvailDates = async (params?: { doctor_id: number; clinic_i
 export const getDoctorTimingsByDate = async (params?: {
   doctor_id: number;
   date: string;
+  consultation_type: string;
   clinic_id?: number;
 }) => {
   const res = await axiosInstance.get<DoctorAvailTimeSlotsRoot>(

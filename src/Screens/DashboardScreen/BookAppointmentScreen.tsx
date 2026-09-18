@@ -1,16 +1,11 @@
 import { useRoute } from '@react-navigation/native';
-import React, { useEffect, useMemo, useState } from 'react';
-import {
-  Image,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import dayjs from 'dayjs';
+import React, { useState } from 'react';
+import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
-import { AvailableDatesPicker, TimeSlotPicker } from '../../components/Modules/Appointments';
+import { TimeSlotPicker } from '../../components/Modules/Appointments';
 import { CalendarDatePickerModal } from '../../components/Modules/Doctors';
+import BookingSlotsSkeleton from '../../components/Skeletons/BookingSlotsSkeleton';
 import { DoctorClinicCardSkeleton } from '../../components/Skeletons/DoctorClinicCardSkeleton';
 import AppHeader from '../../components/ui/AppHeader';
 import { CalendarIcon, VideoIcon } from '../../components/ui/icons';
@@ -25,41 +20,37 @@ import { theme } from '../../styled/theme.styled';
 import { ITimeSlotsDoc } from '../../typescripts/interfaces/doctors.interfaces';
 import { useAuthStore } from '../../zustand/stores/useAuthStore';
 
-const formatTime12h = (timeStr: string): string => {
-  if (!timeStr) return '';
-  const parts = timeStr.split(':');
-  let hours = parseInt(parts[0], 10);
-  const minutes = parts[1] || '00';
-  if (isNaN(hours)) return timeStr;
-  const ampm = hours >= 12 ? 'PM' : 'AM';
-  hours = hours % 12;
-  hours = hours ? hours : 12;
-  const formattedHours = hours < 10 ? `0${hours}` : `${hours}`;
-  return `${formattedHours}:${minutes} ${ampm}`;
-};
-
 const formatDateChip = (dateStr: string) => {
   if (!dateStr) return { labelTop: '', labelBottom: '', full: '' };
-  const dateObj = new Date(`${dateStr}T00:00:00`);
-  if (isNaN(dateObj.getTime())) {
-    return { labelTop: '', labelBottom: dateStr, full: dateStr };
-  }
-  const labelTop = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
-  const labelBottom = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  const full = dateObj.toLocaleDateString('en-US', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-  return { labelTop, labelBottom, full };
+  const d = dayjs(dateStr);
+  if (!d.isValid()) return { labelTop: '', labelBottom: dateStr, full: dateStr };
+  return {
+    labelTop: d.format('ddd'),
+    labelBottom: d.format('MMM D'),
+    full: d.format('ddd, D MMM YYYY'),
+  };
 };
+
+interface IFormStates {
+  selectedDate: string;
+  consultationType: 'in-person' | 'video';
+  selectedSlot: ITimeSlotsDoc | null;
+  reason: string;
+  showCalendarModal: boolean;
+}
 
 export const BookAppointmentScreen: React.FC = () => {
   const router = useRoute();
   const { doctorId, clinicId } = (router.params || {}) as { doctorId: number; clinicId: number };
-
   const { userData } = useAuthStore(state => state);
+
+  const [formStates, setFormStates] = useState<IFormStates>({
+    selectedDate: '',
+    consultationType: 'in-person',
+    selectedSlot: null,
+    reason: '',
+    showCalendarModal: false,
+  });
 
   // 1. Fetch Doctor & Clinic Summary
   const { data: docSummary, isFetching: isSummaryPending } = useDoctorClinicSummary({
@@ -70,57 +61,39 @@ export const BookAppointmentScreen: React.FC = () => {
   // 2. Fetch Doctor Available Dates
   const { data: availableDatesRes, isFetching: isAvailableDatesPending } = useDoctorAvailDates({
     doctorId,
+    consultation_type: formStates?.consultationType,
     clinicId,
   });
-
-  const availableDates: string[] = useMemo(() => {
-    const raw = (availableDatesRes as any)?.data || availableDatesRes || [];
-    return Array.isArray(raw) ? raw : [];
-  }, [availableDatesRes]);
-
-  const [selectedDate, setSelectedDate] = useState<string>('');
-  const [consultationType, setConsultationType] = useState<'in-person' | 'video'>('in-person');
-  const [selectedSlot, setSelectedSlot] = useState<ITimeSlotsDoc | null>(null);
-  const [reason, setReason] = useState<string>('');
-  const [showCalendarModal, setShowCalendarModal] = useState<boolean>(false);
 
   // 3. Fetch Doctor Slots for Selected Date
   const { data: slotsRes, isFetching: isSlotsPending } = useDoctorTimingsByDate({
     doctorId,
-    date: selectedDate,
+    date: formStates.selectedDate,
     clinicId,
+    consultation_type: formStates.consultationType,
   });
 
-  const allSlots: ITimeSlotsDoc[] = useMemo(() => {
-    if (!slotsRes) return [];
-    if (Array.isArray((slotsRes as any).slots)) return (slotsRes as any).slots;
-    if (Array.isArray((slotsRes as any).data?.slots)) return (slotsRes as any).data.slots;
-    if (Array.isArray((slotsRes as any).data)) return (slotsRes as any).data;
-    if (Array.isArray(slotsRes)) return slotsRes as ITimeSlotsDoc[];
-    return [];
-  }, [slotsRes]);
+  const updateForm = <K extends keyof IFormStates>(key: K, value: IFormStates[K]) => {
+    setFormStates(prev => ({ ...prev, [key]: value }));
+  };
 
-  // Reset selected slot when date or consultationType changes
-  useEffect(() => {
-    setSelectedSlot(null);
-  }, [selectedDate, consultationType]);
+  const handleConsultationTypeChange = (type: 'in-person' | 'video') => {
+    setFormStates(prev => ({
+      ...prev,
+      consultationType: type,
+      selectedSlot: null,
+      selectedDate: '',
+      showCalendarModal: false,
+    }));
+  };
 
-  // Fee calculation
-  const consultationFee = useMemo(() => {
-    if (selectedSlot) {
-      const fee =
-        consultationType === 'in-person' ? selectedSlot.in_person_fee : selectedSlot.video_fee;
-      if (fee !== undefined && fee !== null && !isNaN(Number(fee)) && Number(fee) > 0) {
-        return Number(fee);
-      }
-    }
-    return consultationType === 'in-person' ? 1000 : 800;
-  }, [selectedSlot, consultationType]);
-
-  const platformFee = 50;
-  const totalAmount = consultationFee + platformFee;
-
-  const selectedDateFormatted = formatDateChip(selectedDate);
+  const handleDateChange = (date: string) => {
+    setFormStates(prev => ({
+      ...prev,
+      selectedDate: date,
+      selectedSlot: null,
+    }));
+  };
 
   return (
     <SafeAreaWrapper style={bookAppointmentStyles.container}>
@@ -188,15 +161,16 @@ export const BookAppointmentScreen: React.FC = () => {
           <TouchableOpacity
             style={[
               bookAppointmentStyles.consultationChip,
-              consultationType === 'in-person' && bookAppointmentStyles.consultationChipActive,
+              formStates.consultationType === 'in-person' &&
+                bookAppointmentStyles.consultationChipActive,
             ]}
-            onPress={() => setConsultationType('in-person')}
+            onPress={() => handleConsultationTypeChange('in-person')}
             activeOpacity={0.8}
           >
             <CalendarIcon
               size={18}
               color={
-                consultationType === 'in-person'
+                formStates.consultationType === 'in-person'
                   ? theme.colors.primaryDark
                   : theme.colors.textSecondary
               }
@@ -204,32 +178,36 @@ export const BookAppointmentScreen: React.FC = () => {
             <Text
               style={[
                 bookAppointmentStyles.consultationChipText,
-                consultationType === 'in-person' &&
+                formStates.consultationType === 'in-person' &&
                   bookAppointmentStyles.consultationChipTextActive,
               ]}
             >
-              In-Person Visit
+              In-Person
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[
               bookAppointmentStyles.consultationChip,
-              consultationType === 'video' && bookAppointmentStyles.consultationChipActive,
+              formStates.consultationType === 'video' &&
+                bookAppointmentStyles.consultationChipActive,
             ]}
-            onPress={() => setConsultationType('video')}
+            onPress={() => handleConsultationTypeChange('video')}
             activeOpacity={0.8}
           >
             <VideoIcon
               size={18}
               color={
-                consultationType === 'video' ? theme.colors.primaryDark : theme.colors.textSecondary
+                formStates.consultationType === 'video'
+                  ? theme.colors.primaryDark
+                  : theme.colors.textSecondary
               }
             />
             <Text
               style={[
                 bookAppointmentStyles.consultationChipText,
-                consultationType === 'video' && bookAppointmentStyles.consultationChipTextActive,
+                formStates.consultationType === 'video' &&
+                  bookAppointmentStyles.consultationChipTextActive,
               ]}
             >
               Video Consult
@@ -242,8 +220,6 @@ export const BookAppointmentScreen: React.FC = () => {
           Reason for Visit <Text style={bookAppointmentStyles.optionalHint}>(optional)</Text>
         </Text>
         <TextInput
-          value={reason}
-          onChangeText={setReason}
           placeholder="Describe your reason for booking this appointment..."
           placeholderTextColor={theme.colors.textMuted}
           style={bookAppointmentStyles.reasonInput}
@@ -254,26 +230,77 @@ export const BookAppointmentScreen: React.FC = () => {
 
         {/* Select Date */}
         <Text style={bookAppointmentStyles.sectionLabel}>SELECT DATE</Text>
-        <AvailableDatesPicker
-          dates={availableDates}
-          selectedDate={selectedDate}
-          onSelectDate={setSelectedDate}
-          onOpenCalendar={() => setShowCalendarModal(true)}
-          isLoading={isAvailableDatesPending}
-        />
+        {isAvailableDatesPending ? (
+          <BookingSlotsSkeleton datesOnly />
+        ) : !availableDatesRes || availableDatesRes?.length === 0 ? (
+          <Text
+            style={{
+              fontSize: 13,
+              color: theme.colors.textMuted,
+              fontStyle: 'italic',
+              marginBottom: 12,
+            }}
+          >
+            No available dates found for this doctor.
+          </Text>
+        ) : (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={bookAppointmentStyles.dateRow}
+          >
+            {availableDatesRes &&
+              availableDatesRes?.map((dateStr, idx) => {
+                const active = dateStr === formStates.selectedDate;
+                const formatted = formatDateChip(dateStr as string);
+                return (
+                  <TouchableOpacity
+                    key={`${dateStr}-${idx}`}
+                    style={[
+                      bookAppointmentStyles.dateChipCard,
+                      active && bookAppointmentStyles.dateChipCardActive,
+                    ]}
+                    onPress={() => handleDateChange(dateStr)}
+                    activeOpacity={0.8}
+                  >
+                    <Text
+                      style={[
+                        bookAppointmentStyles.dateChipTopText,
+                        active && bookAppointmentStyles.dateChipTopTextActive,
+                      ]}
+                    >
+                      {formatted.labelTop}
+                    </Text>
+                    <Text
+                      style={[
+                        bookAppointmentStyles.dateChipBottomText,
+                        active && bookAppointmentStyles.dateChipBottomTextActive,
+                      ]}
+                    >
+                      {formatted.labelBottom}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            <TouchableOpacity
+              style={bookAppointmentStyles.calendarIconBtn}
+              onPress={() => updateForm('showCalendarModal', true)}
+              activeOpacity={0.8}
+            >
+              <CalendarIcon size={22} color={theme.colors.primaryDark} />
+            </TouchableOpacity>
+          </ScrollView>
+        )}
 
-        {/* Select Time Slot */}
         <Text style={bookAppointmentStyles.sectionLabel}>SELECT TIME</Text>
         <TimeSlotPicker
-          slots={allSlots}
-          selectedSlot={selectedSlot}
-          onSelectSlot={setSelectedSlot}
+          slots={slotsRes?.slots || []}
+          selectedSlot={formStates.selectedSlot}
+          onSelectSlot={s => updateForm('selectedSlot', s)}
           isLoading={isSlotsPending}
-          selectedDate={selectedDate}
-          consultationType={consultationType}
+          selectedDate={formStates.selectedDate}
+          consultationType={formStates.consultationType}
         />
-
-        {/* Booking Summary Box */}
         <View style={bookAppointmentStyles.summaryBox}>
           <Text style={bookAppointmentStyles.summaryTitle}>APPOINTMENT SUMMARY</Text>
 
@@ -294,43 +321,37 @@ export const BookAppointmentScreen: React.FC = () => {
           <View style={bookAppointmentStyles.summaryRow}>
             <Text style={bookAppointmentStyles.summaryLabel}>CONSULTATION</Text>
             <Text style={bookAppointmentStyles.summaryValue}>
-              {consultationType === 'in-person' ? 'In-Person' : 'Video Call'}
+              {formStates.consultationType === 'in-person' ? 'In-Person' : 'Video Call'}
             </Text>
           </View>
 
           <View style={bookAppointmentStyles.summaryRow}>
             <Text style={bookAppointmentStyles.summaryLabel}>DATE</Text>
-            <Text style={bookAppointmentStyles.summaryValue}>
-              {selectedDateFormatted.full || 'Not selected'}
-            </Text>
+            <Text style={bookAppointmentStyles.summaryValue}>Not selected</Text>
           </View>
 
           <View style={bookAppointmentStyles.summaryRow}>
             <Text style={bookAppointmentStyles.summaryLabel}>TIME</Text>
-            <Text style={bookAppointmentStyles.summaryValue}>
-              {selectedSlot
-                ? `${formatTime12h(selectedSlot.from)} - ${formatTime12h(selectedSlot.to)}`
-                : 'Not selected'}
-            </Text>
+            <Text style={bookAppointmentStyles.summaryValue}>Not selected</Text>
           </View>
 
           <View style={bookAppointmentStyles.divider} />
 
           <View style={bookAppointmentStyles.summaryRow}>
             <Text style={bookAppointmentStyles.summaryLabel}>Consultation Fee</Text>
-            <Text style={bookAppointmentStyles.summaryValue}>₹{consultationFee}</Text>
+            <Text style={bookAppointmentStyles.summaryValue}>₹0</Text>
           </View>
 
           <View style={bookAppointmentStyles.summaryRow}>
             <Text style={bookAppointmentStyles.summaryLabel}>Platform Fee</Text>
-            <Text style={bookAppointmentStyles.summaryValue}>₹{platformFee}</Text>
+            <Text style={bookAppointmentStyles.summaryValue}>₹0</Text>
           </View>
 
           <View style={bookAppointmentStyles.divider} />
 
           <View style={bookAppointmentStyles.summaryRow}>
             <Text style={bookAppointmentStyles.totalLabel}>Total Amount</Text>
-            <Text style={bookAppointmentStyles.totalValue}>₹{totalAmount}</Text>
+            <Text style={bookAppointmentStyles.totalValue}>₹0</Text>
           </View>
         </View>
       </ScrollView>
@@ -339,23 +360,23 @@ export const BookAppointmentScreen: React.FC = () => {
         <TouchableOpacity
           style={[
             bookAppointmentStyles.proceedBtn,
-            (!selectedDate || !selectedSlot) && { opacity: 0.6 },
+            (!formStates.selectedDate || !formStates.selectedSlot) && { opacity: 0.6 },
           ]}
           activeOpacity={0.85}
         >
-          <Text style={bookAppointmentStyles.proceedBtnText}>
-            Book Appointment • ₹{totalAmount}
-          </Text>
+          <Text style={bookAppointmentStyles.proceedBtnText}>Book Appointment • ₹0</Text>
         </TouchableOpacity>
       </View>
       <CalendarDatePickerModal
-        visible={showCalendarModal}
-        availableDates={availableDates}
+        visible={formStates.showCalendarModal}
+        availableDates={availableDatesRes || []}
         onSelectDate={d => {
-          const formattedStr = d.toISOString().split('T')[0];
-          setSelectedDate(formattedStr);
+          const yyyy = d.getFullYear();
+          const mm = String(d.getMonth() + 1).padStart(2, '0');
+          const dd = String(d.getDate()).padStart(2, '0');
+          handleDateChange(`${yyyy}-${mm}-${dd}`);
         }}
-        onClose={() => setShowCalendarModal(false)}
+        onClose={() => updateForm('showCalendarModal', false)}
       />
     </SafeAreaWrapper>
   );

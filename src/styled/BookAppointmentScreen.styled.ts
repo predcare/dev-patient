@@ -212,6 +212,9 @@ export const bookAppointmentStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  slotGroupContainer: {
+    marginBottom: 14,
+  },
   slotGroupTitle: {
     fontSize: 12,
     fontWeight: '700',

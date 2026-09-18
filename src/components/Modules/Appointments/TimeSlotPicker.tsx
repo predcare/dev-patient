@@ -41,7 +41,14 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
 
   if (!selectedDate) {
     return (
-      <Text style={{ fontSize: 13, color: theme.colors.textMuted, fontStyle: 'italic', marginBottom: 12 }}>
+      <Text
+        style={{
+          fontSize: 13,
+          color: theme.colors.textMuted,
+          fontStyle: 'italic',
+          marginBottom: 12,
+        }}
+      >
         Please select a date to view available time slots.
       </Text>
     );
@@ -49,7 +56,14 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
 
   if (!slots || slots.length === 0) {
     return (
-      <Text style={{ fontSize: 13, color: theme.colors.textMuted, fontStyle: 'italic', marginBottom: 12 }}>
+      <Text
+        style={{
+          fontSize: 13,
+          color: theme.colors.textMuted,
+          fontStyle: 'italic',
+          marginBottom: 12,
+        }}
+      >
         No slots available on this date.
       </Text>
     );
@@ -64,84 +78,70 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
     return matching.length > 0 ? matching : slots;
   }, [slots, consultationType]);
 
-  // Group into MORNING, AFTERNOON, EVENING
+  const SLOT_GROUPS = [
+    { title: 'MORNING', key: 'morning' },
+    { title: 'AFTERNOON', key: 'afternoon' },
+    { title: 'EVENING', key: 'evening' },
+  ] as const;
+
+  // Group filtered slots into MORNING, AFTERNOON, EVENING
   const groupedSlots = useMemo(() => {
-    const morning: ITimeSlotsDoc[] = [];
-    const afternoon: ITimeSlotsDoc[] = [];
-    const evening: ITimeSlotsDoc[] = [];
+    const groups: Record<string, ITimeSlotsDoc[]> = {
+      morning: [],
+      afternoon: [],
+      evening: [],
+    };
 
     filteredSlots.forEach(slot => {
       if (!slot.from) return;
       const fromHour = parseInt(slot.from.split(':')[0], 10);
       if (isNaN(fromHour)) return;
-      if (fromHour < 12) {
-        morning.push(slot);
-      } else if (fromHour < 17) {
-        afternoon.push(slot);
-      } else {
-        evening.push(slot);
-      }
+      if (fromHour < 12) groups.morning.push(slot);
+      else if (fromHour < 17) groups.afternoon.push(slot);
+      else groups.evening.push(slot);
     });
 
-    return { morning, afternoon, evening };
+    return groups;
   }, [filteredSlots]);
-
-  const renderSlotGroup = (title: string, groupSlots: ITimeSlotsDoc[]) => (
-    <View style={{ marginBottom: 14 }}>
-      <Text style={bookAppointmentStyles.slotGroupTitle}>{title}</Text>
-      {groupSlots.length === 0 ? (
-        <Text
-          style={{
-            fontSize: 13,
-            color: theme.colors.textMuted,
-            fontStyle: 'italic',
-            marginBottom: 8,
-          }}
-        >
-          No slots available for this time period.
-        </Text>
-      ) : (
-        <View style={bookAppointmentStyles.slotsGrid}>
-          {groupSlots.map((slot, idx) => {
-            const isAvailable = slot.status === 'available' || !slot.status;
-            const isSelected =
-              selectedSlot?.from === slot.from && selectedSlot?.to === slot.to;
-            const slotText = `${formatTime12h(slot.from)} - ${formatTime12h(slot.to)}`;
-
-            return (
-              <TouchableOpacity
-                key={`${slot.from}-${slot.to}-${idx}`}
-                style={[
-                  bookAppointmentStyles.slotBtn,
-                  isSelected && bookAppointmentStyles.slotBtnActive,
-                  !isAvailable && { opacity: 0.4, backgroundColor: '#F1F5F9' },
-                ]}
-                onPress={() => isAvailable && onSelectSlot(slot)}
-                disabled={!isAvailable}
-                activeOpacity={0.8}
-              >
-                <Text
-                  style={[
-                    bookAppointmentStyles.slotText,
-                    isSelected && bookAppointmentStyles.slotTextActive,
-                    !isAvailable && { color: theme.colors.textMuted },
-                  ]}
-                >
-                  {slotText}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      )}
-    </View>
-  );
 
   return (
     <View>
-      {renderSlotGroup('MORNING', groupedSlots.morning)}
-      {renderSlotGroup('AFTERNOON', groupedSlots.afternoon)}
-      {renderSlotGroup('EVENING', groupedSlots.evening)}
+      {SLOT_GROUPS.filter(group => groupedSlots[group.key].length > 0).map(group => (
+        <View key={group.key} style={bookAppointmentStyles.slotGroupContainer}>
+          <Text style={bookAppointmentStyles.slotGroupTitle}>{group.title}</Text>
+          <View style={bookAppointmentStyles.slotsGrid}>
+            {groupedSlots[group.key].map((slot, idx) => {
+              const isAvailable = slot.status === 'available' || !slot.status;
+              const isSelected = selectedSlot?.from === slot.from && selectedSlot?.to === slot.to;
+              const slotText = `${formatTime12h(slot.from)} - ${formatTime12h(slot.to)}`;
+
+              return (
+                <TouchableOpacity
+                  key={slot.availability_id || `${slot.from}-${slot.to}-${idx}`}
+                  style={[
+                    bookAppointmentStyles.slotBtn,
+                    isSelected && bookAppointmentStyles.slotBtnActive,
+                    !isAvailable && { opacity: 0.4, backgroundColor: '#F1F5F9' },
+                  ]}
+                  onPress={() => isAvailable && onSelectSlot(slot)}
+                  disabled={!isAvailable}
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    style={[
+                      bookAppointmentStyles.slotText,
+                      isSelected && bookAppointmentStyles.slotTextActive,
+                      !isAvailable && { color: theme.colors.textMuted },
+                    ]}
+                  >
+                    {slotText}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      ))}
     </View>
   );
 };

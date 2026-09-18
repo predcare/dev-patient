@@ -129,6 +129,8 @@ export interface ITimeSlotsDoc {
   hide_fee: boolean;
   require_payment: boolean;
   slot_duration: number;
+  is_past?: boolean;
+  is_available?: boolean;
 }
 
 export interface MyDoctorsDoc {
