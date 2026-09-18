@@ -30,6 +30,7 @@ const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 export interface CalendarDatePickerModalProps {
   visible: boolean;
   initialDate?: Date;
+  availableDates?: string[];
   onSelectDate: (date: Date) => void;
   onClose: () => void;
 }
@@ -37,14 +38,15 @@ export interface CalendarDatePickerModalProps {
 export const CalendarDatePickerModal: React.FC<CalendarDatePickerModalProps> = ({
   visible,
   initialDate,
+  availableDates,
   onSelectDate,
   onClose,
 }) => {
   const [currentMonth, setCurrentMonth] = useState<Date>(
-    initialDate || new Date(2026, 7, 24)
+    initialDate || new Date()
   );
   const [selectedDay, setSelectedDay] = useState<number>(
-    (initialDate || new Date(2026, 7, 24)).getDate()
+    (initialDate || new Date()).getDate()
   );
 
   const year = currentMonth.getFullYear();
@@ -137,6 +139,15 @@ export const CalendarDatePickerModal: React.FC<CalendarDatePickerModalProps> = (
                   const isSelected = day === selectedDay;
                   const isToday = isCurrentMonthToday && today.getDate() === day;
 
+                  const cellMonthStr = String(monthIndex + 1).padStart(2, '0');
+                  const cellDayStr = String(day).padStart(2, '0');
+                  const dateStr = `${year}-${cellMonthStr}-${cellDayStr}`;
+
+                  const isAvailable =
+                    availableDates && availableDates.length > 0
+                      ? availableDates.includes(dateStr)
+                      : true;
+
                   return (
                     <TouchableOpacity
                       key={`day-${day}`}
@@ -144,8 +155,10 @@ export const CalendarDatePickerModal: React.FC<CalendarDatePickerModalProps> = (
                         styles.dayCell,
                         isToday && styles.dayCellToday,
                         isSelected && styles.dayCellSelected,
+                        !isAvailable && styles.dayCellDisabled,
                       ]}
-                      onPress={() => handleDayPress(day)}
+                      onPress={() => isAvailable && handleDayPress(day)}
+                      disabled={!isAvailable}
                       activeOpacity={0.8}
                     >
                       <Text
@@ -153,6 +166,7 @@ export const CalendarDatePickerModal: React.FC<CalendarDatePickerModalProps> = (
                           styles.dayText,
                           isToday && styles.dayTextToday,
                           isSelected && styles.dayTextSelected,
+                          !isAvailable && styles.dayTextDisabled,
                         ]}
                       >
                         {day}
@@ -250,6 +264,9 @@ const styles = StyleSheet.create({
   dayCellSelected: {
     backgroundColor: theme.colors.primaryDark,
   },
+  dayCellDisabled: {
+    opacity: 0.3,
+  },
   dayText: {
     fontSize: 14,
     color: theme.colors.textPrimary,
@@ -262,6 +279,9 @@ const styles = StyleSheet.create({
   dayTextSelected: {
     color: theme.colors.surface,
     fontWeight: '700',
+  },
+  dayTextDisabled: {
+    color: '#94A3B8',
   },
 });
 

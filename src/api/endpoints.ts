@@ -1,6 +1,6 @@
 export const baseUrl = 'https://api-dev.predcare.in';
 export const localBaseUrl = 'https://chant-abrasion-sustainer.ngrok-free.dev';
-export const baseUrlApi = `${localBaseUrl}/api/v1`;
+export const baseUrlApi = `${baseUrl}/api/v1`;
 
 export const mediaPaths = (fileName?: string) => {
   if (!fileName) return '';
@@ -36,6 +36,8 @@ export const endpoints = {
   doctors: {
     getAll: '/patients/doctors',
     getDetails: (doctorId: string | number) => `/patients/doctors/${doctorId}`,
+    getDoctorClinicSummary: (doctorId: string | number, clinicId: string | number) =>
+      `/patients/doctors/${doctorId}/clinics/${clinicId}`,
     doctorAvailDates: '/doctor-availabilities/available-dates',
     getSlotsByDate: '/doctor-availabilities/slots-by-date',
     myDocs: '/patients/my-doctors',

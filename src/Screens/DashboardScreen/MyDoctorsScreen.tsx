@@ -46,7 +46,7 @@ export const MyDoctorsScreen: React.FC = () => {
       return showErrorToast('Invalid doctor information');
     }
     if (type === 'profile') {
-      rootNav.navigate(AppRoute.DOCTOR_PROFILE, {
+      rootNav.navigate(AppRoute.DOCTOR_DETAILS, {
         doctorId: options?.doctorId,
       });
     } else if (type === 'book') {

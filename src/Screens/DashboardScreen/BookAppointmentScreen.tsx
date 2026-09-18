@@ -1,125 +1,126 @@
-import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
-import { SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useRoute } from '@react-navigation/native';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  CalendarDatePickerModal,
-  FamilyMemberOption,
-  FamilyMemberSelectSheet,
-} from '../../components/Modules/Doctors';
+  Image,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { AvailableDatesPicker, TimeSlotPicker } from '../../components/Modules/Appointments';
+import { CalendarDatePickerModal } from '../../components/Modules/Doctors';
+import { DoctorClinicCardSkeleton } from '../../components/Skeletons/DoctorClinicCardSkeleton';
 import AppHeader from '../../components/ui/AppHeader';
 import { CalendarIcon, VideoIcon } from '../../components/ui/icons';
+import {
+  useDoctorAvailDates,
+  useDoctorClinicSummary,
+  useDoctorTimingsByDate,
+} from '../../hooks/react-query/doctors/doctor.hooks';
+import { getInitials } from '../../lib/common/common.utils';
 import { bookAppointmentStyles } from '../../styled/BookAppointmentScreen.styled';
 import { theme } from '../../styled/theme.styled';
+import { ITimeSlotsDoc } from '../../typescripts/interfaces/doctors.interfaces';
+import { useAuthStore } from '../../zustand/stores/useAuthStore';
 
-const STATIC_DOCTOR = {
-  doctor_id: 'DR0001',
-  user_id: '3',
-  doctor_name: 'Dr. Sarah Jenkins',
-  specialization: 'Cardiologist',
-  years_of_experience: 12,
-  clinic_name: 'St. Jude Medical Center',
-  min_in_person_fee: 1000,
-  min_video_fee: 800,
+const formatTime12h = (timeStr: string): string => {
+  if (!timeStr) return '';
+  const parts = timeStr.split(':');
+  let hours = parseInt(parts[0], 10);
+  const minutes = parts[1] || '00';
+  if (isNaN(hours)) return timeStr;
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  const formattedHours = hours < 10 ? `0${hours}` : `${hours}`;
+  return `${formattedHours}:${minutes} ${ampm}`;
 };
 
-const MOCK_FAMILY_MEMBERS: FamilyMemberOption[] = [
-  { id: 'self', name: 'John Doe', relation: 'Self', initials: 'JD' },
-  { id: '2', name: 'Jane Doe', relation: 'Spouse', initials: 'JD' },
-  { id: '3', name: 'Robert Doe', relation: 'Father', initials: 'RD' },
-];
-
-const DATE_OPTIONS = [
-  { labelTop: 'Today', labelBottom: 'Aug 24', value: 'Mon, 24 Aug' },
-  { labelTop: 'Tue', labelBottom: 'Aug 25', value: 'Tue, 25 Aug' },
-  { labelTop: 'Wed', labelBottom: 'Aug 26', value: 'Wed, 26 Aug' },
-];
-
-const MORNING_SLOTS = [
-  '09:00 AM - 09:30 AM',
-  '09:30 AM - 10:00 AM',
-  '10:00 AM - 10:30 AM',
-  '10:30 AM - 11:00 AM',
-  '11:00 AM - 11:30 AM',
-];
-
-const AFTERNOON_SLOTS = [
-  '12:00 PM - 12:30 PM',
-  '12:30 PM - 01:00 PM',
-  '02:00 PM - 02:30 PM',
-  '02:30 PM - 03:00 PM',
-  '03:00 PM - 03:30 PM',
-];
-
-const EVENING_SLOTS = [
-  '05:00 PM - 05:30 PM',
-  '05:30 PM - 06:00 PM',
-  '06:00 PM - 06:30 PM',
-  '06:30 PM - 07:00 PM',
-];
+const formatDateChip = (dateStr: string) => {
+  if (!dateStr) return { labelTop: '', labelBottom: '', full: '' };
+  const dateObj = new Date(`${dateStr}T00:00:00`);
+  if (isNaN(dateObj.getTime())) {
+    return { labelTop: '', labelBottom: dateStr, full: dateStr };
+  }
+  const labelTop = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+  const labelBottom = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const full = dateObj.toLocaleDateString('en-US', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+  return { labelTop, labelBottom, full };
+};
 
 export const BookAppointmentScreen: React.FC = () => {
-  const navigation = useNavigation<any>();
+  const router = useRoute();
+  const { doctorId, clinicId } = (router.params || {}) as { doctorId: number; clinicId: number };
 
-  const [selectedMember, setSelectedMember] = useState<FamilyMemberOption>(MOCK_FAMILY_MEMBERS[0]);
+  const { userData } = useAuthStore(state => state);
+
+  // 1. Fetch Doctor & Clinic Summary
+  const { data: docSummary, isFetching: isSummaryPending } = useDoctorClinicSummary({
+    doctorId,
+    clinicId,
+  });
+
+  // 2. Fetch Doctor Available Dates
+  const { data: availableDatesRes, isFetching: isAvailableDatesPending } = useDoctorAvailDates({
+    doctorId,
+    clinicId,
+  });
+
+  const availableDates: string[] = useMemo(() => {
+    const raw = (availableDatesRes as any)?.data || availableDatesRes || [];
+    return Array.isArray(raw) ? raw : [];
+  }, [availableDatesRes]);
+
+  const [selectedDate, setSelectedDate] = useState<string>('');
   const [consultationType, setConsultationType] = useState<'in-person' | 'video'>('in-person');
-  const [selectedDateLabel, setSelectedDateLabel] = useState<string>('Mon, 24 Aug');
-  const [selectedSlot, setSelectedSlot] = useState<string>('10:00 AM - 10:30 AM');
+  const [selectedSlot, setSelectedSlot] = useState<ITimeSlotsDoc | null>(null);
   const [reason, setReason] = useState<string>('');
-
-  const [showMemberSheet, setShowMemberSheet] = useState<boolean>(false);
   const [showCalendarModal, setShowCalendarModal] = useState<boolean>(false);
 
-  const consultationFee =
-    consultationType === 'in-person'
-      ? STATIC_DOCTOR.min_in_person_fee
-      : STATIC_DOCTOR.min_video_fee;
+  // 3. Fetch Doctor Slots for Selected Date
+  const { data: slotsRes, isFetching: isSlotsPending } = useDoctorTimingsByDate({
+    doctorId,
+    date: selectedDate,
+    clinicId,
+  });
+
+  const allSlots: ITimeSlotsDoc[] = useMemo(() => {
+    if (!slotsRes) return [];
+    if (Array.isArray((slotsRes as any).slots)) return (slotsRes as any).slots;
+    if (Array.isArray((slotsRes as any).data?.slots)) return (slotsRes as any).data.slots;
+    if (Array.isArray((slotsRes as any).data)) return (slotsRes as any).data;
+    if (Array.isArray(slotsRes)) return slotsRes as ITimeSlotsDoc[];
+    return [];
+  }, [slotsRes]);
+
+  // Reset selected slot when date or consultationType changes
+  useEffect(() => {
+    setSelectedSlot(null);
+  }, [selectedDate, consultationType]);
+
+  // Fee calculation
+  const consultationFee = useMemo(() => {
+    if (selectedSlot) {
+      const fee =
+        consultationType === 'in-person' ? selectedSlot.in_person_fee : selectedSlot.video_fee;
+      if (fee !== undefined && fee !== null && !isNaN(Number(fee)) && Number(fee) > 0) {
+        return Number(fee);
+      }
+    }
+    return consultationType === 'in-person' ? 1000 : 800;
+  }, [selectedSlot, consultationType]);
+
   const platformFee = 50;
   const totalAmount = consultationFee + platformFee;
 
-  const handleProceed = () => {
-    const bookingData = {
-      doctor: STATIC_DOCTOR,
-      patientName: selectedMember.name,
-      patientRelation: selectedMember.relation,
-      consultationType,
-      appointmentDate: '2026-08-24',
-      dateLabel: selectedDateLabel,
-      slot: selectedSlot,
-      reason,
-      consultationFee,
-      platformFee,
-      totalAmount,
-    };
-    navigation.navigate('Payment', { bookingData, totalAmount });
-  };
-
-  const renderSlotGroup = (title: string, slots: string[]) => (
-    <View style={{ marginBottom: 12 }}>
-      <Text style={bookAppointmentStyles.slotGroupTitle}>{title}</Text>
-      <View style={bookAppointmentStyles.slotsGrid}>
-        {slots.map(slot => {
-          const active = slot === selectedSlot;
-          return (
-            <TouchableOpacity
-              key={slot}
-              style={[bookAppointmentStyles.slotBtn, active && bookAppointmentStyles.slotBtnActive]}
-              onPress={() => setSelectedSlot(slot)}
-              activeOpacity={0.8}
-            >
-              <Text
-                style={[
-                  bookAppointmentStyles.slotText,
-                  active && bookAppointmentStyles.slotTextActive,
-                ]}
-              >
-                {slot}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </View>
-  );
+  const selectedDateFormatted = formatDateChip(selectedDate);
 
   return (
     <SafeAreaView style={bookAppointmentStyles.container}>
@@ -130,51 +131,58 @@ export const BookAppointmentScreen: React.FC = () => {
         contentContainerStyle={bookAppointmentStyles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Doctor Card */}
-        <View style={bookAppointmentStyles.doctorCard}>
-          <View style={bookAppointmentStyles.doctorAvatar}>
-            <Text style={bookAppointmentStyles.doctorAvatarText}>
-              {STATIC_DOCTOR.doctor_name
-                .split(' ')
-                .map((n: string) => n[0])
-                .join('')
-                .substring(0, 2)
-                .toUpperCase()}
-            </Text>
+        {isSummaryPending ? (
+          <DoctorClinicCardSkeleton />
+        ) : (
+          <View style={bookAppointmentStyles.doctorCard}>
+            {docSummary?.doctor?.profile_image ? (
+              <Image
+                source={{ uri: docSummary.doctor.profile_image }}
+                style={bookAppointmentStyles.doctorAvatarImage}
+              />
+            ) : (
+              <View style={bookAppointmentStyles.doctorAvatar}>
+                <Text style={bookAppointmentStyles.doctorAvatarText}>
+                  {getInitials(docSummary?.doctor?.name || '')}
+                </Text>
+              </View>
+            )}
+            <View style={bookAppointmentStyles.doctorDetails}>
+              <Text style={bookAppointmentStyles.doctorName}>
+                {docSummary?.doctor?.name || 'Doctor'}
+              </Text>
+              <Text style={bookAppointmentStyles.doctorSpecialization}>
+                {docSummary?.doctor?.specialization || ''}
+              </Text>
+              <Text style={bookAppointmentStyles.doctorSubline}>
+                {docSummary?.doctor?.experience_years
+                  ? `${docSummary.doctor.experience_years} Yrs Exp • `
+                  : ''}
+                {docSummary?.clinic?.name || 'Clinic'}
+              </Text>
+            </View>
           </View>
-          <View style={bookAppointmentStyles.doctorDetails}>
-            <Text style={bookAppointmentStyles.doctorName}>{STATIC_DOCTOR.doctor_name}</Text>
-            <Text style={bookAppointmentStyles.doctorSpecialization}>
-              {STATIC_DOCTOR.specialization}
-            </Text>
-            <Text style={bookAppointmentStyles.doctorSubline}>
-              {STATIC_DOCTOR.years_of_experience} Yrs Exp • {STATIC_DOCTOR.clinic_name}
-            </Text>
-          </View>
-        </View>
+        )}
 
         {/* Patient Information */}
         <Text style={bookAppointmentStyles.sectionLabel}>PATIENT INFORMATION</Text>
         <View style={bookAppointmentStyles.patientCard}>
           <View style={bookAppointmentStyles.patientInfo}>
             <View style={bookAppointmentStyles.patientAvatar}>
-              <Text style={bookAppointmentStyles.patientAvatarText}>{selectedMember.initials}</Text>
+              <Text style={bookAppointmentStyles.patientAvatarText}>
+                {getInitials(userData?.name || '')}
+              </Text>
             </View>
             <View>
-              <Text style={bookAppointmentStyles.patientName}>{selectedMember.name}</Text>
+              <Text style={bookAppointmentStyles.patientName}>{userData?.name || 'Patient'}</Text>
               <Text style={bookAppointmentStyles.patientId}>
-                Patient ID - PT0004 ({selectedMember.relation})
+                Patient ID - {userData?.patient_id || 'N/A'}
               </Text>
             </View>
           </View>
-          <TouchableOpacity
-            style={bookAppointmentStyles.changeBtn}
-            onPress={() => setShowMemberSheet(true)}
-            activeOpacity={0.8}
-          >
-            <Text style={bookAppointmentStyles.changeBtnText}>Change</Text>
-          </TouchableOpacity>
         </View>
+
+        {/* Consultation Type */}
         <Text style={bookAppointmentStyles.sectionLabel}>CONSULTATION TYPE</Text>
         <View style={bookAppointmentStyles.consultationRow}>
           <TouchableOpacity
@@ -228,6 +236,8 @@ export const BookAppointmentScreen: React.FC = () => {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Reason for Visit */}
         <Text style={bookAppointmentStyles.fieldLabel}>
           Reason for Visit <Text style={bookAppointmentStyles.optionalHint}>(optional)</Text>
         </Text>
@@ -242,53 +252,26 @@ export const BookAppointmentScreen: React.FC = () => {
           textAlignVertical="top"
         />
 
+        {/* Select Date */}
         <Text style={bookAppointmentStyles.sectionLabel}>SELECT DATE</Text>
-        <View style={bookAppointmentStyles.dateRow}>
-          {DATE_OPTIONS.map(opt => {
-            const active = opt.value === selectedDateLabel;
-            return (
-              <TouchableOpacity
-                key={opt.value}
-                style={[
-                  bookAppointmentStyles.dateChipCard,
-                  active && bookAppointmentStyles.dateChipCardActive,
-                ]}
-                onPress={() => setSelectedDateLabel(opt.value)}
-                activeOpacity={0.8}
-              >
-                <Text
-                  style={[
-                    bookAppointmentStyles.dateChipTopText,
-                    active && bookAppointmentStyles.dateChipTopTextActive,
-                  ]}
-                >
-                  {opt.labelTop}
-                </Text>
-                <Text
-                  style={[
-                    bookAppointmentStyles.dateChipBottomText,
-                    active && bookAppointmentStyles.dateChipBottomTextActive,
-                  ]}
-                >
-                  {opt.labelBottom}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-          <TouchableOpacity
-            style={bookAppointmentStyles.calendarIconBtn}
-            onPress={() => setShowCalendarModal(true)}
-            activeOpacity={0.8}
-          >
-            <CalendarIcon size={22} color={theme.colors.primaryDark} />
-          </TouchableOpacity>
-        </View>
+        <AvailableDatesPicker
+          dates={availableDates}
+          selectedDate={selectedDate}
+          onSelectDate={setSelectedDate}
+          onOpenCalendar={() => setShowCalendarModal(true)}
+          isLoading={isAvailableDatesPending}
+        />
 
-        {/* Select Time Slot Grouped by MORNING, AFTERNOON, EVENING */}
+        {/* Select Time Slot */}
         <Text style={bookAppointmentStyles.sectionLabel}>SELECT TIME</Text>
-        {renderSlotGroup('MORNING', MORNING_SLOTS)}
-        {renderSlotGroup('AFTERNOON', AFTERNOON_SLOTS)}
-        {renderSlotGroup('EVENING', EVENING_SLOTS)}
+        <TimeSlotPicker
+          slots={allSlots}
+          selectedSlot={selectedSlot}
+          onSelectSlot={setSelectedSlot}
+          isLoading={isSlotsPending}
+          selectedDate={selectedDate}
+          consultationType={consultationType}
+        />
 
         {/* Booking Summary Box */}
         <View style={bookAppointmentStyles.summaryBox}>
@@ -296,7 +279,16 @@ export const BookAppointmentScreen: React.FC = () => {
 
           <View style={bookAppointmentStyles.summaryRow}>
             <Text style={bookAppointmentStyles.summaryLabel}>DOCTOR</Text>
-            <Text style={bookAppointmentStyles.summaryValue}>{STATIC_DOCTOR.doctor_name}</Text>
+            <Text style={bookAppointmentStyles.summaryValue}>
+              {docSummary?.doctor?.name || 'N/A'}
+            </Text>
+          </View>
+
+          <View style={bookAppointmentStyles.summaryRow}>
+            <Text style={bookAppointmentStyles.summaryLabel}>CLINIC</Text>
+            <Text style={bookAppointmentStyles.summaryValue}>
+              {docSummary?.clinic?.name || 'N/A'}
+            </Text>
           </View>
 
           <View style={bookAppointmentStyles.summaryRow}>
@@ -308,12 +300,18 @@ export const BookAppointmentScreen: React.FC = () => {
 
           <View style={bookAppointmentStyles.summaryRow}>
             <Text style={bookAppointmentStyles.summaryLabel}>DATE</Text>
-            <Text style={bookAppointmentStyles.summaryValue}>{selectedDateLabel}</Text>
+            <Text style={bookAppointmentStyles.summaryValue}>
+              {selectedDateFormatted.full || 'Not selected'}
+            </Text>
           </View>
 
           <View style={bookAppointmentStyles.summaryRow}>
             <Text style={bookAppointmentStyles.summaryLabel}>TIME</Text>
-            <Text style={bookAppointmentStyles.summaryValue}>{selectedSlot}</Text>
+            <Text style={bookAppointmentStyles.summaryValue}>
+              {selectedSlot
+                ? `${formatTime12h(selectedSlot.from)} - ${formatTime12h(selectedSlot.to)}`
+                : 'Not selected'}
+            </Text>
           </View>
 
           <View style={bookAppointmentStyles.divider} />
@@ -337,11 +335,12 @@ export const BookAppointmentScreen: React.FC = () => {
         </View>
       </ScrollView>
 
-      {/* Sticky Bottom Footer */}
       <View style={bookAppointmentStyles.footer}>
         <TouchableOpacity
-          style={bookAppointmentStyles.proceedBtn}
-          onPress={handleProceed}
+          style={[
+            bookAppointmentStyles.proceedBtn,
+            (!selectedDate || !selectedSlot) && { opacity: 0.6 },
+          ]}
           activeOpacity={0.85}
         >
           <Text style={bookAppointmentStyles.proceedBtnText}>
@@ -349,27 +348,12 @@ export const BookAppointmentScreen: React.FC = () => {
           </Text>
         </TouchableOpacity>
       </View>
-
-      {/* Patient Member Picker */}
-      <FamilyMemberSelectSheet
-        visible={showMemberSheet}
-        members={MOCK_FAMILY_MEMBERS}
-        selectedMemberId={selectedMember.id}
-        onSelect={setSelectedMember}
-        onClose={() => setShowMemberSheet(false)}
-      />
-
-      {/* Month Calendar Date Picker Modal */}
       <CalendarDatePickerModal
         visible={showCalendarModal}
+        availableDates={availableDates}
         onSelectDate={d => {
-          setSelectedDateLabel(
-            d.toLocaleDateString('en-US', {
-              weekday: 'short',
-              day: 'numeric',
-              month: 'short',
-            })
-          );
+          const formattedStr = d.toISOString().split('T')[0];
+          setSelectedDate(formattedStr);
         }}
         onClose={() => setShowCalendarModal(false)}
       />

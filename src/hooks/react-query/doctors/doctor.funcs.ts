@@ -4,6 +4,7 @@ import { IRootResponse } from '../../../typescripts/interfaces/common.interfaces
 import {
   AllDoctorsRoot,
   DoctorAvailTimeSlotsRoot,
+  DoctorClinicSummaryRoot,
   DoctorDetailsRoot,
   MyDoctorsRoot,
 } from '../../../typescripts/interfaces/doctors.interfaces';
@@ -35,6 +36,16 @@ export const getAllDoctors = async (params?: IGetDoctorsQueryParams) => {
 export const getDoctorDetails = async (doctorId: string | number) => {
   const res = await axiosInstance.get<DoctorDetailsRoot>(
     `${endpoints.doctors.getDetails(doctorId)}`
+  );
+  return res.data;
+};
+
+export const getDoctorClinicSummary = async (
+  doctorId: string | number,
+  clinicId: string | number
+) => {
+  const res = await axiosInstance.get<DoctorClinicSummaryRoot>(
+    `${endpoints.doctors.getDoctorClinicSummary(doctorId, clinicId)}`
   );
   return res.data;
 };

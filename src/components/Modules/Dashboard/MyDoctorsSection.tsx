@@ -97,13 +97,13 @@ export const MyDoctorsSection: React.FC = () => {
         />
       ) : (
         <View style={styles.card}>
-          {myDoctorsData?.data?.map((doc: any, idx: number) => {
+          {myDoctorsData?.data?.map((doc, idx: number) => {
             const showDivider = idx < myDoctorsData?.data?.length - 1;
             return (
               <TouchableOpacity
                 key={String(doc.doctor_id || doc.user_id || idx)}
                 style={[styles.docRow, showDivider && styles.divider]}
-                onPress={() => handleDoctorPress(doc.doctor_id, doc.clinic_id)}
+                onPress={() => handleDoctorPress(Number(doc?.user_id), Number(doc?.clinic?.id))}
                 activeOpacity={0.75}
               >
                 {doc.profile_image ? (
@@ -130,7 +130,7 @@ export const MyDoctorsSection: React.FC = () => {
 
                 <TouchableOpacity
                   style={styles.consultBtn}
-                  onPress={() => handleDoctorPress(doc.doctor_id, doc.clinic_id)}
+                  onPress={() => handleDoctorPress(Number(doc?.user_id), Number(doc?.clinic?.id))}
                   activeOpacity={0.85}
                 >
                   <Text style={styles.consultBtnText}>Consult</Text>

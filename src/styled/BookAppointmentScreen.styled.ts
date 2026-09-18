@@ -14,6 +14,12 @@ export const bookAppointmentStyles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 40,
   },
+  doctorAvatarImage: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    marginRight: 12,
+  },
   doctorCard: {
     flexDirection: 'row',
     alignItems: 'center',

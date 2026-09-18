@@ -3,6 +3,7 @@ import { DoctorQueryKeys } from '../query.keys';
 import {
   getAllDoctors,
   getDoctorAvailDates,
+  getDoctorClinicSummary,
   getDoctorDetails,
   getDoctorTimingsByDate,
   getMyDoctors,
@@ -43,6 +44,18 @@ export const useDoctorDetails = (doctorId: string | number) =>
     select: v => v.data,
   });
 
+// Doctor & Clinic Summary
+export const useDoctorClinicSummary = (params: {
+  doctorId: string | number;
+  clinicId: string | number;
+}) =>
+  useQuery({
+    queryKey: [DoctorQueryKeys.GET_CLINIC_SUMMARY, params],
+    queryFn: () => getDoctorClinicSummary(params.doctorId, params.clinicId),
+    select: v => v.data,
+    enabled: Boolean(params?.doctorId && params?.clinicId),
+  });
+
 // Doctor Available Dates
 export const useDoctorAvailDates = (params: { doctorId: number; clinicId?: number }) =>
   useQuery({
@@ -70,7 +83,9 @@ export const useDoctorTimingsByDate = (params: {
         date: params?.date,
         clinic_id: params?.clinicId,
       }),
-    select: v => v.data,
+    select: v => {
+      return v.data;
+    },
     enabled: Boolean(params?.doctorId && params?.date),
   });
 

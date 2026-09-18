@@ -2,8 +2,34 @@ import { IRootResponse } from './common.interfaces';
 
 export type AllDoctorsRoot = IRootResponse<IAllDoctorData>;
 export type DoctorDetailsRoot = IRootResponse<IDoctorDetailsDoc>;
+export type DoctorClinicSummaryRoot = IRootResponse<IDoctorClinicSummaryData>;
 export type DoctorAvailTimeSlotsRoot = IRootResponse<IDoctorAvailTimeSlots>;
 export type MyDoctorsRoot = IRootResponse<MyDoctorsDoc[]>;
+
+export interface IDoctorClinicSummaryData {
+  doctor: {
+    id: string;
+    user_id: string;
+    doctor_id: string;
+    name: string;
+    specialization: string;
+    sub_specializations: string[];
+    experience_years: number;
+    profile_image: string | null;
+    rating: number | null;
+    reviews_count: number;
+  };
+  clinic: {
+    id: string;
+    name: string;
+    line1: string;
+    city: string;
+    state: string;
+    country: string;
+    pincode: string;
+    status: string;
+  };
+}
 
 export interface IAllDoctorData {
   doctors: IDoctorDoc[];
