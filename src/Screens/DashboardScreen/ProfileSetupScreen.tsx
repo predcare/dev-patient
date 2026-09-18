@@ -43,7 +43,7 @@ export const ProfileSetupScreen: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const { data: profileData, isPending: profilePending } = useProfile();
-
+  console.log('profileData', profileData)
   const stateOptions = MOCK_STATES.map(s => ({ label: s.name, value: s.name }));
   const cityOptions = MOCK_CITIES.map(c => ({ label: c.name, value: c.name }));
 

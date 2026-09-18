@@ -67,7 +67,12 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <View style={headerStyles.container}>
       <View style={headerStyles.row}>
-        <TouchableOpacity style={headerStyles.left} onPress={handleAvatarPress} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={headerStyles.left}
+          onPress={handleAvatarPress}
+          activeOpacity={0.8}
+          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+        >
           {userData?.profile_image ? (
             <Image source={{ uri: userData?.profile_image }} style={headerStyles.avatarImage} />
           ) : (
@@ -77,8 +82,12 @@ export const Header: React.FC<HeaderProps> = ({
           )}
 
           <View style={headerStyles.greetingWrap}>
-            <Text style={headerStyles.greeting}>{greeting}</Text>
-            <Text style={headerStyles.userName}>{userData?.name || 'Unknown'}</Text>
+            <Text style={headerStyles.greeting} numberOfLines={1} ellipsizeMode="tail">
+              {greeting}
+            </Text>
+            <Text style={headerStyles.userName} numberOfLines={1} ellipsizeMode="tail">
+              {userData?.name || 'Unknown'}
+            </Text>
           </View>
         </TouchableOpacity>
 
@@ -87,15 +96,19 @@ export const Header: React.FC<HeaderProps> = ({
             style={headerStyles.langPill}
             onPress={() => setIsLangModalOpen(true)}
             activeOpacity={0.8}
+            hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
           >
             <GlobeIcon size={16} color={theme.colors.primary} />
-            <Text style={headerStyles.langText}>{currentLang.code.toUpperCase()}</Text>
+            <Text style={headerStyles.langText} numberOfLines={1}>
+              {currentLang.code.toUpperCase()}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={headerStyles.notificationButton}
             onPress={handleNotificationPress}
             activeOpacity={0.8}
+            hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
           >
             <BellIcon size={20} color={theme.colors.textSecondary} />
             {unreadCount > 0 && <View style={headerStyles.notificationDot} />}

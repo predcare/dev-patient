@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Alert, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import {
   DailyHealthTipsSection,
@@ -12,6 +12,7 @@ import {
 } from '../../components/Modules/Dashboard';
 import { Header } from '../../Layout/Header';
 import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
+import { getProfileCompletion } from '../../lib/common/common.utils';
 import {
   DashboardNotificationItem,
   DashboardProfile,
@@ -20,12 +21,14 @@ import {
   MOCK_NOTIFICATIONS,
   MockFamilyMember,
 } from '../../resources/mockData';
+import { AppRoute } from '../../route';
 import { dashboardStyles } from '../../styled/DashboardScreen.styled';
+import { useAuthStore } from '../../zustand/stores/useAuthStore';
 
 export const DashboardScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const rootNav = navigation.getParent() || navigation;
-
+  const { userData } = useAuthStore(state => state);
   // Static state management matching reference DashboardScreen
   const [profile, setProfile] = useState<DashboardProfile>(MOCK_DASHBOARD_PROFILE);
   const [familyMembers] = useState<MockFamilyMember[]>(MOCK_FAMILY_MEMBERS);
@@ -156,6 +159,10 @@ export const DashboardScreen: React.FC = () => {
     },
   ];
 
+  const { isCompleted, percentage } = useMemo(() => {
+    return getProfileCompletion(userData);
+  }, [userData]);
+
   return (
     <SafeAreaWrapper style={dashboardStyles.container}>
       {profile.isFamilyMember && (
@@ -189,8 +196,11 @@ export const DashboardScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {activeMemberId === 'self' && (
-          <ProfileCompletionCard percent={75} onPress={() => rootNav.navigate('ProfileSetup')} />
+        {!isCompleted && (
+          <ProfileCompletionCard
+            percent={percentage}
+            onPress={() => rootNav.navigate(AppRoute.PROFILE_SETUP)}
+          />
         )}
         {activeMemberId === 'self' && <MyDoctorsSection />}
         <View style={dashboardStyles.blockSpacing}>

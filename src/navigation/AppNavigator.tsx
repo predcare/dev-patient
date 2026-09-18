@@ -47,6 +47,26 @@ export type { DashboardTabParamList, RootStackParamList };
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<DashboardTabParamList>();
 
+interface TabIconProps {
+  focused: boolean;
+  Icon: React.ComponentType<{ size: number; color: string }>;
+}
+
+const TabIconItem: React.FC<TabIconProps> = ({ focused, Icon }) => (
+  <View style={{ alignItems: 'center' }}>
+    <View
+      style={focused ? navigationStyles.activeIndicatorDot : navigationStyles.inactiveIndicatorDot}
+    />
+    <View
+      style={
+        focused ? navigationStyles.activeIconContainer : navigationStyles.inactiveIconContainer
+      }
+    >
+      <Icon size={19} color={focused ? theme.colors.primary : theme.colors.textSlate} />
+    </View>
+  </View>
+);
+
 const DashboardTabNavigator: React.FC = () => {
   const insets = useSafeAreaInsets();
   const tabBarHeight = 62 + insets.bottom;
@@ -62,7 +82,9 @@ const DashboardTabNavigator: React.FC = () => {
         tabBarItemStyle: navigationStyles.tabItem,
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.textSlate,
-        tabBarLabelStyle: navigationStyles.tabLabel,
+        tabBarLabelStyle: {
+          ...navigationStyles.tabLabel,
+        },
       }}
       screenListeners={{
         focus: e => {
@@ -77,29 +99,10 @@ const DashboardTabNavigator: React.FC = () => {
         options={{
           headerShown: false,
           title: 'Home',
-          tabBarIcon: ({ focused }) => (
-            <View style={{ alignItems: 'center' }}>
-              <View
-                style={
-                  focused
-                    ? navigationStyles.activeIndicatorDot
-                    : navigationStyles.inactiveIndicatorDot
-                }
-              />
-              <View
-                style={
-                  focused
-                    ? navigationStyles.activeIconContainer
-                    : navigationStyles.inactiveIconContainer
-                }
-              >
-                <HomeIcon
-                  size={20}
-                  color={focused ? theme.colors.primary : theme.colors.textSlate}
-                />
-              </View>
-            </View>
-          ),
+          tabBarLabelStyle: {
+            ...navigationStyles.tabLabel,
+          },
+          tabBarIcon: ({ focused }) => <TabIconItem focused={focused} Icon={HomeIcon} />,
         }}
       />
       <Tab.Screen
@@ -108,29 +111,10 @@ const DashboardTabNavigator: React.FC = () => {
         options={{
           headerShown: false,
           title: 'Doctors',
-          tabBarIcon: ({ focused }) => (
-            <View style={{ alignItems: 'center' }}>
-              <View
-                style={
-                  focused
-                    ? navigationStyles.activeIndicatorDot
-                    : navigationStyles.inactiveIndicatorDot
-                }
-              />
-              <View
-                style={
-                  focused
-                    ? navigationStyles.activeIconContainer
-                    : navigationStyles.inactiveIconContainer
-                }
-              >
-                <StethoscopeIcon
-                  size={20}
-                  color={focused ? theme.colors.primary : theme.colors.textSlate}
-                />
-              </View>
-            </View>
-          ),
+          tabBarLabelStyle: {
+            ...navigationStyles.tabLabel,
+          },
+          tabBarIcon: ({ focused }) => <TabIconItem focused={focused} Icon={StethoscopeIcon} />,
         }}
       />
       <Tab.Screen
@@ -139,29 +123,10 @@ const DashboardTabNavigator: React.FC = () => {
         options={{
           headerShown: false,
           title: 'Schedule',
-          tabBarIcon: ({ focused }) => (
-            <View style={{ alignItems: 'center' }}>
-              <View
-                style={
-                  focused
-                    ? navigationStyles.activeIndicatorDot
-                    : navigationStyles.inactiveIndicatorDot
-                }
-              />
-              <View
-                style={
-                  focused
-                    ? navigationStyles.activeIconContainer
-                    : navigationStyles.inactiveIconContainer
-                }
-              >
-                <ScheduleIcon
-                  size={20}
-                  color={focused ? theme.colors.primary : theme.colors.textSlate}
-                />
-              </View>
-            </View>
-          ),
+          tabBarLabelStyle: {
+            ...navigationStyles.tabLabel,
+          },
+          tabBarIcon: ({ focused }) => <TabIconItem focused={focused} Icon={ScheduleIcon} />,
         }}
       />
       <Tab.Screen
@@ -170,29 +135,10 @@ const DashboardTabNavigator: React.FC = () => {
         options={{
           headerShown: false,
           title: 'Rx',
-          tabBarIcon: ({ focused }) => (
-            <View style={{ alignItems: 'center' }}>
-              <View
-                style={
-                  focused
-                    ? navigationStyles.activeIndicatorDot
-                    : navigationStyles.inactiveIndicatorDot
-                }
-              />
-              <View
-                style={
-                  focused
-                    ? navigationStyles.activeIconContainer
-                    : navigationStyles.inactiveIconContainer
-                }
-              >
-                <ReportsIcon
-                  size={20}
-                  color={focused ? theme.colors.primary : theme.colors.textSlate}
-                />
-              </View>
-            </View>
-          ),
+          tabBarLabelStyle: {
+            ...navigationStyles.tabLabel,
+          },
+          tabBarIcon: ({ focused }) => <TabIconItem focused={focused} Icon={ReportsIcon} />,
         }}
       />
       <Tab.Screen
@@ -201,29 +147,10 @@ const DashboardTabNavigator: React.FC = () => {
         options={{
           headerShown: false,
           title: 'Account',
-          tabBarIcon: ({ focused }) => (
-            <View style={{ alignItems: 'center' }}>
-              <View
-                style={
-                  focused
-                    ? navigationStyles.activeIndicatorDot
-                    : navigationStyles.inactiveIndicatorDot
-                }
-              />
-              <View
-                style={
-                  focused
-                    ? navigationStyles.activeIconContainer
-                    : navigationStyles.inactiveIconContainer
-                }
-              >
-                <SettingsIcon
-                  size={20}
-                  color={focused ? theme.colors.primary : theme.colors.textSlate}
-                />
-              </View>
-            </View>
-          ),
+          tabBarLabelStyle: {
+            ...navigationStyles.tabLabel,
+          },
+          tabBarIcon: ({ focused }) => <TabIconItem focused={focused} Icon={SettingsIcon} />,
         }}
       />
     </Tab.Navigator>
