@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -32,7 +32,7 @@ import { useDebounce } from '../../hooks/commons/useDebounce';
 import { useSpecializations } from '../../hooks/react-query/common/common.hooks';
 import { useGetAllDoctorsInfinite } from '../../hooks/react-query/doctors/doctor.hooks';
 import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
-import { MOCK_CITIES_LIST, MOCK_SPECIALTIES } from '../../resources/mockData';
+import { MOCK_CITIES_LIST } from '../../resources/mockData';
 import { AppRoute } from '../../route';
 import { doctorSearchStyles } from '../../styled/DoctorSearchScreen.styled';
 import { theme } from '../../styled/theme.styled';
@@ -81,7 +81,7 @@ export const DoctorSearchScreen: React.FC = () => {
   const navigation = useNavigation<any>();
 
   const [filterStates, setFilterStates] = useState<IDoctorFilterStates>(defaultFilterStates);
-
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const updateFilterState = (updates: Partial<IDoctorFilterStates>) => {
     setFilterStates(prev => ({ ...prev, ...updates }));
   };
@@ -96,7 +96,7 @@ export const DoctorSearchScreen: React.FC = () => {
         .map((item: any) => item.specialization || item.name)
         .filter(Boolean);
     }
-    return MOCK_SPECIALTIES;
+    return [];
   }, [specializationsQuery.data]);
 
   const queryParams = useMemo(() => {
@@ -136,7 +136,6 @@ export const DoctorSearchScreen: React.FC = () => {
     isFetchingNextPage,
     isPending,
     refetch,
-    isRefetching,
   } = useGetAllDoctorsInfinite(queryParams);
 
   const [showFilterModal, setShowFilterModal] = useState<boolean>(false);
@@ -163,6 +162,12 @@ export const DoctorSearchScreen: React.FC = () => {
   const handleResetFilters = () => {
     setFilterStates(defaultFilterStates);
   };
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await refetch();
+    setIsRefreshing(false);
+  }, [filterStates]);
 
   const combinedList: ListItemType[] = useMemo(() => {
     if (!infiniteData?.pages) return [];
@@ -417,8 +422,8 @@ export const DoctorSearchScreen: React.FC = () => {
           onEndReachedThreshold={0.5}
           refreshControl={
             <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={() => refetch()}
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
               colors={[theme.colors.primary]}
             />
           }

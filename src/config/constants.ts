@@ -28,3 +28,9 @@ export const GenderOptions = [
   { label: 'Female', value: 'female' },
   { label: 'Others', value: 'others' },
 ];
+
+export const SlotGroups = [
+  { title: 'MORNING', key: 'morning' },
+  { title: 'AFTERNOON', key: 'afternoon' },
+  { title: 'EVENING', key: 'evening' },
+] as const;

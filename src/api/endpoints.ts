@@ -1,5 +1,5 @@
 export const baseUrl = 'https://api-dev.predcare.in';
-export const localBaseUrl = ' https://chant-abrasion-sustainer.ngrok-free.dev';
+export const localBaseUrl = 'https://chant-abrasion-sustainer.ngrok-free.dev';
 export const baseUrlApi = `${localBaseUrl}/api/v1`;
 
 export const mediaPaths = (fileName?: string) => {

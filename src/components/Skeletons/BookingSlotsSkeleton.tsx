@@ -46,7 +46,7 @@ export const BookingSlotsSkeleton: React.FC<BookingSlotsSkeletonProps> = ({
         <View key={groupKey} style={styles.groupSkeleton}>
           <Animated.View style={[styles.groupTitleSkeleton, { opacity: pulseAnim }]} />
           <View style={styles.slotsGrid}>
-            {[1, 2, 3, 4].map(key => (
+            {[1, 2].map(key => (
               <Animated.View key={key} style={[styles.slotBtnSkeleton, { opacity: pulseAnim }]} />
             ))}
           </View>
