@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { SlotGroups } from '../../../config/constants';
+import { showErrorToast } from '../../../lib/common/toast.utils';
 import { bookAppointmentStyles } from '../../../styled/BookAppointmentScreen.styled';
 import { theme } from '../../../styled/theme.styled';
 import { ITimeSlotsDoc } from '../../../typescripts/interfaces/doctors.interfaces';
@@ -47,7 +48,7 @@ const isSameSlot = (a: ITimeSlotsDoc, b: ITimeSlotsDoc): boolean => {
 export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
   slots,
   selectedSlot,
-  selectedSlots: propSelectedSlots,
+  selectedSlots = [],
   onSelectSlot,
   onSelectSlots,
   isLoading,
@@ -56,26 +57,6 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
   errorMessage,
   onErrorChange,
 }) => {
-  const [internalError, setInternalError] = useState<string | null>(null);
-
-  const errorMsg = errorMessage !== undefined ? errorMessage : internalError;
-  const setError = (msg: string | null) => {
-    setInternalError(msg);
-    if (onErrorChange) {
-      onErrorChange(msg);
-    }
-  };
-
-  const activeSelectedSlots = useMemo(() => {
-    if (propSelectedSlots !== undefined) {
-      return propSelectedSlots;
-    }
-    if (selectedSlot) {
-      return [selectedSlot];
-    }
-    return [];
-  }, [propSelectedSlots, selectedSlot]);
-
   const filteredSlots = useMemo(() => {
     const matching = slots.filter(slot => {
       if (!slot.consultation_type) return true;
@@ -105,56 +86,42 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
 
   const handleSlotPress = (slot: ITimeSlotsDoc) => {
     if (!multiSelect) {
-      const isSelected = activeSelectedSlots.some(s => isSameSlot(s, slot));
+      const isSelected = selectedSlots.some(s => isSameSlot(s, slot));
       if (isSelected) {
         if (onSelectSlots) onSelectSlots([]);
-        setError(null);
       } else {
         if (onSelectSlots) onSelectSlots([slot]);
         if (onSelectSlot) onSelectSlot(slot);
-        setError(null);
       }
       return;
     }
 
-    const selectedIndex = activeSelectedSlots.findIndex(s => isSameSlot(s, slot));
+    const selectedIndex = selectedSlots.findIndex(s => isSameSlot(s, slot));
 
-    // Case 1: Slot is already selected -> user is trying to UNSELECT
     if (selectedIndex !== -1) {
-      if (activeSelectedSlots.length === 1) {
-        // Unselect the only selected slot
+      if (selectedSlots.length === 1) {
         const nextSelected: ITimeSlotsDoc[] = [];
         if (onSelectSlots) onSelectSlots(nextSelected);
-        setError(null);
       } else if (selectedIndex === 0) {
-        // Unselect the first boundary slot
-        const nextSelected = activeSelectedSlots.slice(1);
+        const nextSelected = selectedSlots.slice(1);
         if (onSelectSlots) onSelectSlots(nextSelected);
         if (onSelectSlot && nextSelected[0]) onSelectSlot(nextSelected[0]);
-        setError(null);
-      } else if (selectedIndex === activeSelectedSlots.length - 1) {
-        // Unselect the last boundary slot
-        const nextSelected = activeSelectedSlots.slice(0, -1);
+      } else if (selectedIndex === selectedSlots.length - 1) {
+        const nextSelected = selectedSlots.slice(0, -1);
         if (onSelectSlots) onSelectSlots(nextSelected);
-        setError(null);
       } else {
-        // Interior slot tapped -> unselecting would break consecutive range
-        setError('You can only unselect slots from the start or end of your selection.');
+        showErrorToast('You can only unselect slots from the start or end of your selection.');
       }
       return;
     }
 
-    // Case 2: Slot is not selected -> user is trying to SELECT
-    if (activeSelectedSlots.length === 0) {
+    if (selectedSlots.length === 0) {
       const nextSelected = [slot];
       if (onSelectSlots) onSelectSlots(nextSelected);
       if (onSelectSlot) onSelectSlot(slot);
-      setError(null);
       return;
     }
-
-    // Sort current selected slots chronologically
-    const sortedSelected = [...activeSelectedSlots].sort(
+    const sortedSelected = [...selectedSlots].sort(
       (a, b) => timeToMinutes(a.from) - timeToMinutes(b.from)
     );
 
@@ -166,20 +133,17 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
 
     const firstFromMin = timeToMinutes(firstSelected.from);
     const lastToMin = timeToMinutes(lastSelected.to);
-
-    // Check if new slot is consecutive (either directly before first selected or directly after last selected)
     const isPrepended = slotToMin === firstFromMin;
     const isAppended = slotFromMin === lastToMin;
 
     if (isPrepended || isAppended) {
-      const nextSelected = [...activeSelectedSlots, slot].sort(
+      const nextSelected = [...selectedSlots, slot].sort(
         (a, b) => timeToMinutes(a.from) - timeToMinutes(b.from)
       );
       if (onSelectSlots) onSelectSlots(nextSelected);
       if (onSelectSlot && nextSelected[0]) onSelectSlot(nextSelected[0]);
-      setError(null);
     } else {
-      setError('Please select consecutive time slots only.');
+      showErrorToast('Please select consecutive time slots only.');
     }
   };
 
@@ -205,31 +169,13 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
 
   return (
     <View>
-      {errorMsg ? (
-        <View
-          style={{
-            backgroundColor: '#FEF2F2',
-            borderWidth: 1,
-            borderColor: '#FCA5A5',
-            borderRadius: 8,
-            paddingHorizontal: 12,
-            paddingVertical: 10,
-            marginBottom: 12,
-          }}
-        >
-          <Text style={{ color: '#DC2626', fontSize: 13, fontWeight: '500', textAlign: 'center' }}>
-            {errorMsg}
-          </Text>
-        </View>
-      ) : null}
-
       {SlotGroups.filter(group => groupedSlots[group.key].length > 0).map(group => (
         <View key={group.key} style={bookAppointmentStyles.slotGroupContainer}>
           <Text style={bookAppointmentStyles.slotGroupTitle}>{group.title}</Text>
           <View style={bookAppointmentStyles.slotsGrid}>
             {groupedSlots[group.key].map((slot, idx) => {
               const isAvailable = slot.status === 'available' || !slot.status;
-              const isSelected = activeSelectedSlots.some(s => isSameSlot(s, slot));
+              const isSelected = selectedSlots.some(s => isSameSlot(s, slot));
               const slotText = `${formatTime12h(slot.from)} - ${formatTime12h(slot.to)}`;
 
               return (
@@ -264,4 +210,3 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
 };
 
 export default TimeSlotPicker;
-
