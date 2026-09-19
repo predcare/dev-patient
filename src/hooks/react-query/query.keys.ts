@@ -17,6 +17,11 @@ export enum ProfileQueryKeys {
   FAMILY_MEMBER_LIST = 'FAMILY_MEMBER_LIST',
 }
 
+export enum ClinicQueryKeys {
+  CLINIC_INFO = 'CLINIC_INFO',
+  CLINIC_DOCTORS = 'CLINIC_DOCTORS',
+}
+
 export enum CommonQueryKeys {
   Countries = 'Countries',
   States = 'States',

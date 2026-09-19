@@ -58,14 +58,24 @@ export const clinicDetailsStyles = StyleSheet.create({
   },
   addressBadge: {
     backgroundColor: theme.colors.primaryDark,
-    paddingHorizontal: 18,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
+    maxWidth: '92%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addressBadgeIcon: {
+    marginRight: 6,
   },
   addressText: {
     fontSize: 13,
     color: theme.colors.surface,
     fontWeight: '600',
+    textAlign: 'center',
+    lineHeight: 18,
+    flexShrink: 1,
   },
 
   // Content Container Cards
@@ -115,7 +125,7 @@ export const clinicDetailsStyles = StyleSheet.create({
   // Contact Rows
   contactRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingVertical: 12,
     paddingHorizontal: 16,
     backgroundColor: theme.colors.background,
@@ -126,12 +136,14 @@ export const clinicDetailsStyles = StyleSheet.create({
   },
   contactIcon: {
     marginRight: 12,
+    marginTop: 2,
   },
   contactText: {
     fontSize: 14,
     color: theme.colors.textPrimary,
     flex: 1,
     fontWeight: '500',
+    lineHeight: 20,
   },
 
   // Specialities Grid
@@ -176,6 +188,12 @@ export const clinicDetailsStyles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
+  doctorAvatarImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginRight: 12,
+  },
   doctorAvatarText: {
     color: theme.colors.surface,
     fontSize: 18,
@@ -203,6 +221,51 @@ export const clinicDetailsStyles = StyleSheet.create({
   },
   arrowContainer: {
     paddingLeft: 8,
+  },
+  doctorsLoadingContainer: {
+    paddingVertical: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  doctorsLoadingText: {
+    fontSize: 13,
+    color: theme.colors.textSecondary,
+    fontWeight: '500',
+  },
+  doctorsEmptyContainer: {
+    paddingVertical: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  doctorsEmptyText: {
+    fontSize: 14,
+    color: theme.colors.textMuted,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  doctorsErrorContainer: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  doctorsErrorText: {
+    fontSize: 13,
+    color: theme.colors.errorRed,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  retryButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: theme.colors.primarySoft,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: theme.colors.primary,
   },
 });
 

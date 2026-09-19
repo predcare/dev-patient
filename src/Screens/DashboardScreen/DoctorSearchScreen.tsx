@@ -33,6 +33,7 @@ import { useSpecializations } from '../../hooks/react-query/common/common.hooks'
 import { useGetAllDoctorsInfinite } from '../../hooks/react-query/doctors/doctor.hooks';
 import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import { MOCK_CITIES_LIST, MOCK_SPECIALTIES } from '../../resources/mockData';
+import { AppRoute } from '../../route';
 import { doctorSearchStyles } from '../../styled/DoctorSearchScreen.styled';
 import { theme } from '../../styled/theme.styled';
 import { IClinicDoc, IDoctorDoc } from '../../typescripts/interfaces/doctors.interfaces';
@@ -182,8 +183,8 @@ export const DoctorSearchScreen: React.FC = () => {
     navigation.navigate('BookAppointment', { doctorId, clinicId });
   };
 
-  const handleClinicPress = (clinic: Partial<IClinicDoc> & { id: string }) => {
-    navigation.navigate('ClinicDetails', { clinicId: clinic.id, clinic });
+  const handleClinicPress = (clinicId: number) => {
+    navigation.navigate(AppRoute.CLINIC_DETAILS, { clinicId });
   };
 
   const handleApplyFilters = (filters: DoctorFilterValues) => {
@@ -456,7 +457,7 @@ export const DoctorSearchScreen: React.FC = () => {
                 state={item.data.state}
                 specialities={item.data.specialities}
                 availableDoctorsCount={item.data.available_doctors_count}
-                onPress={() => handleClinicPress(item.data)}
+                onPress={() => handleClinicPress(Number(item.data?.id))}
               />
             )
           }

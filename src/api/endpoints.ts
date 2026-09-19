@@ -43,6 +43,10 @@ export const endpoints = {
     getSlotsByDate: '/doctor-availabilities/slots-by-date',
     myDocs: '/patients/my-doctors',
   },
+  clinics: {
+    getInfo: (clinicId: string | number) => `/clinics/${clinicId}`,
+    getDoctors: (clinicId: string | number) => `/clinics/${clinicId}/doctors`,
+  },
   commons: {
     country: '/common/countries',
     states: (countryId: string | number) => `/common/countries/${countryId}/states`,
