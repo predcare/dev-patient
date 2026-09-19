@@ -1,5 +1,5 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import AppHeader from '../../components/ui/AppHeader';
@@ -13,44 +13,217 @@ import {
   StethoscopeIcon,
   VideoIcon,
 } from '../../components/ui/icons';
+import { useRazorpay } from '../../hooks/commons/useRazorpay';
+import {
+  useCheckPaymentStatus,
+  useCreateAppointment,
+} from '../../hooks/react-query/appointments/appointments.hooks';
 import { getInitials } from '../../lib/common/common.utils';
+import { showErrorToast, showInfoToast, showSuccessToast } from '../../lib/common/toast.utils';
 import { paymentStyles } from '../../styled/PaymentScreen.styled';
 import { theme } from '../../styled/theme.styled';
+import { useAuthStore } from '../../zustand/stores/useAuthStore';
+import { useLoadingStore } from '../../zustand/stores/useLoadingStore';
 
 export const PaymentScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const { userData } = useAuthStore(state => state);
+  const { showLoader, hideLoader } = useLoadingStore(state => state);
 
-  const rawBookingData = route.params?.bookingData;
-  const bookingData = rawBookingData?.bookingData || rawBookingData || {};
-
-  const doctorName = bookingData.doctor?.doctor_name || bookingData.doctorName || 'Dr. John Doe';
-  const specialization =
-    bookingData.doctor?.specialization || bookingData.doctorSpecialization || 'Cardiologist • MD';
-  const patientName = bookingData.patientName || 'John Doe';
-  const dateLabel = bookingData.dateLabel || bookingData.date || 'Mon, 24 Aug 2026';
-  const slot = bookingData.slot || '10:30 AM - 10:40 AM';
-  const consultationType = bookingData.consultation_type || bookingData.consultationType || 'in-person';
-  const consultationFee =
-    bookingData.consultationFee ??
-    (route.params?.totalAmount || bookingData.totalAmount || 1000);
-  const platformFee = bookingData.platformFee ?? 0;
+  const bookingData = route.params?.bookingData || {};
   const totalAmount =
     route.params?.totalAmount ||
     bookingData.totalAmount ||
-    consultationFee + platformFee;
+    (bookingData.consultationFee ?? 0) + (bookingData.platformFee ?? 0);
 
-  const [loading, setLoading] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [verificationStatus, setVerificationStatus] = useState<
+    'idle' | 'validating' | 'success' | 'error'
+  >('idle');
+  const [paymentVerifyParams, setPaymentVerifyParams] = useState<{
+    appointment_id: string;
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    enabled: boolean;
+  }>({
+    appointment_id: '',
+    razorpay_order_id: '',
+    razorpay_payment_id: '',
+    enabled: false,
+  });
 
-  const handlePay = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      navigation.navigate('BookingSuccess', { bookingData });
-    }, 600);
+  const { refetch: refetchPaymentStatus } = useCheckPaymentStatus(paymentVerifyParams);
+
+  const { mutate: createAppointmentMutation } = useCreateAppointment();
+  const { openCheckout, isLoading: isRazorpayLoading } = useRazorpay({
+    onPaymentDismiss: () => {
+      setIsSubmitting(false);
+      showInfoToast('Payment Cancelled by User');
+    },
+    onPaymentFailure: error => {
+      setIsSubmitting(false);
+      console.log('Payment failure:', error);
+    },
+  });
+
+  const handlePay = async () => {
+    if (isSubmitting || isRazorpayLoading) return;
+
+    setIsSubmitting(true);
+
+    const apiPayload = bookingData.apiPayload || {};
+    const payloadToSend = {
+      ...apiPayload,
+      reason: apiPayload.reason || bookingData.reason || undefined,
+    };
+
+    const doctorName = bookingData.doctor?.doctor_name || bookingData.doctorName || 'Doctor';
+    const patientName = bookingData.patientName || userData?.name || 'Patient';
+
+    createAppointmentMutation(payloadToSend, {
+      onSuccess: async (res: any) => {
+        const data = res?.data;
+        const appointmentId = data?.appointment_id || data?._id || data?.id || '';
+
+        if (data?.requires_payment && data?.order_id) {
+          const checkoutResult = await openCheckout(
+            {
+              key: data.key_id,
+              amount: data.amount_paise || Math.round(Number(data.amount) * 100),
+              order_id: data.order_id,
+              currency: data.currency || 'INR',
+              name: 'PRED Care',
+              description: `Appointment with ${doctorName}`,
+            },
+            {
+              name: userData?.name || patientName,
+              email: userData?.email || '',
+              contact: userData?.phone_number || '',
+            },
+            {
+              color: theme.colors.primaryDark || '#0EA5E9',
+              backdrop_color: '#000000',
+            }
+          );
+
+          if (checkoutResult) {
+            setPaymentVerifyParams({
+              appointment_id: appointmentId,
+              razorpay_order_id: checkoutResult.razorpay_order_id || data.order_id,
+              razorpay_payment_id: checkoutResult.razorpay_payment_id,
+              enabled: true,
+            });
+            setVerificationStatus('validating');
+          } else {
+            setIsSubmitting(false);
+          }
+        } else {
+          // Free appointment / no payment required
+          setIsSubmitting(false);
+          showSuccessToast('Appointment confirmed successfully!');
+          navigation.replace('BookingSuccess', {
+            bookingData: {
+              ...bookingData,
+              appointmentId: appointmentId || data?.order_id,
+              ...data,
+            },
+          });
+        }
+      },
+      onError: (err: any) => {
+        setIsSubmitting(false);
+        showErrorToast(
+          err?.response?.data?.message || err?.message || 'Failed to create appointment.'
+        );
+      },
+    });
   };
 
-  const isVideo = consultationType === 'video';
+  useEffect(() => {
+    if (verificationStatus !== 'validating') return;
+
+    showLoader('Verifying payment and confirming your appointment...');
+
+    let attempts = 0;
+    const maxDuration = 45 * 1000; // 45 seconds max
+    const intervalTime = 3000; // 3 seconds interval
+
+    const interval = setInterval(async () => {
+      attempts++;
+      try {
+        const { data } = await refetchPaymentStatus();
+        const statusData: any = data?.data;
+
+        const isPaid =
+          statusData?.payment_status?.toLowerCase() === 'paid' || statusData?.is_paid === true;
+        const isConfirmed =
+          statusData?.appointment_status?.toLowerCase() === 'confirmed' ||
+          statusData?.booking_completed === true;
+
+        if (isPaid && isConfirmed) {
+          clearInterval(interval);
+          setVerificationStatus('success');
+          hideLoader();
+          setIsSubmitting(false);
+          showSuccessToast('Appointment confirmed & payment successful!');
+
+          navigation.replace('BookingSuccess', {
+            bookingData: {
+              ...bookingData,
+              ...statusData,
+              appointmentId:
+                statusData?.appointment_id ||
+                paymentVerifyParams.appointment_id ||
+                paymentVerifyParams.razorpay_order_id,
+              paymentStatus: statusData?.payment_status || 'paid',
+              appointmentStatus: statusData?.appointment_status || 'confirmed',
+            },
+          });
+          return;
+        }
+
+        if (
+          statusData?.payment_status === 'failed' ||
+          statusData?.appointment_status === 'cancelled'
+        ) {
+          clearInterval(interval);
+          setVerificationStatus('error');
+          hideLoader();
+          setIsSubmitting(false);
+          showErrorToast('Payment or appointment confirmation failed. Please contact support.');
+          return;
+        }
+      } catch (err: any) {
+        console.log('Error verifying payment status:', err);
+      }
+
+      // Stop after max duration if not active or confirmed
+      if (attempts * intervalTime >= maxDuration) {
+        clearInterval(interval);
+        setVerificationStatus('error');
+        hideLoader();
+        setIsSubmitting(false);
+        showInfoToast(
+          'Payment verification is taking longer than expected. Please check your schedule.'
+        );
+        navigation.replace('MainTabs');
+      }
+    }, intervalTime);
+
+    return () => {
+      clearInterval(interval);
+      hideLoader();
+    };
+  }, [
+    verificationStatus,
+    paymentVerifyParams,
+    refetchPaymentStatus,
+    bookingData,
+    navigation,
+    showLoader,
+    hideLoader,
+  ]);
 
   return (
     <SafeAreaWrapper style={paymentStyles.container}>
@@ -71,18 +244,24 @@ export const PaymentScreen: React.FC = () => {
           </View>
           <View style={paymentStyles.doctorRow}>
             <View style={paymentStyles.doctorAvatar}>
-              <Text style={paymentStyles.doctorAvatarText}>{getInitials(doctorName)}</Text>
+              <Text style={paymentStyles.doctorAvatarText}>
+                {getInitials(bookingData.doctor?.doctor_name || bookingData.doctorName || 'Dr.')}
+              </Text>
             </View>
             <View style={paymentStyles.doctorDetails}>
-              <Text style={paymentStyles.doctorName}>{doctorName}</Text>
+              <Text style={paymentStyles.doctorName}>
+                {bookingData.doctor?.doctor_name || bookingData.doctorName || 'Doctor'}
+              </Text>
               <View style={paymentStyles.specializationBadge}>
-                <Text style={paymentStyles.doctorSpecialization}>{specialization}</Text>
+                <Text style={paymentStyles.doctorSpecialization}>
+                  {bookingData.doctor?.specialization ||
+                    bookingData.doctorSpecialization ||
+                    'Specialist'}
+                </Text>
               </View>
             </View>
           </View>
         </View>
-
-        {/* Appointment Details Card */}
         <View style={paymentStyles.card}>
           <View style={paymentStyles.cardHeader}>
             <View style={paymentStyles.cardTitleRow}>
@@ -98,7 +277,9 @@ export const PaymentScreen: React.FC = () => {
               </View>
               <View style={paymentStyles.detailTextWrap}>
                 <Text style={paymentStyles.detailLabel}>DATE</Text>
-                <Text style={paymentStyles.detailValue}>{dateLabel}</Text>
+                <Text style={paymentStyles.detailValue}>
+                  {bookingData.dateLabel || bookingData.date || 'Date'}
+                </Text>
               </View>
             </View>
 
@@ -108,13 +289,13 @@ export const PaymentScreen: React.FC = () => {
               </View>
               <View style={paymentStyles.detailTextWrap}>
                 <Text style={paymentStyles.detailLabel}>TIME</Text>
-                <Text style={paymentStyles.detailValue}>{slot}</Text>
+                <Text style={paymentStyles.detailValue}>{bookingData.slot || 'Selected Slot'}</Text>
               </View>
             </View>
 
             <View style={paymentStyles.detailItem}>
               <View style={paymentStyles.iconBox}>
-                {isVideo ? (
+                {(bookingData.consultation_type || bookingData.consultationType) === 'video' ? (
                   <VideoIcon size={16} color={theme.colors.primary} />
                 ) : (
                   <StethoscopeIcon size={16} color={theme.colors.primary} />
@@ -124,7 +305,9 @@ export const PaymentScreen: React.FC = () => {
                 <Text style={paymentStyles.detailLabel}>CONSULTATION TYPE</Text>
                 <View style={paymentStyles.typeBadge}>
                   <Text style={paymentStyles.typeBadgeText}>
-                    {isVideo ? 'Video Consult' : 'In-Person Visit'}
+                    {(bookingData.consultation_type || bookingData.consultationType) === 'video'
+                      ? 'Video Consult'
+                      : 'In-Person Visit'}
                   </Text>
                 </View>
               </View>
@@ -136,7 +319,9 @@ export const PaymentScreen: React.FC = () => {
               </View>
               <View style={paymentStyles.detailTextWrap}>
                 <Text style={paymentStyles.detailLabel}>PATIENT NAME</Text>
-                <Text style={paymentStyles.detailValue}>{patientName}</Text>
+                <Text style={paymentStyles.detailValue}>
+                  {bookingData.patientName || userData?.name || 'Patient'}
+                </Text>
               </View>
             </View>
           </View>
@@ -153,11 +338,13 @@ export const PaymentScreen: React.FC = () => {
 
           <View style={paymentStyles.feeRow}>
             <Text style={paymentStyles.feeLabel}>Consultation Fee</Text>
-            <Text style={paymentStyles.feeAmount}>₹{consultationFee}</Text>
+            <Text style={paymentStyles.feeAmount}>
+              ₹{bookingData.consultationFee ?? totalAmount - (bookingData.platformFee ?? 0)}
+            </Text>
           </View>
           <View style={paymentStyles.feeRow}>
             <Text style={paymentStyles.feeLabel}>Platform Fee</Text>
-            <Text style={paymentStyles.feeAmount}>₹{platformFee}</Text>
+            <Text style={paymentStyles.feeAmount}>₹{bookingData.platformFee ?? 0}</Text>
           </View>
 
           <View style={paymentStyles.divider} />
@@ -170,22 +357,23 @@ export const PaymentScreen: React.FC = () => {
             <Text style={paymentStyles.totalAmount}>₹{totalAmount}</Text>
           </View>
         </View>
-
-        {/* Pay Button */}
         <TouchableOpacity
           onPress={handlePay}
-          disabled={loading}
-          style={[paymentStyles.payButton, loading && paymentStyles.payButtonDisabled]}
+          disabled={isSubmitting || isRazorpayLoading}
+          style={[
+            paymentStyles.payButton,
+            (isSubmitting || isRazorpayLoading) && paymentStyles.payButtonDisabled,
+          ]}
           activeOpacity={0.85}
         >
-          {loading ? (
+          {isSubmitting || isRazorpayLoading ? (
             <ActivityIndicator color={theme.colors.surface} />
           ) : (
-            <Text style={paymentStyles.payButtonText}>Pay ₹{totalAmount} & Confirm</Text>
+            <Text style={paymentStyles.payButtonText}>
+              {totalAmount > 0 ? `Pay ₹${totalAmount} & Confirm` : 'Confirm Appointment'}
+            </Text>
           )}
         </TouchableOpacity>
-
-        {/* Security Notice */}
         <View style={paymentStyles.securityNotice}>
           <View style={paymentStyles.securityHeader}>
             <ShieldIcon size={16} color={theme.colors.primary} />
@@ -200,4 +388,3 @@ export const PaymentScreen: React.FC = () => {
 };
 
 export default PaymentScreen;
-

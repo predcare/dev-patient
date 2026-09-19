@@ -39,3 +39,6 @@ export enum DoctorQueryKeys {
   GET_SLOTS_BY_DATE = 'GET_SLOTS_BY_DATE',
   MY_DOCS = 'MY_DOCS',
 }
+export enum AppointmemntQueryKey {
+  CHECK_PAYMENT_STATUS = 'CHECK_PAYMENT_STATUS',
+}

@@ -8,16 +8,12 @@ import { ITimeSlotsDoc } from '../../../typescripts/interfaces/doctors.interface
 import BookingSlotsSkeleton from '../../Skeletons/BookingSlotsSkeleton';
 
 export interface TimeSlotPickerProps {
-  slots: ITimeSlotsDoc[];
-  selectedSlot?: ITimeSlotsDoc | null;
+  availSlots: ITimeSlotsDoc[];
   selectedSlots?: ITimeSlotsDoc[];
   onSelectSlot?: (slot: ITimeSlotsDoc) => void;
   onSelectSlots?: (slots: ITimeSlotsDoc[]) => void;
   isLoading?: boolean;
-  consultationType?: 'in-person' | 'video';
   multiSelect?: boolean;
-  errorMessage?: string | null;
-  onErrorChange?: (error: string | null) => void;
 }
 
 const formatTime12h = (timeStr: string): string => {
@@ -46,25 +42,13 @@ const isSameSlot = (a: ITimeSlotsDoc, b: ITimeSlotsDoc): boolean => {
 };
 
 export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
-  slots,
-  selectedSlot,
+  availSlots,
   selectedSlots = [],
   onSelectSlot,
   onSelectSlots,
   isLoading,
-  consultationType = 'in-person',
   multiSelect = true,
-  errorMessage,
-  onErrorChange,
 }) => {
-  const filteredSlots = useMemo(() => {
-    const matching = slots.filter(slot => {
-      if (!slot.consultation_type) return true;
-      return slot.consultation_type.toLowerCase() === consultationType.toLowerCase();
-    });
-    return matching.length > 0 ? matching : slots;
-  }, [slots, consultationType]);
-
   const groupedSlots = useMemo(() => {
     const groups: Record<string, ITimeSlotsDoc[]> = {
       morning: [],
@@ -72,7 +56,7 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
       evening: [],
     };
 
-    filteredSlots.forEach(slot => {
+    availSlots?.forEach(slot => {
       if (!slot.from) return;
       const fromHour = parseInt(slot.from.split(':')[0], 10);
       if (isNaN(fromHour)) return;
@@ -82,7 +66,7 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
     });
 
     return groups;
-  }, [filteredSlots]);
+  }, [availSlots]);
 
   const handleSlotPress = (slot: ITimeSlotsDoc) => {
     if (!multiSelect) {
@@ -151,7 +135,7 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
     return <BookingSlotsSkeleton slotsOnly />;
   }
 
-  if (!slots || slots?.length === 0) {
+  if (!availSlots || availSlots.length === 0) {
     return (
       <Text
         style={{
@@ -162,7 +146,7 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
           textAlign: 'center',
         }}
       >
-        No slots available on this date.
+        No slots available for this consultation type on this date.
       </Text>
     );
   }

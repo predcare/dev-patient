@@ -48,6 +48,7 @@ const formatTime12h = (timeStr: string): string => {
 interface IFormStates {
   selectedDate: string;
   consultationType: 'in-person' | 'video';
+  appointmentType: 'first_visit' | 'follow_up';
   selectedSlot: ITimeSlotsDoc | null;
   selectedSlots: ITimeSlotsDoc[];
   reason: string;
@@ -63,6 +64,7 @@ export const BookAppointmentScreen: React.FC = () => {
   const [formStates, setFormStates] = useState<IFormStates>({
     selectedDate: '',
     consultationType: 'in-person',
+    appointmentType: 'first_visit',
     selectedSlot: null,
     selectedSlots: [],
     reason: '',
@@ -89,6 +91,8 @@ export const BookAppointmentScreen: React.FC = () => {
     clinicId,
     consultation_type: formStates.consultationType,
   });
+
+  console.log('slotsRes', slotsRes);
 
   const consultationFee = useMemo(() => {
     if (!formStates.selectedSlots || formStates.selectedSlots.length === 0) return 0;
@@ -127,24 +131,65 @@ export const BookAppointmentScreen: React.FC = () => {
     if (!formStates?.selectedDate) return showErrorToast('Please select a date');
     if (formStates?.selectedSlots.length === 0)
       return showErrorToast('Please select consultation slots');
-    const payload = {
-      bookingData: {
-        date: formStates.selectedDate,
-        doctor: {
-          doctor_name: docSummary?.doctor?.name || 'Dr. Sarah Jenkins',
-          specialization: docSummary?.doctor?.specialization || 'Cardiologist • MD',
-        },
-        patientName: userData?.name || 'John Doe',
-        slot: formStates.selectedSlots[0].from,
-        dateLabel: formStates.selectedDate,
-        consultationFee: consultationFee,
-        platformFee: 50,
-        consultation_type: formStates.consultationType,
-        reason: formStates.reason,
-        totalAmount: consultationFee,
-      },
+
+    const firstSlot = formStates.selectedSlots[0];
+    const lastSlot = formStates.selectedSlots[formStates.selectedSlots.length - 1];
+
+    const rawStartTime = firstSlot.from;
+    const rawEndTime = lastSlot.to;
+    const startTimeNorm = rawStartTime.length === 5 ? `${rawStartTime}:00` : rawStartTime;
+    const endTimeNorm = rawEndTime.length === 5 ? `${rawEndTime}:00` : rawEndTime;
+
+    const slotTimesArray = formStates.selectedSlots.map(s => ({
+      start: s.from,
+      end: s.to,
+      booked: true,
+    }));
+
+    const allAvailablityIds = formStates?.selectedSlots?.map(slot => slot.availability_id);
+
+    const apiPayload = {
+      doctor_id: String(doctorId || docSummary?.doctor?.id || ''),
+      patient_id: String(userData?.id || ''),
+      clinic_id: String(firstSlot?.clinic_id || clinicId || docSummary?.clinic?.id || ''),
+      availability_id: allAvailablityIds,
+      appointment_date: formStates.selectedDate,
+      start_time: startTimeNorm,
+      end_time: endTimeNorm,
+      consultation_type: formStates.consultationType,
+      appointment_type: formStates.appointmentType,
+      reason: formStates.reason.trim() || undefined,
+      appointment_slot_time: JSON.stringify(slotTimesArray),
     };
-    navigation.navigate('Payment', { bookingData: payload });
+
+    const slotLabel = `${formatTime12h(firstSlot.from)} - ${formatTime12h(lastSlot.to)}${
+      formStates.selectedSlots.length > 1 ? ` (${formStates.selectedSlots.length} slots)` : ''
+    }`;
+
+    const bookingData = {
+      apiPayload,
+      date: formStates.selectedDate,
+      dateLabel: formatDateChip(formStates.selectedDate).full,
+      doctor: {
+        doctor_name: docSummary?.doctor?.name || 'Dr. Doctor',
+        specialization: docSummary?.doctor?.specialization || 'Specialist',
+        profile_image: docSummary?.doctor?.profile_image,
+      },
+      clinic: {
+        name: docSummary?.clinic?.name || 'Clinic',
+        city: docSummary?.clinic?.city || '',
+      },
+      patientName: userData?.name || 'Patient',
+      patientId: userData?.id,
+      slot: slotLabel,
+      consultationFee,
+      platformFee: 0,
+      consultation_type: formStates.consultationType,
+      appointment_type: formStates.appointmentType,
+      reason: formStates.reason,
+      totalAmount: consultationFee,
+    };
+    navigation.navigate('Payment', { bookingData });
   };
 
   return (
@@ -266,11 +311,13 @@ export const BookAppointmentScreen: React.FC = () => {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Reason for Visit */}
         <Text style={bookAppointmentStyles.fieldLabel}>
           Reason for Visit <Text style={bookAppointmentStyles.optionalHint}>(optional)</Text>
         </Text>
         <TextInput
-          placeholder="Describe your reason for booking this appointment..."
+          placeholder="e.g. Headache and fever"
           placeholderTextColor={theme.colors.textMuted}
           style={bookAppointmentStyles.reasonInput}
           multiline
@@ -346,7 +393,7 @@ export const BookAppointmentScreen: React.FC = () => {
           <>
             <Text style={bookAppointmentStyles.sectionLabel}>SELECT TIME</Text>
             <TimeSlotPicker
-              slots={slotsRes?.slots || []}
+              availSlots={slotsRes?.slots || []}
               selectedSlots={formStates.selectedSlots}
               onSelectSlots={slots => {
                 setFormStates(prev => ({
@@ -356,7 +403,6 @@ export const BookAppointmentScreen: React.FC = () => {
                 }));
               }}
               isLoading={isSlotsPending}
-              consultationType={formStates.consultationType}
             />
           </>
         )}

@@ -47,6 +47,13 @@ export const endpoints = {
     getInfo: (clinicId: string | number) => `/clinics/${clinicId}`,
     getDoctors: (clinicId: string | number) => `/clinics/${clinicId}/doctors`,
   },
+  appointments: {
+    bookPatient: '/appointments/book',
+    checkPaymentStatus: '/appointments/payment-status',
+  },
+  payments: {
+    verifyPayment: '/payments/verify-payment',
+  },
   commons: {
     country: '/common/countries',
     states: (countryId: string | number) => `/common/countries/${countryId}/states`,
