@@ -37,12 +37,12 @@ export const BookingSuccessScreen: React.FC = () => {
   const totalAmount = bookingData.totalAmount ?? Number(consultationFee) + Number(platformFee);
 
   const handleGoDashboard = () => {
-    navigation.navigate('MainTabs');
+    navigation.navigate('Home');
   };
 
   useEffect(() => {
     const onBackPress = () => {
-      navigation.navigate('MainTabs');
+      navigation.navigate('Home');
       return true;
     };
 

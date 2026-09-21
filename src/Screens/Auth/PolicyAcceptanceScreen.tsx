@@ -22,7 +22,7 @@ import {
   usePostPolicyAcceptance,
 } from '../../hooks/react-query/policies/policies.hooks';
 import { fetchProfileQuery } from '../../hooks/react-query/profile/profile.hooks';
-import { resetToLogin, resetToMainTabs } from '../../lib/common/navigation.utils';
+import { resetAndNavigate, resetToHome, resetToLogin } from '../../lib/common/navigation.utils';
 import { Assets } from '../../resources/assets';
 import type {
   PolicyAcceptanceScreenNavigationProp,
@@ -147,7 +147,7 @@ export const PolicyAcceptanceScreen: React.FC<PolicyAcceptanceScreenProps> = ({
           if (profileRes?.data) {
             setUserData(profileRes.data);
           }
-          resetToMainTabs(navigation);
+          resetToHome(navigation);
         } else if (res?.message) {
           showError(res.message);
         }

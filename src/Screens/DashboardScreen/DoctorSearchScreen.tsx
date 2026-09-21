@@ -238,7 +238,7 @@ export const DoctorSearchScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaWrapper style={doctorSearchStyles.container}>
+    <SafeAreaWrapper style={doctorSearchStyles.container} showBottomBar isPathClear>
       <AppHeader title="Find a Specialist" showBack={true} />
       <View style={doctorSearchStyles.searchChrome}>
         <View style={doctorSearchStyles.searchBox}>
@@ -308,31 +308,6 @@ export const DoctorSearchScreen: React.FC = () => {
               color={
                 filterStates.selectedCity ? theme.colors.primaryDark : theme.colors.textSecondary
               }
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              doctorSearchStyles.pill,
-              !!filterStates.experience && doctorSearchStyles.pillActive,
-            ]}
-            onPress={() => setShowFilterModal(true)}
-            activeOpacity={0.8}
-          >
-            <Text
-              style={[
-                doctorSearchStyles.pillText,
-                !!filterStates.experience && doctorSearchStyles.pillTextActive,
-              ]}
-              numberOfLines={1}
-            >
-              {filterStates.experience
-                ? experienceLabels[filterStates.experience] || filterStates.experience
-                : 'Experience'}
-            </Text>
-            <ChevronDownIcon
-              size={14}
-              color={filterStates.experience ? theme.colors.primaryDark : theme.colors.textMuted}
             />
           </TouchableOpacity>
         </View>

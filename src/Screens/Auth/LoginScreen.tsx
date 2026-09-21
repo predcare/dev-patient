@@ -205,10 +205,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: propNaviga
               if (nav && typeof nav.reset === 'function') {
                 nav.reset({
                   index: 0,
-                  routes: [{ name: 'MainTabs' }],
+                  routes: [{ name: 'Home' }],
                 });
               } else if (nav && typeof nav.navigate === 'function') {
-                nav.navigate('MainTabs');
+                nav.navigate('Home');
               }
             }
           } else {

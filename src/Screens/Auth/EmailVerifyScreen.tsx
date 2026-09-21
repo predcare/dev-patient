@@ -101,10 +101,10 @@ export const EmailVerifyScreen: React.FC<EmailVerifyScreenProps> = ({
               if (typeof nav.reset === 'function') {
                 nav.reset({
                   index: 0,
-                  routes: [{ name: 'MainTabs' }],
+                  routes: [{ name: 'Home' }],
                 });
               } else if (typeof nav.navigate === 'function') {
-                nav.navigate('MainTabs');
+                nav.navigate('Home');
               }
             }
           }
@@ -144,10 +144,10 @@ export const EmailVerifyScreen: React.FC<EmailVerifyScreenProps> = ({
         if (typeof nav.reset === 'function') {
           nav.reset({
             index: 0,
-            routes: [{ name: 'MainTabs' }],
+            routes: [{ name: 'Home' }],
           });
         } else if (typeof nav.navigate === 'function') {
-          nav.navigate('MainTabs');
+          nav.navigate('Home');
         }
       }
     }

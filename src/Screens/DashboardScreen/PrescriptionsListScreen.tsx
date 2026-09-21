@@ -71,7 +71,12 @@ export const PrescriptionsListScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaWrapper style={prescriptionsStyles.screen}>
+    <SafeAreaWrapper
+      style={prescriptionsStyles.screen}
+      showBottomBar={true}
+      activeBottomTab="Reports"
+      isPathClear={true}
+    >
       <StatusBar barStyle="dark-content" backgroundColor={theme.colors.background} />
       <Header greeting="Rx Prescriptions" userName="My Medical Records" unreadCount={1} />
 

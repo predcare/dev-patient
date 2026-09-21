@@ -214,7 +214,7 @@ export const PaymentScreen: React.FC = () => {
         showInfoToast(
           'Payment verification is taking longer than expected. Please check your schedule.'
         );
-        navigation.replace('MainTabs');
+        navigation.replace('Schedule', { refresh: true });
       }
     }, intervalTime);
 

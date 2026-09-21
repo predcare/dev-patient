@@ -142,7 +142,12 @@ export const SettingScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaWrapper style={settingStyles.container}>
+    <SafeAreaWrapper
+      style={settingStyles.container}
+      showBottomBar={true}
+      activeBottomTab="Account"
+      isPathClear={true}
+    >
       <Header onProfilePress={handleProfilePress} />
       <ScrollView
         style={settingStyles.scrollContainer}

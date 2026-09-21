@@ -164,7 +164,12 @@ export const DashboardScreen: React.FC = () => {
   }, [userData]);
 
   return (
-    <SafeAreaWrapper style={dashboardStyles.container}>
+    <SafeAreaWrapper
+      style={dashboardStyles.container}
+      showBottomBar={true}
+      activeBottomTab="Home"
+      isPathClear={true}
+    >
       {profile.isFamilyMember && (
         <View style={dashboardStyles.memberBanner}>
           <Text style={dashboardStyles.memberBannerIcon}>👨‍👩‍👧</Text>

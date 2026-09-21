@@ -60,7 +60,12 @@ export const MyDoctorsScreen: React.FC = () => {
   );
 
   return (
-    <SafeAreaWrapper style={doctorStyles.container}>
+    <SafeAreaWrapper
+      style={doctorStyles.container}
+      showBottomBar={true}
+      activeBottomTab="Doctors"
+      isPathClear={true}
+    >
       <Header />
       {isLoadingMyDoctors && !refreshing && !myDoctorsData ? (
         <MyDoctorsSkeleton />

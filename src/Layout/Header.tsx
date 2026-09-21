@@ -56,7 +56,7 @@ export const Header: React.FC<HeaderProps> = ({
     } else if (onProfilePress) {
       onProfilePress();
     } else {
-      navigation.navigate('MainTabs', { screen: 'Home' });
+      navigation.navigate('Home');
     }
   };
 

@@ -29,6 +29,11 @@ export const AppRoute = {
   CONSULTATION_COMPLETED: 'ConsultationCompleted',
   CLINIC_DETAILS: 'ClinicDetails',
   DOCTOR_PROFILE: 'DoctorProfile',
+  HOME: 'Home',
+  DOCTORS: 'Doctors',
+  SCHEDULE: 'Schedule',
+  REPORTS: 'Reports',
+  ACCOUNT: 'Account',
 } as const;
 
 export type RouteNames = (typeof AppRoute)[keyof typeof AppRoute];
@@ -72,7 +77,12 @@ export type RootStackParamList = {
         consultationType?: string;
       }
     | undefined;
-  MainTabs: undefined;
+  MainTabs?: { screen?: string } | undefined;
+  Home: undefined;
+  Doctors: undefined;
+  Schedule: { refresh?: boolean } | undefined;
+  Reports: undefined;
+  Account: undefined;
 };
 
 /**
@@ -81,8 +91,7 @@ export type RootStackParamList = {
 export type DashboardTabParamList = {
   Home: undefined;
   Doctors: undefined;
-  Patients: undefined;
-  Schedule: undefined;
+  Schedule: { refresh?: boolean } | undefined;
   Reports: undefined;
   Account: undefined;
 };
@@ -235,64 +244,46 @@ export interface DoctorDetailsScreenProps {
 }
 
 /**
- * Screen Props & Navigation/Route Props for Dashboard Bottom Tab Screens
+ * Screen Props & Navigation/Route Props for Main Stack Screens
  */
-export type HomeScreenNavigationProp = CompositeNavigationProp<
-  BottomTabNavigationProp<DashboardTabParamList, 'Home'>,
-  NativeStackNavigationProp<RootStackParamList>
->;
-export type HomeScreenRouteProp = RouteProp<DashboardTabParamList, 'Home'>;
+export type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
+export type HomeScreenRouteProp = RouteProp<RootStackParamList, 'Home'>;
 export interface HomeScreenProps {
   navigation?: HomeScreenNavigationProp;
   route?: HomeScreenRouteProp;
 }
 
-export type DoctorsScreenNavigationProp = CompositeNavigationProp<
-  BottomTabNavigationProp<DashboardTabParamList, 'Doctors'>,
-  NativeStackNavigationProp<RootStackParamList>
->;
-export type DoctorsScreenRouteProp = RouteProp<DashboardTabParamList, 'Doctors'>;
+export type DoctorsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Doctors'>;
+export type DoctorsScreenRouteProp = RouteProp<RootStackParamList, 'Doctors'>;
 export interface DoctorsScreenProps {
   navigation?: DoctorsScreenNavigationProp;
   route?: DoctorsScreenRouteProp;
 }
 
-export type PatientsScreenNavigationProp = CompositeNavigationProp<
-  BottomTabNavigationProp<DashboardTabParamList, 'Patients'>,
-  NativeStackNavigationProp<RootStackParamList>
+export type ScheduleScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'Schedule'
 >;
-export type PatientsScreenRouteProp = RouteProp<DashboardTabParamList, 'Patients'>;
-export interface PatientsScreenProps {
-  navigation?: PatientsScreenNavigationProp;
-  route?: PatientsScreenRouteProp;
-}
-
-export type ScheduleScreenNavigationProp = CompositeNavigationProp<
-  BottomTabNavigationProp<DashboardTabParamList, 'Schedule'>,
-  NativeStackNavigationProp<RootStackParamList>
->;
-export type ScheduleScreenRouteProp = RouteProp<DashboardTabParamList, 'Schedule'>;
+export type ScheduleScreenRouteProp = RouteProp<RootStackParamList, 'Schedule'>;
 export interface ScheduleScreenProps {
   navigation?: ScheduleScreenNavigationProp;
   route?: ScheduleScreenRouteProp;
 }
 
-export type ReportsScreenNavigationProp = CompositeNavigationProp<
-  BottomTabNavigationProp<DashboardTabParamList, 'Reports'>,
-  NativeStackNavigationProp<RootStackParamList>
->;
-export type ReportsScreenRouteProp = RouteProp<DashboardTabParamList, 'Reports'>;
+export type ReportsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Reports'>;
+export type ReportsScreenRouteProp = RouteProp<RootStackParamList, 'Reports'>;
 export interface ReportsScreenProps {
   navigation?: ReportsScreenNavigationProp;
   route?: ReportsScreenRouteProp;
 }
 
-export type ProfileScreenNavigationProp = CompositeNavigationProp<
-  BottomTabNavigationProp<DashboardTabParamList, 'Account'>,
-  NativeStackNavigationProp<RootStackParamList>
->;
-export type ProfileScreenRouteProp = RouteProp<DashboardTabParamList, 'Account'>;
-export interface ProfileScreenProps {
-  navigation?: ProfileScreenNavigationProp;
-  route?: ProfileScreenRouteProp;
+export type AccountScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Account'>;
+export type AccountScreenRouteProp = RouteProp<RootStackParamList, 'Account'>;
+export interface AccountScreenProps {
+  navigation?: AccountScreenNavigationProp;
+  route?: AccountScreenRouteProp;
 }
+
+export type ProfileScreenNavigationProp = AccountScreenNavigationProp;
+export type ProfileScreenRouteProp = AccountScreenRouteProp;
+export type ProfileScreenProps = AccountScreenProps;

@@ -34,7 +34,7 @@ export const ConsultationCompletedScreen: React.FC = () => {
   };
 
   const goHome = () => {
-    navigation.navigate('MainTabs', { screen: 'Dashboard' });
+    navigation.navigate('Home');
   };
 
   return (

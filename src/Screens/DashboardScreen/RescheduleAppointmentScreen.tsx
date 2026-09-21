@@ -121,7 +121,7 @@ export const RescheduleAppointmentScreen: React.FC = () => {
   };
 
   const goAppointments = () => {
-    navigation.navigate('MainTabs', { screen: 'Schedule' });
+    navigation.navigate('Schedule', { refresh: true });
   };
 
   const getInitials = (name: string) => {

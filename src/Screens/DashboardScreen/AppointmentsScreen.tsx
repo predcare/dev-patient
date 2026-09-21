@@ -53,7 +53,12 @@ export const AppointmentsScreen: React.FC = () => {
   );
 
   return (
-    <SafeAreaWrapper style={appointmentsStyles.root}>
+    <SafeAreaWrapper
+      style={appointmentsStyles.root}
+      showBottomBar={true}
+      activeBottomTab="Schedule"
+      isPathClear={true}
+    >
       <Header greeting="My Appointments" userName="Schedule & Visits" unreadCount={1} />
       <View style={appointmentsStyles.segmentWrap}>
         <View style={appointmentsStyles.segmentTrack}>

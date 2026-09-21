@@ -11,7 +11,7 @@ export interface GenericNavigation {
  */
 export const resetAndNavigate = <K extends keyof RootStackParamList>(
   navigation?: GenericNavigation,
-  routeName: K = 'MainTabs' as K,
+  routeName: K = 'Home' as K,
   params?: RootStackParamList[K]
 ): void => {
   if (!navigation) return;
@@ -31,10 +31,17 @@ export const resetAndNavigate = <K extends keyof RootStackParamList>(
 };
 
 /**
- * Helper to reset navigation stack specifically to MainTabs.
+ * Helper to reset navigation stack specifically to Home.
+ */
+export const resetToHome = (navigation?: GenericNavigation): void => {
+  resetAndNavigate(navigation, 'Home');
+};
+
+/**
+ * Helper to reset navigation stack specifically to MainTabs (alias to Home).
  */
 export const resetToMainTabs = (navigation?: GenericNavigation): void => {
-  resetAndNavigate(navigation, 'MainTabs');
+  resetAndNavigate(navigation, 'Home');
 };
 
 /**
