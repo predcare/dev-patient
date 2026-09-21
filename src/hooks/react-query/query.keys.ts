@@ -29,6 +29,7 @@ export enum CommonQueryKeys {
   GET_ALL_USERS = 'GET_ALL_USERS',
   POLICIES = 'POLICIES',
   Specializations = 'Specializations',
+  GET_COMMISION_SLABS = 'GET_COMMISION_SLABS',
 }
 
 export enum DoctorQueryKeys {
@@ -41,4 +42,5 @@ export enum DoctorQueryKeys {
 }
 export enum AppointmemntQueryKey {
   CHECK_PAYMENT_STATUS = 'CHECK_PAYMENT_STATUS',
+  ALL_APPOINTMENTS = 'ALL_APPOINTMENTS',
 }

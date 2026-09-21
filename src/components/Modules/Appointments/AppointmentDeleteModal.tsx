@@ -7,7 +7,7 @@ export interface AppointmentDeleteModalProps {
   visible: boolean;
   appointment?: any;
   onClose: () => void;
-  onConfirmDelete: (appointment: any) => void;
+  onConfirmDelete: () => void;
 }
 
 export const AppointmentDeleteModal: React.FC<AppointmentDeleteModalProps> = ({
@@ -27,7 +27,8 @@ export const AppointmentDeleteModal: React.FC<AppointmentDeleteModalProps> = ({
           </View>
           <Text style={styles.title}>Delete Appointment Record?</Text>
           <Text style={styles.message}>
-            Permanently remove record for Dr. {appointment.doctor_name || 'Doctor'}? This action cannot be undone.
+            Permanently remove record for Dr. {appointment.doctor_name || 'Doctor'}? This action
+            cannot be undone.
           </Text>
 
           <View style={styles.buttonRow}>
@@ -38,7 +39,7 @@ export const AppointmentDeleteModal: React.FC<AppointmentDeleteModalProps> = ({
               style={styles.confirmBtn}
               onPress={() => {
                 onClose();
-                onConfirmDelete(appointment);
+                onConfirmDelete();
               }}
               activeOpacity={0.85}
             >

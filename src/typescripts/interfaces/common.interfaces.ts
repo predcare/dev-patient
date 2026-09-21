@@ -76,3 +76,16 @@ export interface IPaginateMeta {
   total_pages: number;
   limit: number;
 }
+
+export interface ICommisionSlabsDoc {
+  id: string;
+  doctor_id: any;
+  min_amount: string;
+  max_amount?: string;
+  fee_type: string;
+  fee_value: string;
+  status: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}

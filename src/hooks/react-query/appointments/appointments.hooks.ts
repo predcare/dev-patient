@@ -1,6 +1,10 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { AppointmemntQueryKey } from '../query.keys';
-import { createAppointment, getBookingPaymentStatus } from './appointments.funcs';
+import {
+  createAppointment,
+  getBookingPaymentStatus,
+  getMyAppointments,
+} from './appointments.funcs';
 
 export const useCreateAppointment = () =>
   useMutation({
@@ -18,4 +22,16 @@ export const useCheckPaymentStatus = (params: {
     queryKey: [AppointmemntQueryKey.CHECK_PAYMENT_STATUS, params],
     queryFn: () => getBookingPaymentStatus(params),
     enabled: params.enabled,
+  });
+
+// My All Appointments
+export const useMyAppointments = (params: {
+  status?: string;
+  page?: number;
+  limit?: number;
+  search?: string;
+}) =>
+  useQuery({
+    queryKey: [AppointmemntQueryKey.ALL_APPOINTMENTS, params],
+    queryFn: () => getMyAppointments(params),
   });

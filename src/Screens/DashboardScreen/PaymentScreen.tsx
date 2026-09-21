@@ -2,6 +2,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
+import { queryClient } from '../../components/providers/ReactQueryProvider';
 import AppHeader from '../../components/ui/AppHeader';
 import {
   CalendarIcon,
@@ -18,6 +19,7 @@ import {
   useCheckPaymentStatus,
   useCreateAppointment,
 } from '../../hooks/react-query/appointments/appointments.hooks';
+import { AppointmemntQueryKey, DoctorQueryKeys } from '../../hooks/react-query/query.keys';
 import { getInitials } from '../../lib/common/common.utils';
 import { showErrorToast, showInfoToast, showSuccessToast } from '../../lib/common/toast.utils';
 import { paymentStyles } from '../../styled/PaymentScreen.styled';
@@ -164,10 +166,15 @@ export const PaymentScreen: React.FC = () => {
         if (isPaid && isConfirmed) {
           clearInterval(interval);
           setVerificationStatus('success');
+          await queryClient.invalidateQueries({ queryKey: [DoctorQueryKeys.GET_AVAIL_DATES] });
+          await queryClient.invalidateQueries({ queryKey: [DoctorQueryKeys.GET_SLOTS_BY_DATE] });
+          await queryClient.invalidateQueries({ queryKey: [DoctorQueryKeys.MY_DOCS] });
+          await queryClient.invalidateQueries({
+            queryKey: [AppointmemntQueryKey.ALL_APPOINTMENTS],
+          });
           hideLoader();
           setIsSubmitting(false);
           showSuccessToast('Appointment confirmed & payment successful!');
-
           navigation.replace('BookingSuccess', {
             bookingData: {
               ...bookingData,

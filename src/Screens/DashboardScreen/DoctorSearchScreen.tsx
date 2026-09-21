@@ -469,9 +469,13 @@ export const DoctorSearchScreen: React.FC = () => {
           ListEmptyComponent={
             <View style={doctorSearchStyles.emptyBox}>
               <StethoscopeIcon size={36} color={theme.colors.primaryDark} />
-              <Text style={doctorSearchStyles.emptyTitle}>No Results Found</Text>
+              <Text style={doctorSearchStyles.emptyTitle}>
+                {hasActiveFilters ? 'No Results Found' : 'Search for Doctors'}
+              </Text>
               <Text style={doctorSearchStyles.emptySubtitle}>
-                Try adjusting your search terms or filter criteria.
+                {hasActiveFilters
+                  ? 'Try adjusting your search terms or filter criteria.'
+                  : 'Search for doctors by name, specialization, or clinic.'}
               </Text>
             </View>
           }

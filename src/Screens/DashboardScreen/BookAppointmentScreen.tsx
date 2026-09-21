@@ -1,7 +1,15 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import dayjs from 'dayjs';
 import React, { useMemo, useState } from 'react';
-import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import { TimeSlotPicker } from '../../components/Modules/Appointments';
 import { CalendarDatePickerModal } from '../../components/Modules/Doctors';
@@ -9,12 +17,13 @@ import BookingSlotsSkeleton from '../../components/Skeletons/BookingSlotsSkeleto
 import { DoctorClinicCardSkeleton } from '../../components/Skeletons/DoctorClinicCardSkeleton';
 import AppHeader from '../../components/ui/AppHeader';
 import { CalendarIcon, VideoIcon } from '../../components/ui/icons';
+import { useCommisionSlabs } from '../../hooks/react-query/common/common.hooks';
 import {
   useDoctorAvailDates,
   useDoctorClinicSummary,
   useDoctorTimingsByDate,
 } from '../../hooks/react-query/doctors/doctor.hooks';
-import { getInitials } from '../../lib/common/common.utils';
+import { calculatePlatformFee, getInitials } from '../../lib/common/common.utils';
 import { showErrorToast } from '../../lib/common/toast.utils';
 import { bookAppointmentStyles } from '../../styled/BookAppointmentScreen.styled';
 import { theme } from '../../styled/theme.styled';
@@ -71,29 +80,24 @@ export const BookAppointmentScreen: React.FC = () => {
     showCalendarModal: false,
   });
 
-  // 1. Fetch Doctor & Clinic Summary
   const { data: docSummary, isFetching: isSummaryPending } = useDoctorClinicSummary({
     doctorId,
     clinicId,
   });
 
-  // 2. Fetch Doctor Available Dates
   const { data: availableDatesRes, isFetching: isAvailableDatesPending } = useDoctorAvailDates({
     doctorId,
     consultation_type: formStates?.consultationType,
     clinicId,
   });
 
-  // 3. Fetch Doctor Slots for Selected Date
   const { data: slotsRes, isFetching: isSlotsPending } = useDoctorTimingsByDate({
     doctorId,
     date: formStates.selectedDate,
     clinicId,
     consultation_type: formStates.consultationType,
   });
-
-  console.log('slotsRes', slotsRes);
-
+  const { data: commisionSlabsData, isFetching: isCommisionSlabsPending } = useCommisionSlabs();
   const consultationFee = useMemo(() => {
     if (!formStates.selectedSlots || formStates.selectedSlots.length === 0) return 0;
     return formStates.selectedSlots.reduce((sum, slot) => {
@@ -102,6 +106,14 @@ export const BookAppointmentScreen: React.FC = () => {
       return sum + feeNum;
     }, 0);
   }, [formStates.selectedSlots, formStates.consultationType]);
+
+  const platformFee = useMemo(() => {
+    return calculatePlatformFee(consultationFee, commisionSlabsData, doctorId);
+  }, [consultationFee, commisionSlabsData, doctorId]);
+
+  const totalAmount = useMemo(() => {
+    return consultationFee + platformFee;
+  }, [consultationFee, platformFee]);
 
   const updateForm = <K extends keyof IFormStates>(key: K, value: IFormStates[K]) => {
     setFormStates(prev => ({ ...prev, [key]: value }));
@@ -183,11 +195,11 @@ export const BookAppointmentScreen: React.FC = () => {
       patientId: userData?.id,
       slot: slotLabel,
       consultationFee,
-      platformFee: 0,
+      platformFee,
       consultation_type: formStates.consultationType,
       appointment_type: formStates.appointmentType,
       reason: formStates.reason,
-      totalAmount: consultationFee,
+      totalAmount,
     };
     navigation.navigate('Payment', { bookingData });
   };
@@ -464,14 +476,22 @@ export const BookAppointmentScreen: React.FC = () => {
 
           <View style={bookAppointmentStyles.summaryRow}>
             <Text style={bookAppointmentStyles.summaryLabel}>Platform Fee</Text>
-            <Text style={bookAppointmentStyles.summaryValue}>₹0</Text>
+            {isCommisionSlabsPending ? (
+              <ActivityIndicator size="small" color={theme.colors.primaryDark} />
+            ) : (
+              <Text style={bookAppointmentStyles.summaryValue}>₹{platformFee}</Text>
+            )}
           </View>
 
           <View style={bookAppointmentStyles.divider} />
 
           <View style={bookAppointmentStyles.summaryRow}>
             <Text style={bookAppointmentStyles.totalLabel}>Total Amount</Text>
-            <Text style={bookAppointmentStyles.totalValue}>₹{consultationFee}</Text>
+            {isCommisionSlabsPending ? (
+              <ActivityIndicator size="small" color={theme.colors.primaryDark} />
+            ) : (
+              <Text style={bookAppointmentStyles.totalValue}>₹{totalAmount}</Text>
+            )}
           </View>
         </View>
       </ScrollView>
@@ -480,15 +500,25 @@ export const BookAppointmentScreen: React.FC = () => {
         <TouchableOpacity
           style={[
             bookAppointmentStyles.proceedBtn,
-            (!formStates.selectedDate || formStates.selectedSlots.length === 0) && { opacity: 0.6 },
+            (!formStates.selectedDate ||
+              formStates.selectedSlots.length === 0 ||
+              isCommisionSlabsPending) && { opacity: 0.6 },
           ]}
-          disabled={!formStates.selectedDate || formStates.selectedSlots.length === 0}
+          disabled={
+            !formStates.selectedDate ||
+            formStates.selectedSlots.length === 0 ||
+            isCommisionSlabsPending
+          }
           activeOpacity={0.85}
           onPress={handleProceed}
         >
-          <Text style={bookAppointmentStyles.proceedBtnText}>
-            Book Appointment • ₹{consultationFee}
-          </Text>
+          {isCommisionSlabsPending ? (
+            <ActivityIndicator color={theme.colors.surface} />
+          ) : (
+            <Text style={bookAppointmentStyles.proceedBtnText}>
+              Book Appointment • ₹{totalAmount}
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
 

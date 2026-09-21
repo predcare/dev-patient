@@ -1,26 +1,19 @@
-import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
-import {
-  RefreshControl,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { FlatList, RefreshControl, Text, TouchableOpacity, View } from 'react-native';
+import CommonErrorCard from '../../components/commons/CommonErrorCard/CommonErrorCard';
+import { AppointmentCard, BookNewSessionCard } from '../../components/Modules/Appointments';
+import AppointmentsSkeleton from '../../components/Skeletons/AppointmentsSkeleton';
+import { CalendarIcon } from '../../components/ui/icons';
+import { useMyAppointments } from '../../hooks/react-query/appointments/appointments.hooks';
+import { Header } from '../../Layout/Header';
 import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import {
-  AppointmentCancelModal,
-  AppointmentCard,
-  AppointmentDeleteModal,
-  BookNewSessionCard,
-} from '../../components/Modules/Appointments';
-import { CalendarIcon } from '../../components/ui/icons';
-import { Header } from '../../Layout/Header';
-import {
-  MOCK_COMPLETED_APPOINTMENTS,
-  MOCK_UPCOMING_APPOINTMENTS,
-  MockAppointmentItem,
-} from '../../resources/mockData';
+  _formatTime,
+  formatDate,
+  getDuration,
+  openLocationOnMap,
+} from '../../lib/common/common.utils';
 import { appointmentsStyles } from '../../styled/AppointmentsScreen.styled';
 import { theme } from '../../styled/theme.styled';
 
@@ -29,61 +22,39 @@ export const AppointmentsScreen: React.FC = () => {
   const rootNav = navigation.getParent() || navigation;
 
   const [activeTab, setActiveTab] = useState<'upcoming' | 'completed'>('upcoming');
-  const [upcoming, setUpcoming] = useState<MockAppointmentItem[]>(MOCK_UPCOMING_APPOINTMENTS);
-  const [completed, setCompleted] = useState<MockAppointmentItem[]>(MOCK_COMPLETED_APPOINTMENTS);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Modals state
-  const [selectedCancelApt, setSelectedCancelApt] = useState<MockAppointmentItem | null>(null);
-  const [selectedDeleteApt, setSelectedDeleteApt] = useState<MockAppointmentItem | null>(null);
+  const statusParam = useMemo(() => {
+    return activeTab === 'upcoming' ? 'confirmed,pending' : 'completed,cancelled,refunded';
+  }, [activeTab]);
 
-  const onRefresh = () => {
+  const {
+    data: allAppointmentData,
+    isFetching: allAppointmentIsPending,
+    isError: allAppointmentIsError,
+    error: allAppointmentError,
+    refetch: appointmentRefetch,
+  } = useMyAppointments({
+    status: statusParam,
+    limit: 10,
+    page: 1,
+  });
+
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 600);
-  };
+    await appointmentRefetch();
+    setRefreshing(false);
+  }, [appointmentRefetch]);
 
-  const handleJoinVideo = (apt: MockAppointmentItem) => {
-    rootNav.navigate('Meeting', {
-      appointmentId: apt.id,
-      appointment: apt,
-    });
-  };
-
-  const handleReschedule = (apt: MockAppointmentItem) => {
-    rootNav.navigate('RescheduleAppointment', {
-      appointmentId: apt.id,
-      appointment: apt,
-    });
-  };
-
-  const handleConfirmCancel = (apt: MockAppointmentItem) => {
-    setUpcoming(prev => prev.filter(item => item.id !== apt.id));
-    setCompleted(prev => [
-      {
-        ...apt,
-        appointment_status: 'cancelled',
-        payment_status: 'cancelled',
-      },
-      ...prev,
-    ]);
-  };
-
-  const handleConfirmDelete = (apt: MockAppointmentItem) => {
-    setCompleted(prev => prev.filter(item => item.id !== apt.id));
-    setUpcoming(prev => prev.filter(item => item.id !== apt.id));
-  };
-
-  const currentList = activeTab === 'upcoming' ? upcoming : completed;
-
-  console.log('called appointment screen');
+  useFocusEffect(
+    useCallback(() => {
+      appointmentRefetch();
+    }, [])
+  );
 
   return (
     <SafeAreaWrapper style={appointmentsStyles.root}>
       <Header greeting="My Appointments" userName="Schedule & Visits" unreadCount={1} />
-
-      {/* Segment Switcher */}
       <View style={appointmentsStyles.segmentWrap}>
         <View style={appointmentsStyles.segmentTrack}>
           {(['upcoming', 'completed'] as const).map(key => {
@@ -96,7 +67,7 @@ export const AppointmentsScreen: React.FC = () => {
                   active && appointmentsStyles.segmentBtnActive,
                 ]}
                 onPress={() => setActiveTab(key)}
-                activeOpacity={0.85}
+                activeOpacity={2}
               >
                 <Text
                   style={[
@@ -111,60 +82,91 @@ export const AppointmentsScreen: React.FC = () => {
           })}
         </View>
       </View>
-
-      {/* Scrollable Content */}
-      <ScrollView
-        style={appointmentsStyles.scroll}
-        contentContainerStyle={appointmentsStyles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      >
-        {currentList.length === 0 ? (
-          <View style={appointmentsStyles.empty}>
-            <View style={appointmentsStyles.emptyIconWrap}>
-              <CalendarIcon size={32} color={theme.colors.primary} />
-            </View>
-            <Text style={appointmentsStyles.emptyH}>
-              {activeTab === 'upcoming' ? 'No Upcoming Appointments' : 'No Completed Appointments'}
-            </Text>
-            <Text style={appointmentsStyles.emptyB}>
-              {activeTab === 'upcoming'
-                ? "You don't have any upcoming doctor consultations scheduled right now."
-                : 'No completed or cancelled appointments yet.'}
-            </Text>
-          </View>
-        ) : (
-          currentList.map(apt => (
+      {allAppointmentIsPending && allAppointmentData?.data?.length === 0 ? (
+        <AppointmentsSkeleton />
+      ) : allAppointmentIsError ? (
+        <CommonErrorCard
+          title="Unable to Load Appointments"
+          message={
+            (allAppointmentError as any)?.response?.data?.message ||
+            allAppointmentError?.message ||
+            'Something went wrong while loading your appointments.'
+          }
+          onRetry={appointmentRefetch}
+        />
+      ) : (
+        <FlatList
+          data={allAppointmentData?.data || []}
+          keyExtractor={item => String(item.id || item.appointment_id)}
+          renderItem={({ item: apt }) => (
             <AppointmentCard
-              key={apt.id}
-              appointment={apt}
-              activeTab={activeTab}
-              onJoinVideo={handleJoinVideo}
-              onReschedule={handleReschedule}
-              onCancelPress={item => setSelectedCancelApt(item)}
-              onDeletePress={item => setSelectedDeleteApt(item)}
+              apptId={apt?.appointment_id}
+              apptStatus={apt?.appointment_status}
+              clinicAddress={apt.clinicInfo?.fulladdress}
+              clinicName={apt.clinicInfo?.name}
+              date={formatDate(apt.appointment_date)}
+              docImage={apt.doctorInfo?.profileImage}
+              doctorName={apt.doctorInfo?.name}
+              duration={getDuration(apt?.start_time, apt?.end_time) || ''}
+              mode={apt?.consultation_type || ''}
+              time={_formatTime(apt?.start_time) || ''}
+              onCancelPress={() => {}}
+              onDeletePress={() => {}}
+              onJoinVideo={() =>
+                rootNav.navigate('Meeting', {
+                  appointmentId: apt.appointment_id || apt.id,
+                  appointment: apt,
+                })
+              }
+              onReschedule={() =>
+                rootNav.navigate('RescheduleAppointment', {
+                  appointmentId: apt.appointment_id || apt.id,
+                  appointment: apt,
+                })
+              }
+              onOpenDirections={() =>
+                openLocationOnMap({
+                  address: apt.clinicInfo?.fulladdress,
+                  lat: apt.clinicInfo?.location?.lat,
+                  long: apt.clinicInfo?.location?.lng,
+                })
+              }
             />
-          ))
-        )}
+          )}
+          ListEmptyComponent={
+            <View style={appointmentsStyles.empty}>
+              <View style={appointmentsStyles.emptyIconWrap}>
+                <CalendarIcon size={32} color={theme.colors.primary} />
+              </View>
+              <Text style={appointmentsStyles.emptyH}>
+                {activeTab === 'upcoming'
+                  ? 'No Upcoming Appointments'
+                  : 'No Completed Appointments'}
+              </Text>
+              <Text style={appointmentsStyles.emptyB}>
+                {activeTab === 'upcoming'
+                  ? "You don't have any upcoming doctor consultations scheduled right now."
+                  : 'No completed or past appointments found.'}
+              </Text>
+            </View>
+          }
+          ListFooterComponent={
+            <BookNewSessionCard onPress={() => rootNav.navigate('DoctorSearch')} />
+          }
+          contentContainerStyle={[appointmentsStyles.scrollContent, { paddingBottom: 120 }]}
+          showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          keyboardShouldPersistTaps="handled"
+        />
+      )}
 
-        {/* Book New Session Banner */}
-        <BookNewSessionCard onPress={() => rootNav.navigate('DoctorSearch')} />
-      </ScrollView>
-
-      {/* Modals */}
+      {/* Modals
       <AppointmentCancelModal
         visible={!!selectedCancelApt}
         appointment={selectedCancelApt}
         onClose={() => setSelectedCancelApt(null)}
-        onConfirmCancel={handleConfirmCancel}
-      />
-
-      <AppointmentDeleteModal
-        visible={!!selectedDeleteApt}
-        appointment={selectedDeleteApt}
-        onClose={() => setSelectedDeleteApt(null)}
-        onConfirmDelete={handleConfirmDelete}
-      />
+        onConfirmCancel={() => {}}
+      /> */}
     </SafeAreaWrapper>
   );
 };

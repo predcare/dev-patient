@@ -1,6 +1,9 @@
 import axiosInstance from '../../../api/apiClient';
 import { endpoints } from '../../../api/endpoints';
-import { IRootResponse } from '../../../typescripts/interfaces/common.interfaces';
+import {
+  ICommisionSlabsDoc,
+  IRootResponse,
+} from '../../../typescripts/interfaces/common.interfaces';
 import { ILocationDoc } from '../../../typescripts/interfaces/locations.interfaces';
 
 export const getCountries = async () => {
@@ -25,8 +28,13 @@ export const getCities = async (stateId: number) => {
 };
 
 export const getSpecializations = async () => {
-  const res = await axiosInstance.get<IRootResponse<any[]>>(
-    `${endpoints.commons.specializations}`
+  const res = await axiosInstance.get<IRootResponse<any[]>>(`${endpoints.commons.specializations}`);
+  return res.data;
+};
+
+export const getCommisionSlabs = async () => {
+  const res = await axiosInstance.get<IRootResponse<ICommisionSlabsDoc[]>>(
+    `${endpoints.commons.getCommisionSlabs}`
   );
   return res.data;
 };

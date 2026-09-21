@@ -1,69 +1,136 @@
-import React from 'react';
-import { Image, Linking, Text, TouchableOpacity, View } from 'react-native';
+import React, { useMemo } from 'react';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { getInitials } from '../../../lib/common/common.utils';
 import { appointmentsStyles } from '../../../styled/AppointmentsScreen.styled';
 import { theme } from '../../../styled/theme.styled';
 import { CalendarIcon, ClockIcon, MapPinIcon, VideoIcon } from '../../ui/icons';
 
 export interface AppointmentCardProps {
-  appointment: any;
-  activeTab: 'upcoming' | 'completed';
-  onJoinVideo: (appointment: any) => void;
-  onReschedule: (appointment: any) => void;
-  onCancelPress: (appointment: any) => void;
-  onDeletePress: (appointment: any) => void;
+  apptId: string;
+  apptStatus: string;
+  docImage: string;
+  doctorName: string;
+  clinicName: string;
+  clinicAddress: string;
+  date: string;
+  time: string;
+  duration: string;
+  mode: string;
+  onJoinVideo: () => void;
+  onReschedule: () => void;
+  onCancelPress: () => void;
+  onDeletePress: () => void;
+  onOpenDirections?: () => void;
 }
 
 export const AppointmentCard: React.FC<AppointmentCardProps> = ({
-  appointment: a,
-  activeTab,
+  apptId,
+  apptStatus,
+  clinicAddress,
+  clinicName,
+  date,
+  docImage,
+  doctorName,
+  duration,
+  time,
+  mode,
+  onCancelPress,
   onJoinVideo,
   onReschedule,
-  onCancelPress,
-  onDeletePress,
+  onOpenDirections,
 }) => {
-  const isVid = a.consultation_type === 'video';
-  const isCancl = a.appointment_status === 'cancelled' || a.payment_status === 'cancelled';
-  const isDone = a.appointment_status === 'completed';
-  const isPart = a.appointment_status === 'in_progress';
-  const isPending = a.payment_status === 'pending';
+  const statusConfig = useMemo(() => {
+    const s = String(apptStatus || '')
+      .toLowerCase()
+      .trim();
+    switch (s) {
+      case 'online':
+        return {
+          label: 'Online',
+          color: '#10B981',
+          bgColor: '#ECFDF5',
+          borderColor: '#A7F3D0',
+        };
+      case 'offline':
+        return {
+          label: 'Offline',
+          color: '#64748B',
+          bgColor: '#F1F5F9',
+          borderColor: '#CBD5E1',
+        };
+      case 'pending':
+        return {
+          label: 'Pending',
+          color: '#F59E0B',
+          bgColor: '#FEF3C7',
+          borderColor: '#FDE68A',
+        };
+      case 'confirmed':
+        return {
+          label: 'Confirmed',
+          color: '#0F766E',
+          bgColor: '#F0FDFA',
+          borderColor: '#99F6E4',
+        };
+      case 'cancelled':
+        return {
+          label: 'Cancelled',
+          color: '#EF4444',
+          bgColor: '#FEE2E2',
+          borderColor: '#FECACA',
+        };
+      case 'refunded':
+        return {
+          label: 'Refunded',
+          color: '#8B5CF6',
+          bgColor: '#F5F3FF',
+          borderColor: '#DDD6FE',
+        };
+      case 'completed':
+        return {
+          label: 'Completed',
+          color: '#0D9488',
+          bgColor: '#CCFBF1',
+          borderColor: '#99F6E4',
+        };
+      case 'no_show':
+        return {
+          label: 'No Show',
+          color: '#EA580C',
+          bgColor: '#FFEDD5',
+          borderColor: '#FED7AA',
+        };
+      case 'in_progress':
+      case 'in-progress':
+        return {
+          label: 'In Progress',
+          color: '#7C3AED',
+          bgColor: '#EDE9FE',
+          borderColor: '#DDD6FE',
+        };
+      default:
+        return {
+          label: apptStatus
+            ? apptStatus.charAt(0).toUpperCase() + apptStatus.slice(1).replace('_', ' ')
+            : 'Unknown',
+          color: '#0F766E',
+          bgColor: '#F0FDFA',
+          borderColor: '#99F6E4',
+        };
+    }
+  }, [apptStatus]);
 
-  let sLabel = 'Confirmed';
-  let sColor: string = theme.colors.primary;
-  if (isCancl) {
-    sLabel = 'Cancelled';
-    sColor = theme.colors.danger;
-  } else if (isDone) {
-    sLabel = 'Completed';
-    sColor = theme.colors.primaryDark;
-  } else if (isPart) {
-    sLabel = 'In Progress';
-    sColor = '#7C3AED';
-  } else if (isPending) {
-    sLabel = 'Pending';
-    sColor = '#F59E0B';
-  }
-
-  const showJoin = activeTab === 'upcoming' && isVid && !isDone && !isCancl;
-  const showRescheduleCancel = activeTab === 'upcoming' && !isCancl && !isDone;
-  const showDelete = activeTab === 'completed' || isCancl;
-
-  const docName = a.doctor_name?.startsWith('Dr.') ? a.doctor_name : `Dr. ${a.doctor_name || 'Doctor'}`;
-  const clinic = a.clinic_name || 'ST. JUDE MEDICAL CENTER';
-  const timeLabel = a.start_time || '10:30 AM';
-  const dateLabel = a.appointment_date_label || a.appointment_date || '24 Aug';
-  const durationLabel = `${a.slot_duration || 30}m Session`;
-  const modeLabel = isVid ? 'Video Call' : 'In-person';
-
-  const handleOpenDirections = () => {
-    const address = a.clinic_address || 'New York';
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
-    Linking.openURL(url).catch(() => {});
-  };
+  const isInProgress =
+    String(apptStatus || '')
+      .toLowerCase()
+      .trim() === 'in_progress' ||
+    String(apptStatus || '')
+      .toLowerCase()
+      .trim() === 'in-progress';
 
   return (
     <View style={appointmentsStyles.card}>
-      {/* Live / In Progress Banner */}
-      {isPart && isVid && !isDone && (
+      {isInProgress && (
         <View style={[appointmentsStyles.banner, { backgroundColor: '#7C3AED' }]}>
           <View style={appointmentsStyles.bDot} />
           <Text style={appointmentsStyles.bTxt}>SLOT RUNNING • IN PROGRESS</Text>
@@ -71,39 +138,38 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
       )}
 
       <View style={appointmentsStyles.cardBody}>
-        {/* Top Doctor Info Row */}
         <View style={appointmentsStyles.cardTop}>
-          {a.doctor_image ? (
-            <Image source={{ uri: a.doctor_image }} style={appointmentsStyles.av} />
+          {docImage ? (
+            <Image source={{ uri: docImage }} style={appointmentsStyles.av} />
           ) : (
             <View style={appointmentsStyles.av}>
-              <Text style={appointmentsStyles.avTxt}>{docName.replace('Dr. ', '')[0] || 'D'}</Text>
+              <Text style={appointmentsStyles.avTxt}>{getInitials(doctorName)}</Text>
             </View>
           )}
 
           <View style={appointmentsStyles.drInfo}>
             <Text style={appointmentsStyles.drName} numberOfLines={1}>
-              {docName}
+              {doctorName || 'Unknown Doctor'}
             </Text>
             <Text style={appointmentsStyles.clinic} numberOfLines={1}>
-              {clinic.toUpperCase()}
+              {clinicName || 'Unknown Clinic'}
             </Text>
             <Text style={appointmentsStyles.aptId} numberOfLines={1}>
-              ID - {a.appointment_id || a.id}
+              ID - {apptId}
             </Text>
           </View>
 
           <View
             style={[
               appointmentsStyles.pill,
-              { backgroundColor: sColor + '15', borderColor: sColor + '40' },
+              { backgroundColor: statusConfig.bgColor, borderColor: statusConfig.borderColor },
             ]}
           >
-            <Text style={[appointmentsStyles.pillTxt, { color: sColor }]}>{sLabel}</Text>
+            <Text style={[appointmentsStyles.pillTxt, { color: statusConfig.color }]}>
+              {statusConfig.label}
+            </Text>
           </View>
         </View>
-
-        {/* 2x2 Grid */}
         <View style={appointmentsStyles.grid}>
           <View style={appointmentsStyles.gridCell}>
             <View style={appointmentsStyles.gridIcon}>
@@ -111,7 +177,7 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
             </View>
             <View style={appointmentsStyles.gridText}>
               <Text style={appointmentsStyles.gridLbl}>DATE</Text>
-              <Text style={appointmentsStyles.gridVal}>{dateLabel}</Text>
+              <Text style={appointmentsStyles.gridVal}>{date}</Text>
             </View>
           </View>
 
@@ -121,7 +187,7 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
             </View>
             <View style={appointmentsStyles.gridText}>
               <Text style={appointmentsStyles.gridLbl}>TIME</Text>
-              <Text style={appointmentsStyles.gridVal}>{timeLabel}</Text>
+              <Text style={appointmentsStyles.gridVal}>{time}</Text>
             </View>
           </View>
 
@@ -131,13 +197,13 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
             </View>
             <View style={appointmentsStyles.gridText}>
               <Text style={appointmentsStyles.gridLbl}>DURATION</Text>
-              <Text style={appointmentsStyles.gridVal}>{durationLabel}</Text>
+              <Text style={appointmentsStyles.gridVal}>{duration}</Text>
             </View>
           </View>
 
           <View style={appointmentsStyles.gridCell}>
             <View style={appointmentsStyles.gridIcon}>
-              {isVid ? (
+              {mode === 'video' ? (
                 <VideoIcon size={16} color={theme.colors.primary} />
               ) : (
                 <MapPinIcon size={16} color={theme.colors.primary} />
@@ -145,76 +211,61 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
             </View>
             <View style={appointmentsStyles.gridText}>
               <Text style={appointmentsStyles.gridLbl}>MODE</Text>
-              <Text style={appointmentsStyles.gridVal}>{modeLabel}</Text>
+              <Text style={appointmentsStyles.gridVal}>
+                {mode === 'video' ? 'Video Call' : 'In-Person'}
+              </Text>
             </View>
           </View>
         </View>
-
-        {/* Clinic Address & Directions (for In-person) */}
-        {!isVid && a.clinic_address && (
-          <View style={appointmentsStyles.locBox}>
-            <View style={appointmentsStyles.locRow}>
-              <View style={{ marginTop: 2 }}>
-                <MapPinIcon size={16} color={theme.colors.primary} />
+        {clinicAddress &&
+          mode === 'in-person' &&
+          ['in-progress', 'confirmed'].includes(apptStatus) && (
+            <View style={appointmentsStyles.locBox}>
+              <View style={appointmentsStyles.locRow}>
+                <View style={{ marginTop: 2 }}>
+                  <MapPinIcon size={16} color={theme.colors.primary} />
+                </View>
+                <View style={appointmentsStyles.locTextCol}>
+                  <Text style={appointmentsStyles.locClinic}>{clinicName || ''}</Text>
+                  <Text style={appointmentsStyles.locAddress}>{clinicAddress || ''}</Text>
+                </View>
               </View>
-              <View style={appointmentsStyles.locTextCol}>
-                <Text style={appointmentsStyles.locClinic}>{clinic}</Text>
-                <Text style={appointmentsStyles.locAddress}>{a.clinic_address}</Text>
-              </View>
+              <TouchableOpacity
+                style={appointmentsStyles.btnOutline}
+                activeOpacity={0.8}
+                onPress={onOpenDirections}
+              >
+                <Text style={appointmentsStyles.btnOutlineTxt}>Get Directions</Text>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              style={appointmentsStyles.btnOutline}
-              onPress={handleOpenDirections}
-              activeOpacity={0.8}
-            >
-              <Text style={appointmentsStyles.btnOutlineTxt}>Get Directions</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Video Call Join Action */}
-        {showJoin && (
+          )}
+        {mode === 'video' && ['in-progress', 'confirmed'].includes(apptStatus) && (
           <TouchableOpacity
-            style={[appointmentsStyles.btnJoin, isPart && appointmentsStyles.btnRejoin]}
-            onPress={() => onJoinVideo(a)}
-            activeOpacity={0.85}
+            style={[appointmentsStyles.btnJoin, appointmentsStyles.btnRejoin]}
+            activeOpacity={1}
+            onPress={onJoinVideo}
           >
             <VideoIcon size={18} color={theme.colors.surface} />
-            <Text style={appointmentsStyles.btnJoinTxt}>
-              {isPart ? 'Rejoin Call' : 'Join Video Call'}
-            </Text>
+            <Text style={appointmentsStyles.btnJoinTxt}>Join Video Call</Text>
           </TouchableOpacity>
         )}
-
-        {/* Reschedule / Cancel Actions */}
-        {showRescheduleCancel && (
+        {apptStatus === 'confirmed' && (
           <View style={appointmentsStyles.bRow}>
             <TouchableOpacity
               style={appointmentsStyles.btnOutline}
-              onPress={() => onReschedule(a)}
-              activeOpacity={0.8}
+              activeOpacity={1}
+              onPress={onReschedule}
             >
               <Text style={appointmentsStyles.btnOutlineTxt}>Reschedule</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={appointmentsStyles.btnCancel}
-              onPress={() => onCancelPress(a)}
-              activeOpacity={0.85}
+              activeOpacity={1}
+              onPress={onCancelPress}
             >
               <Text style={appointmentsStyles.btnCancelTxt}>Cancel</Text>
             </TouchableOpacity>
           </View>
-        )}
-
-        {/* Delete Record Action */}
-        {showDelete && (
-          <TouchableOpacity
-            style={appointmentsStyles.btnCancel}
-            onPress={() => onDeletePress(a)}
-            activeOpacity={0.85}
-          >
-            <Text style={appointmentsStyles.btnCancelTxt}>Delete Record</Text>
-          </TouchableOpacity>
         )}
       </View>
     </View>
