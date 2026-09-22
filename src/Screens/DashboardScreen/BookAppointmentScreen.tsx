@@ -469,30 +469,36 @@ export const BookAppointmentScreen: React.FC = () => {
 
           <View style={bookAppointmentStyles.divider} />
 
-          <View style={bookAppointmentStyles.summaryRow}>
-            <Text style={bookAppointmentStyles.summaryLabel}>Consultation Fee</Text>
-            <Text style={bookAppointmentStyles.summaryValue}>₹{consultationFee}</Text>
-          </View>
+          {consultationFee > 0 && (
+            <View style={bookAppointmentStyles.summaryRow}>
+              <Text style={bookAppointmentStyles.summaryLabel}>Consultation Fee</Text>
+              <Text style={bookAppointmentStyles.summaryValue}>₹{consultationFee}</Text>
+            </View>
+          )}
 
-          <View style={bookAppointmentStyles.summaryRow}>
-            <Text style={bookAppointmentStyles.summaryLabel}>Platform Fee</Text>
-            {isCommisionSlabsPending ? (
-              <ActivityIndicator size="small" color={theme.colors.primaryDark} />
-            ) : (
-              <Text style={bookAppointmentStyles.summaryValue}>₹{platformFee}</Text>
-            )}
-          </View>
+          {consultationFee > 0 && (
+            <View style={bookAppointmentStyles.summaryRow}>
+              <Text style={bookAppointmentStyles.summaryLabel}>Platform Fee</Text>
+              {isCommisionSlabsPending ? (
+                <ActivityIndicator size="small" color={theme.colors.primaryDark} />
+              ) : (
+                <Text style={bookAppointmentStyles.summaryValue}>₹{platformFee}</Text>
+              )}
+            </View>
+          )}
 
           <View style={bookAppointmentStyles.divider} />
 
-          <View style={bookAppointmentStyles.summaryRow}>
-            <Text style={bookAppointmentStyles.totalLabel}>Total Amount</Text>
-            {isCommisionSlabsPending ? (
-              <ActivityIndicator size="small" color={theme.colors.primaryDark} />
-            ) : (
-              <Text style={bookAppointmentStyles.totalValue}>₹{totalAmount}</Text>
-            )}
-          </View>
+          {consultationFee > 0 && (
+            <View style={bookAppointmentStyles.summaryRow}>
+              <Text style={bookAppointmentStyles.totalLabel}>Total Amount</Text>
+              {isCommisionSlabsPending ? (
+                <ActivityIndicator size="small" color={theme.colors.primaryDark} />
+              ) : (
+                <Text style={bookAppointmentStyles.totalValue}>₹{totalAmount}</Text>
+              )}
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -516,7 +522,7 @@ export const BookAppointmentScreen: React.FC = () => {
             <ActivityIndicator color={theme.colors.surface} />
           ) : (
             <Text style={bookAppointmentStyles.proceedBtnText}>
-              Book Appointment • ₹{totalAmount}
+              Book Appointment {totalAmount > 0 && `• ₹${totalAmount}`}
             </Text>
           )}
         </TouchableOpacity>

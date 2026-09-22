@@ -335,35 +335,36 @@ export const PaymentScreen: React.FC = () => {
         </View>
 
         {/* Payment Summary Card */}
-        <View style={paymentStyles.card}>
-          <View style={paymentStyles.cardHeader}>
-            <View style={paymentStyles.cardTitleRow}>
-              <CreditCardIcon size={18} color={theme.colors.primary} />
-              <Text style={paymentStyles.cardTitle}>Payment Summary</Text>
+        {totalAmount > 0 && (
+          <View style={paymentStyles.card}>
+            <View style={paymentStyles.cardHeader}>
+              <View style={paymentStyles.cardTitleRow}>
+                <CreditCardIcon size={18} color={theme.colors.primary} />
+                <Text style={paymentStyles.cardTitle}>Payment Summary</Text>
+              </View>
+            </View>
+
+            <View style={paymentStyles.feeRow}>
+              <Text style={paymentStyles.feeLabel}>Consultation Fee</Text>
+              <Text style={paymentStyles.feeAmount}>
+                ₹{bookingData.consultationFee ?? totalAmount - (bookingData.platformFee ?? 0)}
+              </Text>
+            </View>
+            <View style={paymentStyles.feeRow}>
+              <Text style={paymentStyles.feeLabel}>Platform Fee</Text>
+              <Text style={paymentStyles.feeAmount}>₹{bookingData.platformFee ?? 0}</Text>
+            </View>
+
+            <View style={paymentStyles.divider} />
+            <View style={paymentStyles.totalRow}>
+              <View style={paymentStyles.totalLabelWrap}>
+                <Text style={paymentStyles.totalLabel}>Total Amount</Text>
+                <Text style={paymentStyles.totalSublabel}>Inclusive of all taxes</Text>
+              </View>
+              <Text style={paymentStyles.totalAmount}>₹{totalAmount}</Text>
             </View>
           </View>
-
-          <View style={paymentStyles.feeRow}>
-            <Text style={paymentStyles.feeLabel}>Consultation Fee</Text>
-            <Text style={paymentStyles.feeAmount}>
-              ₹{bookingData.consultationFee ?? totalAmount - (bookingData.platformFee ?? 0)}
-            </Text>
-          </View>
-          <View style={paymentStyles.feeRow}>
-            <Text style={paymentStyles.feeLabel}>Platform Fee</Text>
-            <Text style={paymentStyles.feeAmount}>₹{bookingData.platformFee ?? 0}</Text>
-          </View>
-
-          <View style={paymentStyles.divider} />
-
-          <View style={paymentStyles.totalRow}>
-            <View style={paymentStyles.totalLabelWrap}>
-              <Text style={paymentStyles.totalLabel}>Total Amount</Text>
-              <Text style={paymentStyles.totalSublabel}>Inclusive of all taxes</Text>
-            </View>
-            <Text style={paymentStyles.totalAmount}>₹{totalAmount}</Text>
-          </View>
-        </View>
+        )}
         <TouchableOpacity
           onPress={handlePay}
           disabled={isSubmitting || isRazorpayLoading}
