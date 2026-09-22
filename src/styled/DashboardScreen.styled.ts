@@ -18,14 +18,13 @@ export const dashboardStyles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingTop: 12,
+    // paddingTop: 12,
     paddingBottom: 110,
   },
   blockSpacing: {
     marginBottom: 16,
   },
 
-  // Member Banner Bar (when viewing a family member profile)
   memberBanner: {
     flexDirection: 'row',
     alignItems: 'center',

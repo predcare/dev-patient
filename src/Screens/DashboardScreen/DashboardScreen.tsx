@@ -29,29 +29,13 @@ export const DashboardScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const rootNav = navigation.getParent() || navigation;
   const { userData } = useAuthStore(state => state);
-  // Static state management matching reference DashboardScreen
   const [profile, setProfile] = useState<DashboardProfile>(MOCK_DASHBOARD_PROFILE);
   const [familyMembers] = useState<MockFamilyMember[]>(MOCK_FAMILY_MEMBERS);
   const [activeMemberId, setActiveMemberId] = useState<string>('self');
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
-  // Modals state
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
   const [notifications] = useState<DashboardNotificationItem[]>(MOCK_NOTIFICATIONS);
-
-  // Mock static upcoming appointment matching reference
-  const [upcoming] = useState<any[]>([
-    {
-      id: 501,
-      appointment_id: 'APT-8821',
-      doctor_name: 'Sarah Jenkins',
-      specialization: 'Cardiologist • MD',
-      appointment_date: '2026-08-24',
-      appointment_date_label: 'Mon, 24 Aug 2026',
-      start_time: '10:30 AM',
-      consultation_type: 'video',
-    },
-  ]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -82,30 +66,6 @@ export const DashboardScreen: React.FC = () => {
         });
       }
     }
-  };
-
-  const handleAppointmentAction = (appointment: any) => {
-    Alert.alert(
-      'Appointment Details',
-      `Appointment with ${appointment.doctor_name} on ${appointment.appointment_date_label} at ${appointment.start_time}`,
-      [
-        {
-          text: 'Book Again',
-          onPress: () =>
-            rootNav.navigate('BookAppointment', {
-              doctorId: appointment.doctor_id || 101,
-            }),
-        },
-        {
-          text: 'Doctor Profile',
-          onPress: () =>
-            rootNav.navigate('DoctorDetails', {
-              doctorId: appointment.doctor_id || 101,
-            }),
-        },
-        { text: 'Close', style: 'cancel' },
-      ]
-    );
   };
 
   const quickAccessItems = [
@@ -199,6 +159,7 @@ export const DashboardScreen: React.FC = () => {
         style={dashboardStyles.scrollView}
         contentContainerStyle={dashboardStyles.scrollContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {!isCompleted && (
@@ -208,17 +169,10 @@ export const DashboardScreen: React.FC = () => {
           />
         )}
         {activeMemberId === 'self' && <MyDoctorsSection />}
-        <View style={dashboardStyles.blockSpacing}>
+        <View>
           <FindSpecialistCard onPress={() => rootNav.navigate('DoctorSearch')} />
         </View>
-        {activeMemberId === 'self' && (
-          <UpcomingAppointmentsSection
-            appointments={upcoming}
-            onEmptyActionPress={() => rootNav.navigate('DoctorSearch')}
-            onSeeAllPress={() => rootNav.navigate('DoctorSearch')}
-            onAppointmentPress={handleAppointmentAction}
-          />
-        )}
+        {activeMemberId === 'self' && <UpcomingAppointmentsSection />}
         <QuickAccessGrid items={quickAccessItems} />
         <DailyHealthTipsSection />
       </ScrollView>

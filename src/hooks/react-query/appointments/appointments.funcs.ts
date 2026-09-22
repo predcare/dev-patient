@@ -43,3 +43,17 @@ export const getApptToken = async (appointmentId: number | string) => {
   );
   return res.data;
 };
+
+// Cancel Appointments
+export const cancelMyAppt = async (body: {
+  appointment_id: number | string;
+  call_end_reason: string;
+}) => {
+  const res = await axiosInstance.post<ICommonRoot>(
+    `${endpoints.appointments.cancelAppt(body?.appointment_id)}`,
+    {
+      call_end_reason: body.call_end_reason,
+    }
+  );
+  return res.data;
+};

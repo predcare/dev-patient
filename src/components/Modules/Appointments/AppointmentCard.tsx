@@ -19,7 +19,6 @@ export interface AppointmentCardProps {
   onJoinVideo: () => void;
   onReschedule: () => void;
   onCancelPress: () => void;
-  onDeletePress: () => void;
   onOpenDirections?: () => void;
 }
 

@@ -8,7 +8,10 @@ import AppointmentsSkeleton from '../../components/Skeletons/AppointmentsSkeleto
 import { CalendarIcon } from '../../components/ui/icons';
 import useDevicePermissions from '../../hooks/commons/useDevicePermissions';
 import { getApptToken } from '../../hooks/react-query/appointments/appointments.funcs';
-import { useMyAppointments } from '../../hooks/react-query/appointments/appointments.hooks';
+import {
+  useCancelMyAppt,
+  useMyAppointments,
+} from '../../hooks/react-query/appointments/appointments.hooks';
 import { AppointmemntQueryKey } from '../../hooks/react-query/query.keys';
 import { Header } from '../../Layout/Header';
 import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
@@ -18,11 +21,12 @@ import {
   getDuration,
   openLocationOnMap,
 } from '../../lib/common/common.utils';
-import { showErrorToast, showInfoToast } from '../../lib/common/toast.utils';
+import { showErrorToast, showInfoToast, showSuccessToast } from '../../lib/common/toast.utils';
 import { AppRoute } from '../../route';
 import { appointmentsStyles } from '../../styled/AppointmentsScreen.styled';
 import { theme } from '../../styled/theme.styled';
 import { IMyAppointmentDoc } from '../../typescripts/interfaces/appointments.interfaces';
+import { useAlertStore } from '../../zustand/stores/useAlertStore';
 import { useLoadingStore } from '../../zustand/stores/useLoadingStore';
 import { useMeetingStore } from '../../zustand/stores/useMeetingStore';
 
@@ -32,12 +36,16 @@ export const AppointmentsScreen: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'upcoming' | 'completed'>('upcoming');
   const [refreshing, setRefreshing] = useState(false);
+  const { setMeetingSession } = useMeetingStore(state => state);
   const { showLoader, hideLoader } = useLoadingStore(state => state);
-  const { setMeetingSession, setInPersonAppointment } = useMeetingStore(state => state);
+  const showConfirm = useAlertStore(state => state.showConfirm);
   const { requestAudioVideoPermissions } = useDevicePermissions();
+  const { mutate: cancelAppt } = useCancelMyAppt();
 
   const statusParam = useMemo(() => {
-    return activeTab === 'upcoming' ? 'confirmed,pending,in_progress' : 'completed,cancelled,refunded';
+    return activeTab === 'upcoming'
+      ? 'confirmed,pending,in_progress'
+      : 'completed,cancelled,refunded';
   }, [activeTab]);
 
   const {
@@ -148,6 +156,46 @@ export const AppointmentsScreen: React.FC = () => {
     [navigation, queryClient, setMeetingSession, requestAudioVideoPermissions]
   );
 
+  const handleCancelAppt = (apt: IMyAppointmentDoc) => {
+    if (!apt?.id) return;
+    const docName = apt.doctorInfo?.name || 'Doctor';
+    const formattedDocName = docName.startsWith('Dr.') ? docName : `Dr. ${docName}`;
+    const formattedDate = formatDate(apt.appointment_date) || 'scheduled date';
+    const formattedTime = _formatTime(apt?.start_time);
+    const timeText = formattedTime ? ` at ${formattedTime}` : '';
+
+    showConfirm({
+      title: 'Cancel Appointment',
+      message: `Are you sure you want to cancel your appointment with ${formattedDocName} on ${formattedDate}${timeText}?`,
+      buttonText: 'Yes, Cancel',
+      cancelText: 'No, Keep',
+      onConfirm: () => {
+        showLoader('Cancelling appointment...');
+        const payload = {
+          appointment_id: String(apt.id),
+          call_end_reason: 'Cancelled by patient',
+        };
+        cancelAppt(payload, {
+          onSuccess: async res => {
+            if (res?.success) {
+              showSuccessToast(res?.message || 'Appointment cancelled successfully');
+              await appointmentRefetch();
+              hideLoader();
+            } else {
+              hideLoader();
+            }
+          },
+          onError: () => {
+            hideLoader();
+          },
+          onSettled: () => {
+            hideLoader();
+          },
+        });
+      },
+    });
+  };
+
   return (
     <SafeAreaWrapper
       style={appointmentsStyles.root}
@@ -183,7 +231,7 @@ export const AppointmentsScreen: React.FC = () => {
           })}
         </View>
       </View>
-      {allAppointmentIsPending && allAppointmentData?.data?.length === 0 ? (
+      {allAppointmentIsPending ? (
         <AppointmentsSkeleton />
       ) : allAppointmentIsError ? (
         <CommonErrorCard
@@ -199,6 +247,7 @@ export const AppointmentsScreen: React.FC = () => {
         <FlatList
           data={allAppointmentData?.data || []}
           keyExtractor={item => String(item.id || item.appointment_id)}
+          keyboardShouldPersistTaps="handled"
           renderItem={({ item: apt }) => (
             <AppointmentCard
               apptId={apt?.appointment_id}
@@ -211,14 +260,13 @@ export const AppointmentsScreen: React.FC = () => {
               duration={getDuration(apt?.start_time, apt?.end_time) || ''}
               mode={apt?.consultation_type || ''}
               time={_formatTime(apt?.start_time) || ''}
-              onCancelPress={() => {}}
-              onDeletePress={() => {}}
+              onCancelPress={() => handleCancelAppt(apt)}
               onJoinVideo={() => handleJoinVideoCall(apt)}
               onReschedule={() =>
-                rootNav.navigate('RescheduleAppointment', {
-                  appointmentId: apt.appointment_id || apt.id,
-                  appointment: apt,
-                })
+                showInfoToast(
+                  'Reschedule functionality will be available in the next update.',
+                  'Under Development'
+                )
               }
               onOpenDirections={() =>
                 openLocationOnMap({
@@ -252,17 +300,8 @@ export const AppointmentsScreen: React.FC = () => {
           contentContainerStyle={[appointmentsStyles.scrollContent, { paddingBottom: 120 }]}
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-          keyboardShouldPersistTaps="handled"
         />
       )}
-
-      {/* Modals
-      <AppointmentCancelModal
-        visible={!!selectedCancelApt}
-        appointment={selectedCancelApt}
-        onClose={() => setSelectedCancelApt(null)}
-        onConfirmCancel={() => {}}
-      /> */}
     </SafeAreaWrapper>
   );
 };

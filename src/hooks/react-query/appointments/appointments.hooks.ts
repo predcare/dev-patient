@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { AppointmemntQueryKey } from '../query.keys';
 import {
+  cancelMyAppt,
   createAppointment,
   getBookingPaymentStatus,
   getMyAppointments,
@@ -35,3 +36,10 @@ export const useMyAppointments = (params: {
     queryKey: [AppointmemntQueryKey.ALL_APPOINTMENTS, params],
     queryFn: () => getMyAppointments(params),
   });
+
+// Cancel Appointment
+export const useCancelMyAppt = () => {
+  return useMutation({
+    mutationFn: cancelMyAppt,
+  });
+};

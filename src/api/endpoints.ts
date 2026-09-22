@@ -52,6 +52,7 @@ export const endpoints = {
     checkPaymentStatus: '/appointments/payment-status',
     myAppointments: '/appointments/my-appointments',
     getToken: (appointmentId: number | string) => `/appointments/${appointmentId}/video-token`,
+    cancelAppt: (appointmentId: number | string) => `/appointments/${appointmentId}/cancel`,
   },
   payments: {
     verifyPayment: '/payments/verify-payment',
