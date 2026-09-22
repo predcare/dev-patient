@@ -83,6 +83,16 @@ public class PiPModule extends ReactContextBaseJavaModule {
         }
     }
 
+    public static void notifyPiPClosed() {
+        if (sReactContext != null) {
+            try {
+                sReactContext
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit("onPiPClosed", true);
+            } catch (Exception e) { /* ignore */ }
+        }
+    }
+
     private static ReactApplicationContext sReactContext;
 
     @Override

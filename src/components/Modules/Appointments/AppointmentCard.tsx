@@ -219,7 +219,7 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
         </View>
         {clinicAddress &&
           mode === 'in-person' &&
-          ['in-progress', 'confirmed'].includes(apptStatus) && (
+          ['in-progress', 'in_progress', 'confirmed'].includes(apptStatus) && (
             <View style={appointmentsStyles.locBox}>
               <View style={appointmentsStyles.locRow}>
                 <View style={{ marginTop: 2 }}>
@@ -239,7 +239,7 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
               </TouchableOpacity>
             </View>
           )}
-        {mode === 'video' && ['in-progress', 'confirmed'].includes(apptStatus) && (
+        {mode === 'video' && ['in_progress', 'in-progress', 'confirmed'].includes(apptStatus) && (
           <TouchableOpacity
             style={[appointmentsStyles.btnJoin, appointmentsStyles.btnRejoin]}
             activeOpacity={1}

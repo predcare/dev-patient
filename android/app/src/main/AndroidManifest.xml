@@ -21,6 +21,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
 
     <!-- ============================================
          BACKGROUND & STABILITY
@@ -82,10 +83,12 @@
         tools:replace="android:value" />
       <meta-data
         android:name="com.google.firebase.messaging.default_notification_icon"
-        android:resource="@mipmap/ic_launcher" />
+        android:resource="@mipmap/ic_launcher"
+        tools:replace="android:resource" />
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"
+        android:screenOrientation="portrait"
         android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
         android:launchMode="singleTask"
         android:windowSoftInputMode="adjustResize"
@@ -96,5 +99,13 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
       </activity>
+      <!-- ============================================
+           VIDEOSDK FOREGROUND SERVICE
+      ============================================= -->
+      <service
+        android:name="live.videosdk.rnwebrtc.MediaProjectionService"
+        android:enabled="true"
+        android:exported="false"
+        android:foregroundServiceType="mediaProjection" />
     </application>
 </manifest>

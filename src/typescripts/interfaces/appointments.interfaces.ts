@@ -1,6 +1,7 @@
 import { IRootResponse } from './common.interfaces';
 
 export type MyAppointmentListRoot = IRootResponse<IMyAppointmentDoc[]>;
+export type TGetApptTokenRoot = IRootResponse<IGetApptTokenDoc>;
 
 export interface IMyAppointmentDoc {
   id: string;
@@ -26,11 +27,14 @@ export interface IMyAppointmentDoc {
   payment_status: string;
   transaction_id?: string;
   reason: any;
+  meeting_id?: string;
+  call_duration_seconds?: number;
   is_active: boolean;
   created_at: string;
   updated_at: string;
   doctorInfo: DoctorInfo;
   clinicInfo: ClinicInfo;
+  patientInfo: IPatientInfo;
 }
 
 export interface AppointmentSlotTime {
@@ -62,4 +66,29 @@ export interface Meta {
   totalPages: number;
   hasNextPage: boolean;
   hasPrevPage: boolean;
+}
+
+export interface IGetApptTokenDoc {
+  token: string;
+  meeting_id: string;
+  appointment: ITokenAppt;
+}
+
+export interface ITokenAppt {
+  id: string;
+  appointment_id: string;
+  appointment_date: string;
+  start_time: string;
+  end_time: string;
+  slot_duration: number;
+}
+
+export interface IPatientInfo {
+  name: string;
+  patientId: string;
+  displayPatientId: string;
+  profileImage: any;
+  phoneNumber: string;
+  gender: string;
+  dateOfBirth: string;
 }

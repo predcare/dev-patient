@@ -51,6 +51,7 @@ export const endpoints = {
     bookPatient: '/appointments/book',
     checkPaymentStatus: '/appointments/payment-status',
     myAppointments: '/appointments/my-appointments',
+    getToken: (appointmentId: number | string) => `/appointments/${appointmentId}/video-token`,
   },
   payments: {
     verifyPayment: '/payments/verify-payment',

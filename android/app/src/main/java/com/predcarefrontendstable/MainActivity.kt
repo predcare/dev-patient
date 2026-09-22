@@ -60,12 +60,32 @@ class MainActivity : ReactActivity() {
         }
     }
 
+    private var wasInPiPMode: Boolean = false
+
+    override fun onResume() {
+        super.onResume()
+        // If resumed from PiP mode via expand button, clear flag
+        wasInPiPMode = false
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // If stopped while in PiP or immediately after exiting PiP without entering foreground (user tapped 'X')
+        if (wasInPiPMode && PiPModule.isCallActive) {
+            wasInPiPMode = false
+            PiPModule.notifyPiPClosed()
+        }
+    }
+
     override fun onPictureInPictureModeChanged(
         isInPiPMode: Boolean,
         newConfig: android.content.res.Configuration
     ) {
         super.onPictureInPictureModeChanged(isInPiPMode, newConfig)
-        // Notify JS so DoctorMeetingScreen can switch to video-only render mode
+        if (isInPiPMode) {
+            wasInPiPMode = true
+        }
+        // Notify JS so MeetingScreen can switch to video-only render mode
         PiPModule.notifyPiPStateChanged(isInPiPMode)
     }
 }

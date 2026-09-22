@@ -1,5 +1,4 @@
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import type { CompositeNavigationProp, RouteProp } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 /**
@@ -268,6 +267,13 @@ export type ScheduleScreenRouteProp = RouteProp<RootStackParamList, 'Schedule'>;
 export interface ScheduleScreenProps {
   navigation?: ScheduleScreenNavigationProp;
   route?: ScheduleScreenRouteProp;
+}
+
+export type MeetingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Meeting'>;
+export type MeetingScreenRouteProp = RouteProp<RootStackParamList, 'Meeting'>;
+export interface MeetingScreenProps {
+  navigation?: MeetingScreenNavigationProp;
+  route?: MeetingScreenRouteProp;
 }
 
 export type ReportsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Reports'>;
