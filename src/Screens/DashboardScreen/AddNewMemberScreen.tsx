@@ -1,7 +1,7 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import dayjs from 'dayjs';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
   ActivityIndicator,
@@ -26,7 +26,11 @@ import {
   ShieldIcon,
 } from '../../components/ui/icons';
 import { FamilyRelations, GenderOptions } from '../../config/constants';
-import { useAddFamilyMember } from '../../hooks/react-query/profile/profile.hooks';
+import {
+  useAddFamilyMember,
+  useEditFamilyMember,
+  useGetFamilyMemberInfo,
+} from '../../hooks/react-query/profile/profile.hooks';
 import { ProfileQueryKeys } from '../../hooks/react-query/query.keys';
 import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import { showSuccessToast } from '../../lib/common/toast.utils';
@@ -38,8 +42,12 @@ import { useLoadingStore } from '../../zustand/stores/useLoadingStore';
 
 export const AddNewMemberScreen: React.FC = () => {
   const navigation = useNavigation<any>();
+  const router = useRoute<any>();
+  const memberId = router.params?.memberId;
   const { userData } = useAuthStore(state => state);
   const { mutate: addFamilyMemberMutation, isPending } = useAddFamilyMember();
+  const { mutate: editFamilyMemberMutation, isPending: editFamilyMemberLoading } =
+    useEditFamilyMember();
   const [showDOBPicker, setShowDOBPicker] = useState<boolean>(false);
   const [showRelationPicker, setShowRelationPicker] = useState<boolean>(false);
   const [showGenderPicker, setShowGenderPicker] = useState<boolean>(false);
@@ -61,6 +69,9 @@ export const AddNewMemberScreen: React.FC = () => {
     },
   });
 
+  const { data: getFamilyMemberInfoData, isLoading: isGetFamilyMemberInfoLoading } =
+    useGetFamilyMemberInfo(memberId);
+
   const currentRelation = watch('relation');
   const currentGender = watch('gender');
   const currentDateOfBirth = watch('date_of_birth');
@@ -76,29 +87,67 @@ export const AddNewMemberScreen: React.FC = () => {
   }, [currentRelation, currentGender, currentDateOfBirth]);
 
   const onSubmit = (data: TAddFamilySchemaType) => {
-    showLoader('Adding family member...');
-    addFamilyMemberMutation(data, {
-      onSuccess: async res => {
-        if (res?.success) {
-          showSuccessToast(res?.message || 'Family member added successfully');
-          reset();
-          await queryClient.invalidateQueries({ queryKey: [ProfileQueryKeys.FAMILY_MEMBER_LIST] });
+    if (memberId) {
+      const payload = {
+        id: memberId,
+        body: data,
+      };
+      showLoader('Editing family member...');
+      editFamilyMemberMutation(payload, {
+        onSuccess: async res => {
+          if (res?.success) {
+            showSuccessToast(res?.message || 'Family member edited successfully');
+            reset();
+            await queryClient.invalidateQueries({
+              queryKey: [ProfileQueryKeys.FAMILY_MEMBER_LIST],
+            });
+            hideLoader();
+            navigation.goBack();
+          } else {
+            hideLoader();
+            navigation.goBack();
+          }
+        },
+        onError: () => {
           hideLoader();
-          navigation.goBack();
-        } else {
+        },
+      });
+    } else {
+      showLoader('Adding family member...');
+      addFamilyMemberMutation(data, {
+        onSuccess: async res => {
+          if (res?.success) {
+            showSuccessToast(res?.message || 'Family member added successfully');
+            reset();
+            await queryClient.invalidateQueries({
+              queryKey: [ProfileQueryKeys.FAMILY_MEMBER_LIST],
+            });
+            hideLoader();
+            navigation.goBack();
+          } else {
+            hideLoader();
+            navigation.goBack();
+          }
+        },
+        onError: () => {
           hideLoader();
-          navigation.goBack();
-        }
-      },
-      onError: () => {
-        hideLoader();
-      },
-    });
+        },
+      });
+    }
   };
+
+  useEffect(() => {
+    if (getFamilyMemberInfoData && memberId) {
+      setValue('date_of_birth', getFamilyMemberInfoData?.date_of_birth);
+      setValue('gender', getFamilyMemberInfoData?.gender);
+      setValue('name', getFamilyMemberInfoData?.name);
+      setValue('relation', getFamilyMemberInfoData?.relation);
+    }
+  }, [getFamilyMemberInfoData, memberId, setValue]);
 
   return (
     <SafeAreaWrapper style={memberStyles.screen}>
-      <AppHeader title="Add Family Member" showBack={true} />
+      <AppHeader title={memberId ? 'Edit Family Member' : 'Add Family Member'} showBack={true} />
       <ScrollView
         contentContainerStyle={memberStyles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -181,7 +230,6 @@ export const AddNewMemberScreen: React.FC = () => {
             </TouchableOpacity>
             {!!errors.gender && <Text style={memberStyles.errorText}>{errors.gender.message}</Text>}
           </View>
-          {/* Date of Birth */}
           <View style={memberStyles.fieldWrapper}>
             <Text style={memberStyles.fieldLabel}>
               Date of Birth<Text style={memberStyles.required}> *</Text>
@@ -270,15 +318,20 @@ export const AddNewMemberScreen: React.FC = () => {
           </View>
         </View>
         <TouchableOpacity
-          style={[memberStyles.submitBtn, isPending && memberStyles.submitBtnDisabled]}
+          style={[
+            memberStyles.submitBtn,
+            (isPending || editFamilyMemberLoading) && memberStyles.submitBtnDisabled,
+          ]}
           onPress={handleSubmit(onSubmit)}
-          disabled={isPending}
+          disabled={isPending || editFamilyMemberLoading}
           activeOpacity={0.85}
         >
-          {isPending ? (
+          {isPending || editFamilyMemberLoading ? (
             <ActivityIndicator color={theme.colors.surface} size="small" />
           ) : (
-            <Text style={memberStyles.submitBtnText}>Add Family Member</Text>
+            <Text style={memberStyles.submitBtnText}>
+              {memberId ? 'Edit Family Member' : 'Add Family Member'}
+            </Text>
           )}
         </TouchableOpacity>
       </ScrollView>

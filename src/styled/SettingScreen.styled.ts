@@ -290,6 +290,50 @@ export const settingStyles = StyleSheet.create({
     color: theme.colors.primary,
   },
 
+  // Family Members Error State
+  membersErrorContainer: {
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  membersErrorIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: theme.colors.errorBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  membersErrorTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: theme.colors.textPrimary,
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  membersErrorMessage: {
+    fontSize: 13,
+    color: theme.colors.textMuted,
+    textAlign: 'center',
+    marginBottom: 14,
+    lineHeight: 18,
+  },
+  membersRetryButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    backgroundColor: theme.colors.primary,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  membersRetryText: {
+    color: theme.colors.surface,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+
   // Version Footer
   versionText: {
     textAlign: 'center',

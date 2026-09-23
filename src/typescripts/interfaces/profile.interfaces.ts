@@ -1,3 +1,8 @@
+import { IRootResponse } from './common.interfaces';
+
+export type IFamilyMemberList = IRootResponse<IFamillyMemberDoc[]>;
+export type IFamilyMemberInfoRoot = IRootResponse<IFamilyMemberInfo>;
+
 export interface IMyProfileDoc {
   id: string;
   parent_user_id: any;
@@ -42,4 +47,48 @@ export interface IMyProfileDoc {
   bmi: any;
   drug_allergies: any;
   verified_at: string;
+}
+
+export interface IFamillyMemberDoc {
+  user_id: string;
+  name: string;
+  gender: string;
+  date_of_birth: string;
+  relation: string;
+  profile_image: string;
+}
+
+export interface IFamilyMemberInfo {
+  user_id: string;
+  patient_id: string;
+  patient_table_id: string;
+  name: string;
+  gender: string;
+  date_of_birth: string;
+  relation: string;
+  salutation: any;
+  phone_number: string;
+  email: string;
+  alternate_number: any;
+  whatsapp_number: any;
+  profile_image: any;
+  address: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  country: string;
+  blood_type: any;
+  blood_pressure: any;
+  pulse: any;
+  temperature: any;
+  spo2: any;
+  weight: any;
+  height: any;
+  bmi: any;
+  medical_history: any;
+  drug_allergies: any;
+  status: string;
+  is_dependent: boolean;
+  created_at: string;
+  updated_at: string;
 }

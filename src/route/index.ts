@@ -53,7 +53,7 @@ export type RootStackParamList = {
   SupportTicketDetails: { ticketId?: string; initialTicket?: any } | undefined;
   NewSupportTicket: undefined;
   SupportTicketSuccess: { ticketId?: string; category?: string; createdAt?: string } | undefined;
-  AddNewMember: { memberToEdit?: any } | undefined;
+  AddNewMember: { memberId: number | string; memberToEdit?: any } | undefined;
   ProfileSetup: undefined;
   DoctorSearch: { query?: string; specialty?: string } | undefined;
   DoctorDetails: { doctorId?: number; doctor?: any } | undefined;
@@ -304,10 +304,7 @@ export type UploadHealthRecordScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'UploadHealthRecord'
 >;
-export type UploadHealthRecordScreenRouteProp = RouteProp<
-  RootStackParamList,
-  'UploadHealthRecord'
->;
+export type UploadHealthRecordScreenRouteProp = RouteProp<RootStackParamList, 'UploadHealthRecord'>;
 export interface UploadHealthRecordScreenProps {
   navigation?: UploadHealthRecordScreenNavigationProp;
   route?: UploadHealthRecordScreenRouteProp;

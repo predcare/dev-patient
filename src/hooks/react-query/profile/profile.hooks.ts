@@ -1,7 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryClient } from '../../../components/providers/ReactQueryProvider';
 import { ProfileQueryKeys } from '../query.keys';
-import { addFamilyMember, getProfile, updateProfile } from './profile.funcs';
+import {
+  addFamilyMember,
+  deleteFamilyMember,
+  editFamilyMember,
+  getFamilyMemberInfo,
+  getFamilyMembers,
+  getProfile,
+  updateProfile,
+} from './profile.funcs';
 
 export const useProfile = () =>
   useQuery({
@@ -32,5 +40,47 @@ export const useUpdateProfile = () => {
 export const useAddFamilyMember = () => {
   return useMutation({
     mutationFn: addFamilyMember,
+  });
+};
+
+// Get Family Members
+export const useGetFamilyMembers = () =>
+  useQuery({
+    queryKey: [ProfileQueryKeys?.FAMILY_MEMBER_LIST],
+    queryFn: getFamilyMembers,
+    select: v => v.data,
+  });
+
+// Delete Family Member
+export const useRevokeFamilyMember = () => {
+  return useMutation({
+    mutationFn: deleteFamilyMember,
+  });
+};
+// Get Family Member Info
+export const useGetFamilyMemberInfo = (id: number) => {
+  return useQuery({
+    queryKey: [ProfileQueryKeys.FAMILY_MEMBER_INFO, id],
+    enabled: !!id,
+    queryFn: () => getFamilyMemberInfo(id),
+    select: v => v.data,
+  });
+};
+
+// Delete Family Member
+export const useEditFamilyMember = () => {
+  return useMutation({
+    mutationFn: ({
+      id,
+      body,
+    }: {
+      id: number;
+      body: {
+        name: string;
+        gender: string;
+        relation: string;
+        date_of_birth: string;
+      };
+    }) => editFamilyMember(id, body),
   });
 };

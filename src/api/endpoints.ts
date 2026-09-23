@@ -33,6 +33,10 @@ export const endpoints = {
     get: '/users/profile',
     update: '/users/profile-update',
     addFamilyMembers: '/users/patient/add-family-member',
+    getFamilyMembers: '/users/patient/family-members',
+    getFamilyMemberInfo: (id: number) => `/users/patient/family-members/${id}`,
+    familyMemberDelete: (id: number) => `/users/patient/family-members/${id}`,
+    familyMemberEdit: (id: number) => `/users/patient/family-members/${id}`,
   },
   doctors: {
     getAll: '/patients/doctors',

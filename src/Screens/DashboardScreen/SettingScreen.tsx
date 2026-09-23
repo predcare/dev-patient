@@ -5,7 +5,6 @@ import LanguageSwitcherModal, { LANGUAGES } from '../../components/commons/Langu
 import LogoutOptionsModal from '../../components/commons/LogoutOptionsModal/LogoutOptionsModal';
 import PopupAlert, { AlertType } from '../../components/commons/PopupAlert/PopupAlert';
 import {
-  FamilyMemberItemData,
   FamilyMembersCard,
   SettingsRowItem,
   SettingsSectionLabel,
@@ -17,7 +16,6 @@ import { Header } from '../../Layout/Header';
 import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import { resetToLogin } from '../../lib/common/navigation.utils';
 import { navigationRef } from '../../navigation/navigationRef';
-import { MOCK_FAMILY_MEMBERS } from '../../resources/mockData';
 import { settingStyles } from '../../styled/SettingScreen.styled';
 import { theme } from '../../styled/theme.styled';
 import { useAuthStore } from '../../zustand/stores/useAuthStore';
@@ -37,8 +35,6 @@ interface PopupAlertState {
 
 export const SettingScreen: React.FC = () => {
   const navigation = useNavigation<any>();
-  const [activeMemberId, setActiveMemberId] = useState<string>('self');
-  const [members, setMembers] = useState<FamilyMemberItemData[]>(MOCK_FAMILY_MEMBERS);
   const [alertConfig, setAlertConfig] = useState<PopupAlertState>({ visible: false });
 
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState<boolean>(false);
@@ -58,40 +54,8 @@ export const SettingScreen: React.FC = () => {
 
   const rootNav = navigation.getParent() || navigation;
 
-  const handleSelectMember = (id: string) => {
-    setActiveMemberId(id);
-  };
-
   const handleProfilePress = () => {
     rootNav.navigate('ProfileSetup');
-  };
-
-  const handleEditMember = (member: FamilyMemberItemData) => {
-    rootNav.navigate('AddNewMember', { memberToEdit: member });
-  };
-
-  const handleDeleteMember = (member: FamilyMemberItemData) => {
-    setAlertConfig({
-      visible: true,
-      type: 'error',
-      title: 'Delete Member',
-      message: `Are you sure you want to delete ${member.name}? This action cannot be undone.`,
-      buttonText: 'Delete',
-      cancelText: 'Cancel',
-      showCancel: true,
-      onPress: () => {
-        setMembers(prev => prev.filter(m => m.id !== member.id));
-        if (activeMemberId === member.id) {
-          setActiveMemberId('self');
-        }
-        closeAlert();
-      },
-      onCancel: closeAlert,
-    });
-  };
-
-  const handleAddMember = () => {
-    rootNav.navigate('AddNewMember');
   };
 
   const handleLanguagePress = () => {
@@ -166,14 +130,7 @@ export const SettingScreen: React.FC = () => {
         </View>
 
         <SettingsSectionLabel title="MY MEMBERS" />
-        <FamilyMembersCard
-          members={members}
-          activeMemberId={activeMemberId}
-          onSelectMember={handleSelectMember}
-          onEditMember={handleEditMember}
-          onDeleteMember={handleDeleteMember}
-          onAddMember={handleAddMember}
-        />
+        <FamilyMembersCard />
 
         <SettingsSectionLabel title="PREFERENCES" />
         <View style={settingStyles.card}>
