@@ -28,6 +28,8 @@ export const AppRoute = {
   CONSULTATION_COMPLETED: 'ConsultationCompleted',
   CLINIC_DETAILS: 'ClinicDetails',
   DOCTOR_PROFILE: 'DoctorProfile',
+  HEALTH_RECORDS: 'HealthRecords',
+  HEALTH_RECORD_FOLDER: 'HealthRecordFolder',
   HOME: 'Home',
   DOCTORS: 'Doctors',
   SCHEDULE: 'Schedule',
@@ -77,6 +79,10 @@ export type RootStackParamList = {
       }
     | undefined;
   MainTabs?: { screen?: string } | undefined;
+  HealthRecords: undefined;
+  HealthRecordFolder:
+    | { folderId?: string; folderName?: string; filesCount?: number }
+    | undefined;
   Home: undefined;
   Doctors: undefined;
   Schedule: { refresh?: boolean } | undefined;

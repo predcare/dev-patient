@@ -68,3 +68,13 @@ export * from './FlipCameraIcon';
 export * from './MeetingRxIcon';
 export * from './PipIcon';
 export * from './EndCallIcon';
+export * from './BrainIcon';
+export * from './MicroscopeIcon';
+export * from './UltrasoundIcon';
+export * from './LabFlaskIcon';
+export * from './XRayIcon';
+export * from './DropletIcon';
+export * from './ShareIcon';
+export * from './GalleryIcon';
+export * from './CameraIcon';
+

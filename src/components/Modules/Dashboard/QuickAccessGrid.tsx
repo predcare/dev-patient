@@ -57,7 +57,7 @@ export const QuickAccessGrid: React.FC = () => {
       key: 'records',
       label: 'Health Records',
       icon: 'records' as const,
-      onPress: () => showInfoToast('Health Records', 'Health Records feature coming soon.'),
+      onPress: () => rootNav.navigate(AppRoute.HEALTH_RECORDS),
     },
     {
       key: 'insurance',
