@@ -38,13 +38,6 @@ import { doctorSearchStyles } from '../../styled/DoctorSearchScreen.styled';
 import { theme } from '../../styled/theme.styled';
 import { IClinicDoc, IDoctorDoc } from '../../typescripts/interfaces/doctors.interfaces';
 
-const experienceLabels: Record<string, string> = {
-  '0-5': '0-5 yrs',
-  '5-10': '5-10 yrs',
-  '10-15': '10-15 yrs',
-  '15+': '15+ yrs',
-};
-
 type ListItemType = { type: 'doctor'; data: IDoctorDoc } | { type: 'clinic'; data: IClinicDoc };
 
 export interface IDoctorFilterStates {
@@ -387,7 +380,8 @@ export const DoctorSearchScreen: React.FC = () => {
           keyExtractor={item =>
             item.type === 'clinic' ? `clinic-${item.data.id}` : `doctor-${item.data.id}`
           }
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true}
+          keyboardShouldPersistTaps="handled"
           contentContainerStyle={doctorSearchStyles.listContent}
           onEndReached={() => {
             if (hasNextPage && !isFetchingNextPage) {

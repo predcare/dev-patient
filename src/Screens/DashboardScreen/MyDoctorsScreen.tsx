@@ -73,7 +73,8 @@ export const MyDoctorsScreen: React.FC = () => {
         <FlatList
           data={doctorsList}
           keyExtractor={item => String(item.doctor_id)}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true}
+          keyboardShouldPersistTaps="handled"
           contentContainerStyle={doctorStyles.scrollContent}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           renderItem={({ item }) => (

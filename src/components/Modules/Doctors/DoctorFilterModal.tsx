@@ -72,9 +72,7 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <Text style={[styles.rowChipText, selected && styles.rowChipTextSelected]}>
-        {label}
-      </Text>
+      <Text style={[styles.rowChipText, selected && styles.rowChipTextSelected]}>{label}</Text>
     </TouchableOpacity>
   );
 
@@ -92,9 +90,7 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <Text style={[styles.pillChipText, selected && styles.pillChipTextSelected]}>
-        {label}
-      </Text>
+      <Text style={[styles.pillChipText, selected && styles.pillChipTextSelected]}>{label}</Text>
     </TouchableOpacity>
   );
 
@@ -112,7 +108,11 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
           </TouchableOpacity>
         </View>
 
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           {/* Speciality and Sub Specialty */}
           <Text style={styles.sectionTitle}>Speciality and Sub Specialty</Text>
           <View style={styles.searchBox}>
@@ -122,9 +122,7 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
               placeholder="Search by speciality..."
               placeholderTextColor={theme.colors.textMuted}
               value={filters.specialtyQuery}
-              onChangeText={specialtyQuery =>
-                setFilters(f => ({ ...f, specialtyQuery }))
-              }
+              onChangeText={specialtyQuery => setFilters(f => ({ ...f, specialtyQuery }))}
             />
           </View>
 
@@ -133,11 +131,13 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
             <Text style={styles.sectionTitle}>Availability</Text>
             <Text style={styles.selectOne}>SELECT ONE</Text>
           </View>
-          {([
-            ['today', 'Today'],
-            ['week', 'This Week'],
-            ['month', 'This Month'],
-          ] as const).map(([key, label]) => {
+          {(
+            [
+              ['today', 'Today'],
+              ['week', 'This Week'],
+              ['month', 'This Month'],
+            ] as const
+          ).map(([key, label]) => {
             const selected = filters.availability === key;
             return (
               <TouchableOpacity
@@ -260,18 +260,17 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
           {/* Experience */}
           <Text style={styles.sectionTitle}>Experience</Text>
           <View style={styles.wrap}>
-            {([
-              ['0-5', '0-5 yrs'],
-              ['5-10', '5-10 yrs'],
-              ['10-15', '10-15 yrs'],
-              ['15+', '15+ yrs'],
-            ] as const).map(([key, label]) => (
+            {(
+              [
+                ['0-5', '0-5 yrs'],
+                ['5-10', '5-10 yrs'],
+                ['10-15', '10-15 yrs'],
+                ['15+', '15+ yrs'],
+              ] as const
+            ).map(([key, label]) => (
               <TouchableOpacity
                 key={key}
-                style={[
-                  styles.chipWide,
-                  filters.experience === key && styles.chipWideSelected,
-                ]}
+                style={[styles.chipWide, filters.experience === key && styles.chipWideSelected]}
                 onPress={() =>
                   setFilters(f => ({
                     ...f,
@@ -298,11 +297,7 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
           </TouchableOpacity>
 
           {/* Apply Button */}
-          <TouchableOpacity
-            style={styles.applyBtn}
-            activeOpacity={0.85}
-            onPress={handleApply}
-          >
+          <TouchableOpacity style={styles.applyBtn} activeOpacity={0.85} onPress={handleApply}>
             <Text style={styles.applyText}>Apply Filters</Text>
           </TouchableOpacity>
         </ScrollView>

@@ -45,6 +45,7 @@ export const DropdownPickerModal: React.FC<DropdownPickerModalProps> = ({
               <FlatList
                 data={options}
                 keyExtractor={item => item.value}
+                keyboardShouldPersistTaps="handled"
                 renderItem={({ item }) => (
                   <TouchableOpacity
                     style={[

@@ -92,6 +92,7 @@ function WheelColumn<T>({ data, selectedIndex, onSelect, renderLabel }: WheelCol
         showsVerticalScrollIndicator={false}
         snapToInterval={ITEM_HEIGHT}
         decelerationRate="fast"
+        keyboardShouldPersistTaps="handled"
         onMomentumScrollEnd={handleMomentumScrollEnd}
         getItemLayout={(_, index) => ({
           length: ITEM_HEIGHT,
