@@ -16,6 +16,10 @@ export interface SaveOrOpenFileParams {
   successMessage?: string;
   /** Optional custom error toast title */
   errorTitle?: string;
+  /** Optional custom notification title for Android status bar */
+  notificationTitle?: string;
+  /** Optional custom notification message for Android status bar */
+  notificationMessage?: string;
 }
 
 const BASE64_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
@@ -96,6 +100,8 @@ export const saveOrOpenFile = async ({
   action,
   successMessage,
   errorTitle = 'Failed',
+  notificationTitle,
+  notificationMessage,
 }: SaveOrOpenFileParams): Promise<string | null> => {
   try {
     const RNFS = getRNFS();
@@ -182,22 +188,12 @@ export const saveOrOpenFile = async ({
           } catch {}
         }
 
-        const { DownloadNotificationModule } = NativeModules;
-        if (
-          DownloadNotificationModule &&
-          typeof DownloadNotificationModule.notifyDownloadComplete === 'function'
-        ) {
-          try {
-            await DownloadNotificationModule.notifyDownloadComplete(
-              destPath,
-              cleanFilename,
-              'Invoice Downloaded',
-              `${cleanFilename} saved to Downloads. Tap to open.`
-            );
-          } catch (notifErr) {
-            console.log('[file.utils] Notification module error:', notifErr);
-          }
-        }
+        await notifyDownloadComplete(
+          destPath,
+          cleanFilename,
+          notificationTitle || 'Download Complete',
+          notificationMessage || `${cleanFilename} saved to Downloads. Tap to open.`
+        );
       }
 
       showSuccessToast(successMessage || `${cleanFilename} saved to Downloads`);
@@ -207,6 +203,34 @@ export const saveOrOpenFile = async ({
     console.log('file.utils error:', error?.message);
     showErrorToast(error?.message || 'Could not process file', errorTitle);
     return null;
+  }
+};
+
+/**
+ * Triggers native system download notification with tap-to-open intent (Android).
+ */
+export const notifyDownloadComplete = async (
+  filePath: string,
+  fileName: string,
+  title = 'Download Complete',
+  message?: string
+): Promise<void> => {
+  if (Platform.OS !== 'android') return;
+  const { DownloadNotificationModule } = NativeModules;
+  if (
+    DownloadNotificationModule &&
+    typeof DownloadNotificationModule.notifyDownloadComplete === 'function'
+  ) {
+    try {
+      await DownloadNotificationModule.notifyDownloadComplete(
+        filePath,
+        fileName,
+        title,
+        message || `${fileName} saved to Downloads. Tap to open.`
+      );
+    } catch (notifErr) {
+      console.log('[file.utils] Notification module error:', notifErr);
+    }
   }
 };
 
@@ -222,5 +246,7 @@ export const handleInvoicePdfAction = async (
     data: pdfData,
     filename,
     action,
+    notificationTitle: 'Invoice Downloaded',
+    notificationMessage: `${filename} saved to Downloads. Tap to open.`,
   });
 };

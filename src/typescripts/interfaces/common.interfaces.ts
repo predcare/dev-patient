@@ -89,3 +89,11 @@ export interface ICommisionSlabsDoc {
   created_at: string;
   updated_at: string;
 }
+
+export interface ICommonEMRCats {
+  id: string;
+  name: string;
+  icon: any;
+  is_active: boolean;
+  sort_order: number;
+}

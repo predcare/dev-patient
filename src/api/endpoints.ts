@@ -59,6 +59,12 @@ export const endpoints = {
     getInfo: (id: number) => `/prescriptions/${id}`,
     downloadPrescription: (id: string | number) => `/prescriptions/${id}/pdf`,
   },
+  emr: {
+    emrCat: '/emr/patient/categories',
+    catWiseEmrs: '/emr/patient/documents',
+    uploadEMr: '/emr/upload',
+    delete: (id: number) => `/emr/patient/documents/${id}`,
+  },
   payments: {
     verifyPayment: '/payments/verify-payment',
   },
@@ -71,6 +77,7 @@ export const endpoints = {
     policyAccept: '/users/user-policy-acceptances',
     specializations: '/common/specializations',
     getCommisionSlabs: '/commission-slabs',
+    getEmrCategories: '/common/emr-categories',
   },
 };
 
@@ -81,6 +88,7 @@ export const successEndpoints = [
   endpoints.auth.patientVerifyOtp,
   endpoints.auth.verifyEmail,
   endpoints.auth.resendEmailOtp,
+  endpoints.emr.uploadEMr,
 ];
 
 export const exclude401Routes = [

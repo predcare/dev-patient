@@ -26,6 +26,7 @@ import PrescriptionsListScreen from '../Screens/DashboardScreen/PrescriptionsLis
 import ProfileSetupScreen from '../Screens/DashboardScreen/ProfileSetupScreen';
 import RescheduleAppointmentScreen from '../Screens/DashboardScreen/RescheduleAppointmentScreen';
 import SettingScreen from '../Screens/DashboardScreen/SettingScreen';
+import UploadHealthRecordScreen from '../Screens/DashboardScreen/UploadHealthRecordScreen';
 import SplashScreen from '../Screens/SplashScreen';
 import NewSupportTicketScreen from '../Screens/Support/NewSupportTicketScreen';
 import SupportScreen from '../Screens/Support/SupportScreen';
@@ -78,6 +79,7 @@ export const AppNavigator: React.FC = () => {
         <Stack.Screen name="ConsultationCompleted" component={ConsultationCompletedScreen} />
         <Stack.Screen name="HealthRecords" component={HealthRecordsScreen} />
         <Stack.Screen name="HealthRecordFolder" component={HealthRecordFolderScreen} />
+        <Stack.Screen name="UploadHealthRecord" component={UploadHealthRecordScreen} />
 
         {/* Primary Stack Screens with SafeAreaWrapper Bottom Bar */}
         <Stack.Screen name="Home" component={DashboardScreen} />

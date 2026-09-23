@@ -4,27 +4,26 @@ import { healthRecordsStyles } from '../../../styled/HealthRecordsScreen.styled'
 import { theme } from '../../../styled/theme.styled';
 import { GalleryIcon, ShareIcon, TrashIcon } from '../../ui/icons';
 
-export interface HealthRecordDocItem {
-  id: string;
+export interface HealthRecordItemCardProps {
   title: string;
   date: string;
-  size: string;
+  fileSize: string;
+  isAllowDelete: boolean;
   format: string;
-  url?: string;
-}
-
-export interface HealthRecordItemCardProps {
-  item: HealthRecordDocItem;
-  onView?: (item: HealthRecordDocItem) => void;
-  onShare?: (item: HealthRecordDocItem) => void;
-  onDelete?: (item: HealthRecordDocItem) => void;
+  onView?: () => void;
+  onShare?: () => void;
+  onDelete?: () => void;
 }
 
 export const HealthRecordItemCard: React.FC<HealthRecordItemCardProps> = ({
-  item,
+  date,
+  title,
+  fileSize,
+  format,
   onView,
   onShare,
   onDelete,
+  isAllowDelete,
 }) => {
   return (
     <View style={healthRecordsStyles.docItemCard}>
@@ -33,36 +32,36 @@ export const HealthRecordItemCard: React.FC<HealthRecordItemCardProps> = ({
           <GalleryIcon size={22} color={theme.colors.primary} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={healthRecordsStyles.docItemTitle}>{item.title}</Text>
+          <Text style={healthRecordsStyles.docItemTitle}>{title}</Text>
           <Text style={healthRecordsStyles.docItemMeta}>
-            {item.date} • {item.size} • {item.format}
+            {date} • {fileSize} • {format}
           </Text>
         </View>
       </View>
       <View style={healthRecordsStyles.docItemActionsRow}>
         <TouchableOpacity
           style={healthRecordsStyles.docItemViewBtn}
-          onPress={() => onView?.(item)}
+          onPress={onView}
           activeOpacity={0.8}
         >
           <Text style={healthRecordsStyles.docItemViewBtnText}>View</Text>
         </TouchableOpacity>
-
         <TouchableOpacity
           style={[healthRecordsStyles.docItemCircleBtn, healthRecordsStyles.docItemShareBtn]}
-          onPress={() => onShare?.(item)}
+          onPress={onShare}
           activeOpacity={0.7}
         >
           <ShareIcon size={18} color={theme.colors.primary} />
         </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[healthRecordsStyles.docItemCircleBtn, healthRecordsStyles.docItemDeleteBtn]}
-          onPress={() => onDelete?.(item)}
-          activeOpacity={0.7}
-        >
-          <TrashIcon size={18} color="#EF4444" />
-        </TouchableOpacity>
+        {isAllowDelete && (
+          <TouchableOpacity
+            style={[healthRecordsStyles.docItemCircleBtn, healthRecordsStyles.docItemDeleteBtn]}
+            onPress={onDelete}
+            activeOpacity={0.7}
+          >
+            <TrashIcon size={18} color="#EF4444" />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );

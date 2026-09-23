@@ -4,6 +4,7 @@ import {
   getCities,
   getCommisionSlabs,
   getCountries,
+  getCmnEmrCategories,
   getSpecializations,
   getStates,
 } from './common.func';
@@ -58,6 +59,17 @@ export const useCommisionSlabs = () =>
   useQuery({
     queryKey: [CommonQueryKeys.GET_COMMISION_SLABS],
     queryFn: () => getCommisionSlabs(),
+    select: (v: any) => {
+      if (Array.isArray(v)) return v;
+      if (Array.isArray(v?.data)) return v.data;
+      return [];
+    },
+  });
+
+  export const useCmnEmrCategories = () =>
+  useQuery({
+    queryKey: [CommonQueryKeys.GET_EMR_CATEGORIES],
+    queryFn: () => getCmnEmrCategories(),
     select: (v: any) => {
       if (Array.isArray(v)) return v;
       if (Array.isArray(v?.data)) return v.data;

@@ -181,3 +181,10 @@ export const calculatePlatformFee = (
   }
   return feeVal;
 };
+
+export function getFileType(filePath: string): string {
+  const fileName = filePath.split('/').pop() ?? '';
+  const extension = fileName.split('.').pop();
+
+  return extension?.toUpperCase() ?? '';
+}

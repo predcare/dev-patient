@@ -170,40 +170,7 @@ export const healthRecordsStyles = StyleSheet.create({
   },
 
   // Dashed Upload Box
-  uploadDashedBox: {
-    backgroundColor: theme.colors.surface,
-    borderWidth: 1.5,
-    borderColor: '#CBD5E1',
-    borderStyle: 'dashed',
-    borderRadius: 16,
-    paddingVertical: 18,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 18,
-  },
-  uploadDashedIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#E0F2FE',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 14,
-  },
-  uploadDashedTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#334155',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
-  uploadDashedSubtitle: {
-    fontSize: 12,
-    color: '#94A3B8',
-    marginTop: 2,
-    fontWeight: '500',
-  },
+
 
   // Document Item Card inside Folder
   docItemCard: {
@@ -676,6 +643,47 @@ export const healthRecordsStyles = StyleSheet.create({
     lineHeight: 16,
   },
 
+  // Empty State
+  emptyWrap: {
+    alignItems: 'center',
+    paddingTop: 48,
+    paddingHorizontal: 24,
+  },
+  emptyIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: theme.colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: theme.colors.textPrimary,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  emptyBtn: {
+    backgroundColor: theme.colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+  },
+  emptyBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: theme.colors.textInverted,
+  },
+
   // Submit Button
   submitBtn: {
     backgroundColor: theme.colors.primary,
@@ -690,4 +698,86 @@ export const healthRecordsStyles = StyleSheet.create({
     fontWeight: '700',
     color: theme.colors.textInverted,
   },
+
+  // Folder Search Bar
+  folderSearchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 16,
+  },
+  folderSearchBox: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    height: 46,
+    borderWidth: 1,
+    borderColor: theme.colors.surfaceBorder,
+  },
+  folderSearchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: theme.colors.textPrimary,
+    paddingVertical: 8,
+    marginLeft: 8,
+  },
+  folderSearchClearBtn: {
+    padding: 4,
+  },
+  folderSearchCancelBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+  },
+  folderSearchCancelText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.primary,
+  },
+
+  // Empty Search Result State
+  emptySearchWrap: {
+    alignItems: 'center',
+    paddingTop: 36,
+    paddingHorizontal: 24,
+  },
+  emptySearchIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: theme.colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  emptySearchTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: theme.colors.textPrimary,
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  emptySearchSubtitle: {
+    fontSize: 13,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 18,
+    lineHeight: 18,
+  },
+  emptySearchBtn: {
+    backgroundColor: theme.colors.primarySoft,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.tealBdr,
+  },
+  emptySearchBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: theme.colors.primaryDark,
+  },
 });
+

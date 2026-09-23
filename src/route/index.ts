@@ -30,6 +30,7 @@ export const AppRoute = {
   DOCTOR_PROFILE: 'DoctorProfile',
   HEALTH_RECORDS: 'HealthRecords',
   HEALTH_RECORD_FOLDER: 'HealthRecordFolder',
+  UPLOAD_HEALTH_RECORD: 'UploadHealthRecord',
   HOME: 'Home',
   DOCTORS: 'Doctors',
   SCHEDULE: 'Schedule',
@@ -80,9 +81,8 @@ export type RootStackParamList = {
     | undefined;
   MainTabs?: { screen?: string } | undefined;
   HealthRecords: undefined;
-  HealthRecordFolder:
-    | { folderId?: string; folderName?: string; filesCount?: number }
-    | undefined;
+  HealthRecordFolder: { patinentId?: string; folderName?: string } | undefined;
+  UploadHealthRecord: { initialCategory?: string } | undefined;
   Home: undefined;
   Doctors: undefined;
   Schedule: { refresh?: boolean } | undefined;
@@ -299,3 +299,16 @@ export interface AccountScreenProps {
 export type ProfileScreenNavigationProp = AccountScreenNavigationProp;
 export type ProfileScreenRouteProp = AccountScreenRouteProp;
 export type ProfileScreenProps = AccountScreenProps;
+
+export type UploadHealthRecordScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'UploadHealthRecord'
+>;
+export type UploadHealthRecordScreenRouteProp = RouteProp<
+  RootStackParamList,
+  'UploadHealthRecord'
+>;
+export interface UploadHealthRecordScreenProps {
+  navigation?: UploadHealthRecordScreenNavigationProp;
+  route?: UploadHealthRecordScreenRouteProp;
+}

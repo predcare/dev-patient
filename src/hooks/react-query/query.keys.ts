@@ -29,6 +29,7 @@ export enum CommonQueryKeys {
   GET_ALL_USERS = 'GET_ALL_USERS',
   POLICIES = 'POLICIES',
   Specializations = 'Specializations',
+  GET_EMR_CATEGORIES = 'GET_EMR_CATEGORIES',
   GET_COMMISION_SLABS = 'GET_COMMISION_SLABS',
 }
 
@@ -48,5 +49,12 @@ export enum AppointmemntQueryKey {
 export enum PrescriptionQueryKeys {
   GET_ALL = 'GET_ALL',
   GET_INFO = 'GET_INFO',
-  Pdf='Pdf',
+  Pdf = 'Pdf',
+}
+
+export enum EMRQuerykeys {
+  EMR_CATS = 'EMR_CATS',
+  CAT_WISE_EMRS = 'CAT_WISE_EMRS',
+  UPLOAD_EMR = 'UPLOAD_EMR',
+  DELETE_EMR = 'DELETE_EMR',
 }

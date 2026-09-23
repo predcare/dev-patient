@@ -2,6 +2,7 @@ import axiosInstance from '../../../api/apiClient';
 import { endpoints } from '../../../api/endpoints';
 import {
   ICommisionSlabsDoc,
+  ICommonEMRCats,
   IRootResponse,
 } from '../../../typescripts/interfaces/common.interfaces';
 import { ILocationDoc } from '../../../typescripts/interfaces/locations.interfaces';
@@ -35,6 +36,13 @@ export const getSpecializations = async () => {
 export const getCommisionSlabs = async () => {
   const res = await axiosInstance.get<IRootResponse<ICommisionSlabsDoc[]>>(
     `${endpoints.commons.getCommisionSlabs}`
+  );
+  return res.data;
+};
+
+export const getCmnEmrCategories = async () => {
+  const res = await axiosInstance.get<IRootResponse<ICommonEMRCats[]>>(
+    `${endpoints.commons.getEmrCategories}`
   );
   return res.data;
 };
