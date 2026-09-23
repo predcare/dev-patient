@@ -3,6 +3,7 @@ import { StatusBar, useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import BackdropLoader from './src/components/commons/BackdropLoader/BackdropLoader';
 import EventListener from './src/components/commons/EventListener/EventListener';
+import GlobalIncomingCallBanner from './src/components/commons/IncomingCallBanner/GlobalIncomingCallBanner';
 import GlobalPopupAlert from './src/components/commons/PopupAlert/GlobalPopupAlert';
 import SocketListeners from './src/components/commons/Sockets/SocketListeners';
 import SocketProvider from './src/components/commons/Sockets/SocketProvider';
@@ -25,7 +26,7 @@ function App(): React.JSX.Element {
         <SocketListeners />
         <AppNavigator />
         <GlobalMeetingManager />
-
+        <GlobalIncomingCallBanner />
         <GlobalToast />
         <GlobalPopupAlert />
         <BackdropLoader />
