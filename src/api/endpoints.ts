@@ -1,6 +1,6 @@
 export const baseUrl = 'https://api-dev.predcare.in';
 export const localBaseUrl = 'https://chant-abrasion-sustainer.ngrok-free.dev';
-export const baseUrlApi = `${baseUrl}/api/v1`;
+export const baseUrlApi = `${localBaseUrl}/api/v1`;
 
 export const mediaPaths = (fileName?: string) => {
   if (!fileName) return '';
@@ -9,12 +9,12 @@ export const mediaPaths = (fileName?: string) => {
     return rawImg;
   }
   if (rawImg.startsWith('/')) {
-    return `${baseUrl}${rawImg}`;
+    return `${localBaseUrl}${rawImg}`;
   }
   if (rawImg.startsWith('storage/')) {
-    return `${baseUrl}/${rawImg}`;
+    return `${localBaseUrl}/${rawImg}`;
   }
-  return `${baseUrl}/storage/${rawImg}`;
+  return `${localBaseUrl}/storage/${rawImg}`;
 };
 
 export const endpoints = {
@@ -53,6 +53,11 @@ export const endpoints = {
     myAppointments: '/appointments/my-appointments',
     getToken: (appointmentId: number | string) => `/appointments/${appointmentId}/video-token`,
     cancelAppt: (appointmentId: number | string) => `/appointments/${appointmentId}/cancel`,
+  },
+  prescriptions: {
+    getAll: '/prescriptions/patient-my-prescriptions',
+    getInfo: (id: number) => `/prescriptions/${id}`,
+    downloadPrescription: (id: string | number) => `/prescriptions/${id}/pdf`,
   },
   payments: {
     verifyPayment: '/payments/verify-payment',

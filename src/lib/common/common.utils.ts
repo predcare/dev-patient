@@ -82,6 +82,11 @@ export const getProfileCompletion = (profile: IMyProfileDoc | null) => {
   };
 };
 
+export const capitalize = (value: string): string => {
+  if (!value) return '';
+  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+};
+
 export const getDuration = (startTime: string, endTime: string): string => {
   const toMinutes = (time: string) => {
     const [hours, minutes] = time.split(':').map(Number);

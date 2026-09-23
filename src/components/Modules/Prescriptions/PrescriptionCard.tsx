@@ -1,58 +1,68 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-import { PrescriptionDetailData } from '../../../resources/mockData';
 import { prescriptionsStyles } from '../../../styled/PrescriptionsScreen.styled';
 import { theme } from '../../../styled/theme.styled';
 import { FileTextIcon, UploadIcon } from '../../ui/icons';
-
-export interface PrescriptionCardProps {
-  item: PrescriptionDetailData;
-  onPressDetail: (item: PrescriptionDetailData) => void;
-  onDownloadPdf: (item: PrescriptionDetailData) => void;
+interface IRxCardProps {
+  doctorName: string;
+  rxNumber: string;
+  consultationDate: string;
+  consultationDateLabel: string;
+  date: string;
+  isDownloading?: boolean;
+  downloadProgress?: number;
+  onView?: () => void;
+  onDownload?: () => void;
 }
 
-export const PrescriptionCard: React.FC<PrescriptionCardProps> = ({
-  item,
-  onPressDetail,
-  onDownloadPdf,
+export const PrescriptionCard: React.FC<IRxCardProps> = ({
+  doctorName,
+  rxNumber,
+  consultationDate,
+  consultationDateLabel,
+  date,
+  isDownloading,
+  downloadProgress = 0,
+  onView,
+  onDownload,
 }) => {
   return (
-    <TouchableOpacity
-      style={prescriptionsStyles.card}
-      onPress={() => onPressDetail(item)}
-      activeOpacity={0.85}
-    >
-      {/* Left Date Column */}
+    <TouchableOpacity style={prescriptionsStyles.card} activeOpacity={0.85} onPress={onView}>
       <View style={prescriptionsStyles.dateCol}>
-        <Text style={prescriptionsStyles.dateDay}>{item.day}</Text>
-        <Text style={prescriptionsStyles.dateMonth}>{item.month}</Text>
+        <Text style={prescriptionsStyles.dateDay}>{consultationDate}</Text>
+        <Text style={prescriptionsStyles.dateMonth}>{consultationDateLabel}</Text>
       </View>
-
-      {/* Mid Info Column */}
       <View style={prescriptionsStyles.cardMid}>
         <Text style={prescriptionsStyles.doctorName} numberOfLines={1}>
-          {item.doctor_name}
+          {doctorName}
         </Text>
         <Text style={prescriptionsStyles.rxId} numberOfLines={1}>
-          {item.rx_number} • {item.consultation_date_label}
+          {rxNumber} • {date}
         </Text>
       </View>
-
-      {/* Right Action Icons */}
       <View style={prescriptionsStyles.cardActions}>
-        <TouchableOpacity
-          style={prescriptionsStyles.iconBtn}
-          onPress={() => onPressDetail(item)}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity style={prescriptionsStyles.iconBtn} activeOpacity={0.7} onPress={onView}>
           <FileTextIcon size={18} color={theme.colors.primary} />
         </TouchableOpacity>
         <TouchableOpacity
           style={prescriptionsStyles.iconBtn}
-          onPress={() => onDownloadPdf(item)}
           activeOpacity={0.7}
+          onPress={onDownload}
+          disabled={isDownloading}
         >
-          <UploadIcon size={18} color={theme.colors.primary} />
+          {isDownloading ? (
+            <Text
+              style={{
+                fontSize: 10,
+                fontWeight: '700',
+                color: theme.colors.primary,
+              }}
+            >
+              {downloadProgress > 0 ? `${downloadProgress}%` : '0%'}
+            </Text>
+          ) : (
+            <UploadIcon size={18} color={theme.colors.primary} />
+          )}
         </TouchableOpacity>
       </View>
     </TouchableOpacity>

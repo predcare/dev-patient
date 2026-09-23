@@ -44,3 +44,9 @@ export enum AppointmemntQueryKey {
   CHECK_PAYMENT_STATUS = 'CHECK_PAYMENT_STATUS',
   ALL_APPOINTMENTS = 'ALL_APPOINTMENTS',
 }
+
+export enum PrescriptionQueryKeys {
+  GET_ALL = 'GET_ALL',
+  GET_INFO = 'GET_INFO',
+  Pdf='Pdf',
+}

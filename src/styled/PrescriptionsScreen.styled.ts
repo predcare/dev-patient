@@ -601,6 +601,63 @@ export const prescriptionsStyles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
   },
+  statusBadge: {
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: theme.colors.primarySoft,
+  },
+  statusBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: theme.colors.primary,
+    textTransform: 'uppercase',
+  },
+  doctorMetaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 4,
+  },
+  doctorMetaText: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    fontWeight: '500',
+  },
+  clinicInfoBlock: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.surfaceBorder,
+    gap: 4,
+  },
+  clinicAddressText: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    lineHeight: 18,
+  },
+  clinicContactText: {
+    fontSize: 12,
+    color: theme.colors.textMuted,
+    fontWeight: '500',
+  },
+  sectionSubBlock: {
+    marginTop: 10,
+  },
+  sectionSubTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: theme.colors.textMuted,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  sectionSubValue: {
+    fontSize: 14,
+    color: theme.colors.textPrimary,
+    lineHeight: 20,
+  },
 });
 
 export default prescriptionsStyles;

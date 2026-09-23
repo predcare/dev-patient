@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useMemo, useState } from 'react';
-import { Alert, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import {
   DailyHealthTipsSection,
   DashboardModals,
@@ -68,57 +68,6 @@ export const DashboardScreen: React.FC = () => {
     }
   };
 
-  const quickAccessItems = [
-    {
-      key: 'appointments',
-      label: 'Appointments',
-      icon: 'appointments' as const,
-      onPress: () => rootNav.navigate('DoctorSearch'),
-    },
-    {
-      key: 'doctors',
-      label: 'My Doctors',
-      icon: 'doctors' as const,
-      onPress: () => navigation.navigate('Doctors'),
-    },
-    {
-      key: 'prescriptions',
-      label: 'Prescriptions',
-      icon: 'prescriptions' as const,
-      onPress: () => rootNav.navigate('DoctorSearch'),
-    },
-    {
-      key: 'records',
-      label: 'Health Records',
-      icon: 'records' as const,
-      onPress: () => Alert.alert('Health Records', 'Health Records feature coming soon.'),
-    },
-    {
-      key: 'insurance',
-      label: 'Insurance',
-      icon: 'insurance' as const,
-      onPress: () => Alert.alert('Insurance', 'Insurance feature coming soon.'),
-    },
-    {
-      key: 'reports',
-      label: 'Reports',
-      icon: 'reports' as const,
-      onPress: () => navigation.navigate('Reports'),
-    },
-    {
-      key: 'invoices',
-      label: 'Invoices',
-      icon: 'invoices' as const,
-      onPress: () => Alert.alert('Invoices', 'Invoices feature coming soon.'),
-    },
-    {
-      key: 'support',
-      label: 'Support',
-      icon: 'support' as const,
-      onPress: () => rootNav.navigate('Support'),
-    },
-  ];
-
   const { isCompleted, percentage } = useMemo(() => {
     return getProfileCompletion(userData);
   }, [userData]);
@@ -173,7 +122,7 @@ export const DashboardScreen: React.FC = () => {
           <FindSpecialistCard onPress={() => rootNav.navigate('DoctorSearch')} />
         </View>
         {activeMemberId === 'self' && <UpcomingAppointmentsSection />}
-        <QuickAccessGrid items={quickAccessItems} />
+        <QuickAccessGrid />
         <DailyHealthTipsSection />
       </ScrollView>
       <DashboardModals

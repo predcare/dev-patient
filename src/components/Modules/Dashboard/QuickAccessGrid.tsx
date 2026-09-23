@@ -1,11 +1,9 @@
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import {
-  Alert,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { showInfoToast } from '../../../lib/common/toast.utils';
+import { AppRoute } from '../../../route';
+import { theme } from '../../../styled/theme.styled';
 import {
   CalendarIcon,
   FolderIcon,
@@ -16,7 +14,6 @@ import {
   ShieldIcon,
   StethoscopeIcon,
 } from '../../ui/icons';
-import { theme } from '../../../styled/theme.styled';
 
 export type QuickAccessKey =
   | 'appointments'
@@ -35,15 +32,58 @@ export interface QuickAccessItem {
   onPress: () => void;
 }
 
-interface QuickAccessGridProps {
-  title?: string;
-  items: QuickAccessItem[];
-}
-
-export const QuickAccessGrid: React.FC<QuickAccessGridProps> = ({
-  title = 'Quick Access',
-  items,
-}) => {
+export const QuickAccessGrid: React.FC = () => {
+  const rootNav = useNavigation();
+  const quickAccessItems = [
+    {
+      key: 'appointments',
+      label: 'Appointments',
+      icon: 'appointments' as const,
+      onPress: () => rootNav.navigate(AppRoute.DOCTOR_SEARCH),
+    },
+    {
+      key: 'doctors',
+      label: 'My Doctors',
+      icon: 'doctors' as const,
+      onPress: () => rootNav.navigate(AppRoute.DOCTORS),
+    },
+    {
+      key: 'prescriptions',
+      label: 'Prescriptions',
+      icon: 'prescriptions' as const,
+      onPress: () => rootNav.navigate(AppRoute.PRESCRIPTIONS_LIST),
+    },
+    {
+      key: 'records',
+      label: 'Health Records',
+      icon: 'records' as const,
+      onPress: () => showInfoToast('Health Records', 'Health Records feature coming soon.'),
+    },
+    {
+      key: 'insurance',
+      label: 'Insurance',
+      icon: 'insurance' as const,
+      onPress: () => showInfoToast('Insurance', 'Insurance feature coming soon.'),
+    },
+    {
+      key: 'reports',
+      label: 'Reports',
+      icon: 'reports' as const,
+      onPress: () => showInfoToast('Insurance', 'Insurance feature coming soon.'),
+    },
+    {
+      key: 'invoices',
+      label: 'Invoices',
+      icon: 'invoices' as const,
+      onPress: () => showInfoToast('Invoices', 'Invoices feature coming soon.'),
+    },
+    {
+      key: 'support',
+      label: 'Support',
+      icon: 'support' as const,
+      onPress: () => rootNav.navigate(AppRoute.SUPPORT),
+    },
+  ];
   const renderIcon = (iconName: QuickAccessKey) => {
     switch (iconName) {
       case 'appointments':
@@ -70,10 +110,10 @@ export const QuickAccessGrid: React.FC<QuickAccessGridProps> = ({
   return (
     <View style={styles.section}>
       <View style={styles.headerWrap}>
-        <Text style={styles.headerTitle}>{title}</Text>
+        <Text style={styles.headerTitle}>Quick Access</Text>
       </View>
       <View style={styles.grid}>
-        {items.map(item => (
+        {quickAccessItems.map(item => (
           <TouchableOpacity
             key={item.key}
             style={styles.card}
