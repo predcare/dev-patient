@@ -1,62 +1,144 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getBottomBarHeight } from '../../components/commons/CustomBottomBar/CustomBottomBar';
+import { SupportTicketCard } from '../../components/Modules/Support';
+import SupportTicketsSkeleton from '../../components/Skeletons/SupportTicketsSkeleton';
 import AppHeader from '../../components/ui/AppHeader';
 import CustomTabs from '../../components/ui/CustomTabs/CustomTabs';
-import { BellIcon, CheckIcon, PlusIcon } from '../../components/ui/icons';
+import { CheckBadgeIcon, FileTextIcon, PlusIcon } from '../../components/ui/icons';
+import { SupportTicketQueryKeys } from '../../hooks/react-query/query.keys';
+import {
+  useDeleteSupportTicket,
+  useGetMySupportTicketsInfinite,
+} from '../../hooks/react-query/support-tickets/support-tickets.hooks';
 import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
-import { MOCK_SUPPORT_TICKETS, SupportTicket } from '../../resources/mockData';
-import { supportStyles } from '../../styled/SupportScreen.styled';
+import { showErrorToast, showSuccessToast } from '../../lib/common/toast.utils';
+import { AppRoute } from '../../route';
+import { SupportScreenlocalStyles, supportStyles } from '../../styled/SupportScreen.styled';
 import { theme } from '../../styled/theme.styled';
+import { ISupportTicket } from '../../typescripts/interfaces/support-tickets.interfaces';
+import { useAlertStore } from '../../zustand/stores/useAlertStore';
+import { useLoadingStore } from '../../zustand/stores/useLoadingStore';
 
 type TicketTabKey = 'open' | 'closed';
 
 export const SupportScreen: React.FC = () => {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
+  const flatListRef = useRef<FlatList<ISupportTicket>>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const { showLoader, hideLoader } = useLoadingStore();
+  const showConfirm = useAlertStore(state => state.showConfirm);
+  const { mutate: deleteTicket } = useDeleteSupportTicket();
+
+  const bottomBarHeight = getBottomBarHeight(insets.bottom);
+  const fabBottom = bottomBarHeight + 16;
 
   const [tab, setTab] = useState<TicketTabKey>('open');
-  const [tickets] = useState<SupportTicket[]>(MOCK_SUPPORT_TICKETS);
 
-  const filtered = tickets.filter(ticket => ticket.status === tab);
-  const openCount = tickets.filter(t => t.status === 'open').length;
-  const closedCount = tickets.filter(t => t.status === 'closed').length;
+  const queryParams = useMemo(
+    () => ({
+      status: tab,
+      limit: 10,
+    }),
+    [tab]
+  );
+
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    refetch,
+  } = useGetMySupportTicketsInfinite(queryParams);
+
+  const tickets: ISupportTicket[] = useMemo(() => {
+    return data?.pages?.flatMap(page => page?.data || []) || [];
+  }, [data]);
+
+  const handleTabChange = useCallback((newTab: TicketTabKey) => {
+    setTab(newTab);
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
+  }, []);
 
   const openNew = () => {
-    navigation.navigate('NewSupportTicket');
+    navigation.navigate(AppRoute.NEW_SUPPORT_TICKET);
   };
 
-  const handleTicketPress = (ticket: SupportTicket) => {
-    navigation.navigate('SupportTicketDetails', {
-      ticketId: ticket.id,
-      initialTicket: ticket,
+  const onRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await refetch();
+    setIsRefreshing(false);
+  }, [refetch]);
+
+  const handleTicketPress = (ticket: ISupportTicket) => {
+    navigation.navigate(AppRoute.SUPPORT_TICKET_DETAILS, {
+      ticketId: String(ticket.id),
     });
   };
 
-  const formatTicketDate = (dateStr: string) => {
-    try {
-      return new Date(dateStr)
-        .toLocaleDateString('en-GB', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        })
-        .toUpperCase();
-    } catch {
-      return dateStr;
+  const handleDeleteTicket = useCallback(
+    (ticket: ISupportTicket) => {
+      if (!ticket?.id) {
+        showErrorToast('Invalid ticket ID');
+        return;
+      }
+
+      showConfirm({
+        title: 'Delete Ticket',
+        message: `Are you sure you want to delete ticket #${
+          ticket.ticket_no || ticket.id
+        }? This action cannot be undone.`,
+        buttonText: 'Yes, Delete',
+        cancelText: 'Cancel',
+        onConfirm: () => {
+          showLoader('Deleting ticket...');
+          deleteTicket(ticket.id, {
+            onSuccess: async res => {
+              if (res?.success) {
+                showSuccessToast(res?.message || 'Support ticket deleted successfully');
+                await queryClient.invalidateQueries({
+                  queryKey: [SupportTicketQueryKeys.GET_MY_TICKETS],
+                });
+              }
+            },
+            onError: () => {
+              hideLoader();
+            },
+            onSettled: () => {
+              hideLoader();
+            },
+          });
+        },
+      });
+    },
+    [deleteTicket, hideLoader, queryClient, showConfirm, showLoader]
+  );
+
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
     }
-  };
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
-    <SafeAreaWrapper style={supportStyles.screen}>
-      <AppHeader
-        title="Support"
-        showBack={true}
-        right={
-          <View style={supportStyles.hdrIcon}>
-            <BellIcon size={22} color={theme.colors.textMuted} />
-          </View>
-        }
-      />
+    <SafeAreaWrapper style={supportStyles.screen} showBottomBar isPathClear>
+      <AppHeader title="Support Tickets" showBack={true} />
       <View style={supportStyles.tabsWrap}>
         <CustomTabs<TicketTabKey>
           tabs={[
@@ -64,85 +146,108 @@ export const SupportScreen: React.FC = () => {
             { key: 'closed', label: 'Closed' },
           ]}
           activeTab={tab}
-          onTabChange={setTab}
+          onTabChange={handleTabChange}
           activeColor={theme.colors.primary}
         />
       </View>
 
-      <ScrollView contentContainerStyle={supportStyles.scroll} showsVerticalScrollIndicator={false}>
-        {filtered.length === 0 ? (
-          <View style={supportStyles.empty}>
-            <Text style={supportStyles.emptyTitle}>
-              No {tab === 'open' ? 'open' : 'closed'} tickets
-            </Text>
-            <Text style={supportStyles.emptySub}>
-              {tab === 'open'
-                ? 'Create a new ticket and our team will help you shortly.'
-                : 'Closed tickets will appear here.'}
-            </Text>
-          </View>
-        ) : (
-          filtered.map(ticket => (
-            <TouchableOpacity
-              key={String(ticket.id || ticket.ticketNo)}
-              style={supportStyles.card}
-              onPress={() => handleTicketPress(ticket)}
-              activeOpacity={0.85}
-            >
-              <View style={supportStyles.avatar}>
-                <Text style={supportStyles.avatarTxt}>
-                  {(ticket.subject || ticket.category || 'T').charAt(0).toUpperCase()}
-                </Text>
-              </View>
-              <View style={supportStyles.cardBody}>
-                <Text style={supportStyles.ticketId} numberOfLines={1}>
-                  {ticket.ticketNo}
-                </Text>
-                <Text style={supportStyles.subject} numberOfLines={1}>
-                  {ticket.subject || ticket.category}
-                </Text>
-                <Text style={supportStyles.created}>
-                  CREATED ON {formatTicketDate(ticket.createdAt)}
-                </Text>
-              </View>
+      <FlatList
+        ref={flatListRef}
+        showsVerticalScrollIndicator={true}
+        keyboardShouldPersistTaps="handled"
+        data={tickets}
+        keyExtractor={item => String(item.id || item.ticket_no)}
+        renderItem={({ item }) => (
+          <SupportTicketCard
+            key={String(item.id || item.ticket_no)}
+            ticketNo={item.ticket_no}
+            subject={item.subject}
+            createdAt={item.created_at}
+            status={item.status}
+            onPress={() => handleTicketPress(item)}
+            onDelete={() => handleDeleteTicket(item)}
+          />
+        )}
+        contentContainerStyle={[
+          supportStyles.scroll,
+          { paddingBottom: fabBottom + 64, flexGrow: 1 },
+        ]}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.3}
+        ListEmptyComponent={
+          isLoading ? (
+            <SupportTicketsSkeleton />
+          ) : isError ? (
+            <View style={SupportScreenlocalStyles.errorContainer}>
+              <Text style={SupportScreenlocalStyles.errorTitle}>Unable to load tickets</Text>
+              <Text style={SupportScreenlocalStyles.errorSub}>
+                {(error as any)?.message || 'Something went wrong while fetching your tickets.'}
+              </Text>
+              <TouchableOpacity
+                style={SupportScreenlocalStyles.retryBtn}
+                onPress={() => refetch()}
+                activeOpacity={0.85}
+              >
+                <Text style={SupportScreenlocalStyles.retryBtnTxt}>Try Again</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={SupportScreenlocalStyles.emptyContainer}>
               <View
                 style={[
-                  supportStyles.statusPill,
-                  ticket.status === 'open' ? supportStyles.statusOpen : supportStyles.statusClosed,
+                  SupportScreenlocalStyles.emptyIconWrap,
+                  tab === 'closed' && SupportScreenlocalStyles.emptyIconWrapClosed,
                 ]}
               >
-                <View
-                  style={[
-                    supportStyles.statusDot,
-                    ticket.status === 'open' ? supportStyles.dotOpen : supportStyles.dotClosed,
-                  ]}
-                >
-                  {ticket.status === 'open' && <CheckIcon size={10} color={theme.colors.surface} />}
-                </View>
-                <Text
-                  style={[
-                    supportStyles.statusTxt,
-                    ticket.status === 'open'
-                      ? supportStyles.statusTxtOpen
-                      : supportStyles.statusTxtClosed,
-                  ]}
-                >
-                  {ticket.status === 'open' ? 'Open' : 'Closed'}
-                </Text>
+                {tab === 'open' ? (
+                  <FileTextIcon size={32} color={theme.colors.primary} />
+                ) : (
+                  <CheckBadgeIcon size={32} color={theme.colors.success} />
+                )}
               </View>
-            </TouchableOpacity>
-          ))
-        )}
+              <Text style={SupportScreenlocalStyles.emptyTitle}>
+                {tab === 'open' ? 'No Open Support Tickets' : 'No Resolved Tickets'}
+              </Text>
+              <Text style={SupportScreenlocalStyles.emptySub}>
+                {tab === 'open'
+                  ? 'Have a query or facing an issue? Raise a support ticket and our team will get back to you shortly.'
+                  : 'All your resolved and closed support requests will be archived here.'}
+              </Text>
+              {tab === 'open' && (
+                <TouchableOpacity
+                  style={SupportScreenlocalStyles.emptyActionBtn}
+                  onPress={openNew}
+                  activeOpacity={0.85}
+                >
+                  <PlusIcon size={16} color={theme.colors.surface} />
+                  <Text style={SupportScreenlocalStyles.emptyActionTxt}>Raise a Ticket</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )
+        }
+        ListFooterComponent={
+          isFetchingNextPage ? (
+            <View style={SupportScreenlocalStyles.footerLoader}>
+              <ActivityIndicator size="small" color={theme.colors.primary} />
+            </View>
+          ) : null
+        }
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
+          />
+        }
+      />
 
-        <View style={supportStyles.newWrap}>
-          <TouchableOpacity style={supportStyles.newBtn} onPress={openNew} activeOpacity={0.85}>
-            <Text style={supportStyles.newBtnTxt}>+ New Ticket</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-
-      {/* Floating Action Button */}
-      <TouchableOpacity style={supportStyles.fab} onPress={openNew} activeOpacity={0.85}>
+      <TouchableOpacity
+        style={[supportStyles.fab, { bottom: fabBottom }]}
+        onPress={openNew}
+        activeOpacity={0.85}
+      >
         <PlusIcon size={26} color={theme.colors.surface} />
       </TouchableOpacity>
     </SafeAreaWrapper>

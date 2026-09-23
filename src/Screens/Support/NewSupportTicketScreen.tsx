@@ -1,16 +1,25 @@
+import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import {
   ActivityIndicator,
   Image,
+  PermissionsAndroid,
+  Platform,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as yup from 'yup';
+import { UploadOptionsModal } from '../../components/commons/UploadOptionsModal/UploadOptionsModal';
 import { CategorySelectModal } from '../../components/Modules/Support';
+import { queryClient } from '../../components/providers/ReactQueryProvider';
 import AppHeader from '../../components/ui/AppHeader';
 import {
   BellIcon,
@@ -19,64 +28,223 @@ import {
   HelpIcon,
   UploadIcon,
 } from '../../components/ui/icons';
+import { SupportTicketQueryKeys } from '../../hooks/react-query/query.keys';
+import {
+  useCreateSupportTicket,
+  useGetSupportCategories,
+} from '../../hooks/react-query/support-tickets/support-tickets.hooks';
 import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
-import { MOCK_SUPPORT_CATEGORIES, SupportCategory } from '../../resources/mockData';
+import { showInfoToast } from '../../lib/common/toast.utils';
+import { AppRoute } from '../../route';
 import { supportStyles } from '../../styled/SupportScreen.styled';
 import { theme } from '../../styled/theme.styled';
-
-interface SelectedImage {
-  id: string;
-  uri: string;
-}
+import { UserRoles } from '../../typescripts/enums';
+import { ISupportTicketCategory } from '../../typescripts/interfaces/support-tickets.interfaces';
+import { useLoadingStore } from '../../zustand/stores/useLoadingStore';
 
 const MAX_IMAGES = 5;
 
+export const newSupportTicketSchema = yup.object().shape({
+  subject: yup.string().trim().min(3, 'Please select a category').required('Category is required'),
+  message: yup
+    .string()
+    .trim()
+    .min(5, 'Message must be at least 5 characters')
+    .required('Message is required'),
+  attachments: yup
+    .array()
+    .of(
+      yup.object().shape({
+        uri: yup.string().required(),
+        name: yup.string().required(),
+        type: yup.string().required(),
+        size: yup.number().optional(),
+      })
+    )
+    .max(MAX_IMAGES, `Maximum ${MAX_IMAGES} attachments allowed`)
+    .default([]),
+});
+
+export type TNewSupportTicketFormValues = yup.InferType<typeof newSupportTicketSchema>;
+
 export const NewSupportTicketScreen: React.FC = () => {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
-  const [categories] = useState<SupportCategory[]>(MOCK_SUPPORT_CATEGORIES);
-  const [selectedCategory, setSelectedCategory] = useState<SupportCategory | null>(
-    MOCK_SUPPORT_CATEGORIES[0]
-  );
-  const [message, setMessage] = useState<string>('');
-  const [images, setImages] = useState<SelectedImage[]>([]);
   const [showCatModal, setShowCatModal] = useState<boolean>(false);
-  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [showUploadOptions, setShowUploadOptions] = useState<boolean>(false);
 
-  const pickImages = () => {
-    if (images.length >= MAX_IMAGES) return;
-    const mockUris = [
-      'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=500',
-      'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=500',
-      'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=500',
-    ];
-    const newImage: SelectedImage = {
-      id: String(Date.now()),
-      uri: mockUris[images.length % mockUris.length],
-    };
-    setImages(prev => [...prev, newImage].slice(0, MAX_IMAGES));
+  const { showLoader, hideLoader } = useLoadingStore(state => state);
+
+  const { data: categories, isLoading: isLoadingCategories } = useGetSupportCategories({
+    audience: UserRoles.PATIENT,
+  });
+  const { mutate: createTicketMutation, isPending: isSubmitting } = useCreateSupportTicket();
+
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<TNewSupportTicketFormValues>({
+    resolver: yupResolver(newSupportTicketSchema),
+  });
+
+  const selectedSubject = watch('subject');
+  const currentAttachments = watch('attachments') || [];
+
+  const handleCategorySelect = (category: ISupportTicketCategory) => {
+    setValue('subject', category.name, { shouldValidate: true });
+    setShowCatModal(false);
+  };
+
+  const handleCamera = async () => {
+    try {
+      if (Platform.OS === 'android') {
+        const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA, {
+          title: 'Camera Permission Required',
+          message: 'App requires access to your camera to take support photos.',
+          buttonPositive: 'OK',
+          buttonNegative: 'Cancel',
+        });
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          showInfoToast('Camera permission is required to capture photos', 'Camera Permission');
+          return;
+        }
+      }
+
+      setShowUploadOptions(false);
+
+      setTimeout(
+        () => {
+          launchCamera(
+            {
+              mediaType: 'photo',
+              quality: 0.8,
+              saveToPhotos: false,
+              includeBase64: false,
+            },
+            res => {
+              if (res.didCancel) return;
+              if (res.errorCode) {
+                console.warn('launchCamera errorCode:', res.errorCode, res.errorMessage);
+                showInfoToast(
+                  res.errorMessage || `Camera Error: ${res.errorCode}`,
+                  'Camera Failure'
+                );
+                return;
+              }
+              if (res.assets && res.assets[0]) {
+                const asset = res.assets[0];
+                const fileObj = {
+                  uri: asset.uri || '',
+                  name: asset.fileName || `ticket_${Date.now()}.jpg`,
+                  type: asset.type || 'image/jpeg',
+                  size: asset.fileSize,
+                };
+                const updated = [...currentAttachments, fileObj].slice(0, MAX_IMAGES);
+                setValue('attachments', updated, { shouldValidate: true });
+                showInfoToast('Photo captured successfully', 'Camera');
+              }
+            }
+          );
+        },
+        Platform.OS === 'android' ? 200 : 50
+      );
+    } catch (err: any) {
+      console.warn('handleCamera error:', err);
+      showInfoToast('Could not open camera', 'Camera Error');
+    }
+  };
+
+  const handleGallery = () => {
+    try {
+      setShowUploadOptions(false);
+      const remainingSlots = Math.max(1, MAX_IMAGES - currentAttachments.length);
+
+      setTimeout(
+        () => {
+          launchImageLibrary(
+            {
+              mediaType: 'photo',
+              quality: 0.8,
+              selectionLimit: remainingSlots,
+              includeBase64: false,
+            },
+            res => {
+              if (res.didCancel) return;
+              if (res.errorCode) {
+                console.warn('launchImageLibrary errorCode:', res.errorCode, res.errorMessage);
+                showInfoToast(
+                  res.errorMessage || `Gallery Error: ${res.errorCode}`,
+                  'Gallery Failure'
+                );
+                return;
+              }
+              if (res.assets && res.assets.length > 0) {
+                const newFiles = res.assets.map((asset, index) => ({
+                  uri: asset.uri || '',
+                  name: asset.fileName || `ticket_${Date.now()}_${index}.jpg`,
+                  type: asset.type || 'image/jpeg',
+                  size: asset.fileSize,
+                }));
+                const updated = [...currentAttachments, ...newFiles].slice(0, MAX_IMAGES);
+                setValue('attachments', updated, { shouldValidate: true });
+                showInfoToast(
+                  `${newFiles.length} image${newFiles.length > 1 ? 's' : ''} selected`,
+                  'Gallery'
+                );
+              }
+            }
+          );
+        },
+        Platform.OS === 'android' ? 200 : 50
+      );
+    } catch (err: any) {
+      console.warn('handleGallery error:', err);
+      showInfoToast('Could not open gallery', 'Gallery Error');
+    }
   };
 
   const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+    const updated = currentAttachments.filter((_, i) => i !== index);
+    setValue('attachments', updated, { shouldValidate: true });
   };
 
-  const submit = () => {
-    if (!message.trim()) {
-      setMessage('I need help regarding my consultation appointments.');
-    }
-    setSubmitting(true);
-
-    setTimeout(() => {
-      setSubmitting(false);
-      const generatedTicketId = `TK-${Math.floor(10000 + Math.random() * 90000)}`;
-      navigation.navigate('SupportTicketSuccess', {
-        ticketId: generatedTicketId,
-        category: selectedCategory?.name || 'Appointments & Booking',
-        createdAt: new Date().toISOString(),
+  const onSubmit = async (values: TNewSupportTicketFormValues) => {
+    const formData = new FormData();
+    formData.append('subject', values.subject.trim());
+    formData.append('message', values.message.trim());
+    if (values.attachments && values.attachments.length > 0) {
+      values.attachments.forEach((file, index) => {
+        formData.append('attachments', {
+          uri: file.uri,
+          name: file.name || `attachment_${index + 1}_${Date.now()}.jpg`,
+          type: file.type || 'image/jpeg',
+        } as any);
       });
-    }, 600);
+    }
+    showLoader('Creating ticket...');
+    createTicketMutation(formData, {
+      onSuccess: async res => {
+        if (res?.success) {
+          await queryClient.invalidateQueries({
+            queryKey: [SupportTicketQueryKeys.GET_MY_TICKETS],
+          });
+          reset();
+          navigation.navigate(AppRoute.SUPPORT);
+          hideLoader();
+        }
+      },
+      onError: () => {
+        hideLoader();
+      },
+      onSettled: () => {
+        hideLoader();
+      },
+    });
   };
 
   return (
@@ -105,49 +273,61 @@ export const NewSupportTicketScreen: React.FC = () => {
         </Text>
 
         <View style={supportStyles.formCard}>
-          {/* Category Select */}
           <Text style={supportStyles.label}>CATEGORY</Text>
           <TouchableOpacity
-            style={supportStyles.select}
+            style={[supportStyles.select, !!errors.subject && localStyles.inputErrorBorder]}
             onPress={() => setShowCatModal(true)}
             activeOpacity={0.85}
           >
-            <Text style={[supportStyles.selectTxt, !selectedCategory && supportStyles.placeholder]}>
-              {selectedCategory ? selectedCategory.name : 'Select a category'}
+            <Text style={[supportStyles.selectTxt, !selectedSubject && supportStyles.placeholder]}>
+              {selectedSubject ||
+                (isLoadingCategories ? 'Loading categories...' : 'Select a category')}
             </Text>
             <ChevronDownIcon size={18} color={theme.colors.textMuted} />
           </TouchableOpacity>
-
-          {/* Message Input */}
+          {errors.subject && <Text style={localStyles.errorText}>{errors.subject.message}</Text>}
           <Text style={supportStyles.label}>MESSAGE</Text>
-          <TextInput
-            style={supportStyles.message}
-            placeholder="Describe your issue here..."
-            placeholderTextColor={theme.colors.textMuted}
-            value={message}
-            onChangeText={setMessage}
-            multiline
-            textAlignVertical="top"
+          <Controller
+            control={control}
+            name="message"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                style={[supportStyles.message, !!errors.message && localStyles.inputErrorBorder]}
+                placeholder="Describe your issue here..."
+                placeholderTextColor={theme.colors.textMuted}
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                multiline
+                textAlignVertical="top"
+              />
+            )}
           />
-
-          {/* Attachments Box */}
+          {errors.message && <Text style={localStyles.errorText}>{errors.message.message}</Text>}
           <TouchableOpacity
             style={supportStyles.attachBox}
-            onPress={pickImages}
+            onPress={() => {
+              if (currentAttachments.length >= MAX_IMAGES) {
+                showInfoToast(`You can only upload up to ${MAX_IMAGES} images`, 'Attachment Limit');
+                return;
+              }
+              setShowUploadOptions(true);
+            }}
             activeOpacity={0.85}
           >
             <UploadIcon size={28} color={theme.colors.primary} />
             <Text style={supportStyles.attachTxt}>Attach screenshots or documents (optional)</Text>
             <Text style={supportStyles.attachHint}>
-              Up to {MAX_IMAGES} images • {images.length}/{MAX_IMAGES} selected
+              Up to {MAX_IMAGES} images • {currentAttachments.length}/{MAX_IMAGES} selected
             </Text>
           </TouchableOpacity>
-
-          {/* Attached Images Preview Row */}
-          {images.length > 0 && (
+          {errors.attachments && (
+            <Text style={localStyles.errorText}>{errors.attachments.message}</Text>
+          )}
+          {currentAttachments.length > 0 && (
             <View style={supportStyles.previewRow}>
-              {images.map((img, index) => (
-                <View key={img.id} style={supportStyles.previewItem}>
+              {currentAttachments.map((img, index) => (
+                <View key={`${img.uri}_${index}`} style={supportStyles.previewItem}>
                   <Image source={{ uri: img.uri }} style={supportStyles.previewImg} />
                   <TouchableOpacity
                     style={supportStyles.previewRemove}
@@ -161,8 +341,6 @@ export const NewSupportTicketScreen: React.FC = () => {
             </View>
           )}
         </View>
-
-        {/* Info Disclaimer */}
         <View style={supportStyles.infoRow}>
           <HelpIcon size={14} color={theme.colors.textMuted} />
           <Text style={supportStyles.infoTxt}>
@@ -170,32 +348,50 @@ export const NewSupportTicketScreen: React.FC = () => {
             details or passwords.
           </Text>
         </View>
-
-        {/* Submit Button */}
         <TouchableOpacity
-          style={[supportStyles.submitBtn, submitting && supportStyles.submitDis]}
-          onPress={submit}
-          disabled={submitting}
+          style={[supportStyles.submitBtn, isSubmitting && supportStyles.submitDis]}
+          onPress={handleSubmit(onSubmit)}
+          disabled={isSubmitting}
           activeOpacity={0.85}
         >
-          {submitting ? (
+          {isSubmitting ? (
             <ActivityIndicator color={theme.colors.surface} />
           ) : (
             <Text style={supportStyles.submitTxt}>Submit Ticket</Text>
           )}
         </TouchableOpacity>
       </ScrollView>
-
-      {/* Modular Category Select Modal */}
       <CategorySelectModal
         visible={showCatModal}
-        categories={categories}
-        selectedCategory={selectedCategory}
-        onSelect={setSelectedCategory}
+        categories={categories || []}
+        selectedCategoryName={selectedSubject}
+        onSelect={handleCategorySelect}
         onClose={() => setShowCatModal(false)}
+      />
+      <UploadOptionsModal
+        visible={showUploadOptions}
+        title="Attach Screenshot / Image"
+        subtitle="Choose a source to attach to your support ticket"
+        onClose={() => setShowUploadOptions(false)}
+        onSelectCamera={handleCamera}
+        onSelectGallery={handleGallery}
       />
     </SafeAreaWrapper>
   );
 };
 
 export default NewSupportTicketScreen;
+
+const localStyles = StyleSheet.create({
+  inputErrorBorder: {
+    borderColor: theme.colors.danger,
+  },
+  errorText: {
+    fontSize: 12,
+    color: theme.colors.danger,
+    marginTop: -10,
+    marginBottom: 12,
+    marginLeft: 4,
+    fontWeight: '500',
+  },
+});

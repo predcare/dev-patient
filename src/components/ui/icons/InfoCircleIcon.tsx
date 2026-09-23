@@ -21,4 +21,5 @@ export const InfoCircleIcon: React.FC<IconProps> = ({
   );
 };
 
+export const InfoIcon = InfoCircleIcon;
 export default InfoCircleIcon;

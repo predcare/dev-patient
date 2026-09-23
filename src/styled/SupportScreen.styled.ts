@@ -12,6 +12,14 @@ export const supportStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  hdrDeleteBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: theme.colors.dangerLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   loadingBox: {
     flex: 1,
     alignItems: 'center',
@@ -137,25 +145,7 @@ export const supportStyles = StyleSheet.create({
   statusTxtClosed: {
     color: theme.colors.textSecondary,
   },
-  newWrap: {
-    marginTop: 8,
-    borderWidth: 1.5,
-    borderColor: theme.colors.surfaceBorder,
-    borderRadius: 16,
-    padding: 12,
-    backgroundColor: theme.colors.surface,
-  },
-  newBtn: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: 12,
-    paddingVertical: 15,
-    alignItems: 'center',
-  },
-  newBtnTxt: {
-    color: theme.colors.surface,
-    fontSize: 16,
-    fontWeight: '700',
-  },
+
   fab: {
     position: 'absolute',
     right: 20,
@@ -171,6 +161,7 @@ export const supportStyles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 10,
     elevation: 6,
+    zIndex: 100,
   },
 
   // Ticket Details Styles
@@ -639,6 +630,159 @@ export const supportStyles = StyleSheet.create({
   secureTxt: {
     fontSize: 12,
     color: theme.colors.textMuted,
+  },
+});
+
+export const SupportScreenlocalStyles = StyleSheet.create({
+  footerLoader: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  errorContainer: {
+    alignItems: 'center',
+    paddingVertical: 48,
+    paddingHorizontal: 24,
+  },
+  errorTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: theme.colors.textPrimary,
+    marginBottom: 6,
+  },
+  errorSub: {
+    fontSize: 13,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  retryBtn: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  retryBtnTxt: {
+    color: theme.colors.surface,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.surface,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: theme.colors.surfaceBorder,
+    paddingVertical: 36,
+    paddingHorizontal: 24,
+    marginTop: 12,
+    shadowColor: theme.colors.dark,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  emptyIconWrap: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: theme.colors.primarySoft,
+    borderWidth: 1,
+    borderColor: '#CCFBF1',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  emptyIconWrapClosed: {
+    backgroundColor: theme.colors.successLight,
+    borderColor: '#BBF7D0',
+  },
+  emptyTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: theme.colors.textPrimary,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptySub: {
+    fontSize: 13,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
+    maxWidth: 290,
+  },
+  emptyActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginTop: 20,
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  emptyActionTxt: {
+    color: theme.colors.surface,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+});
+
+export const SupportTicketDetailsStyled = StyleSheet.create({
+  errorContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 48,
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: theme.colors.textPrimary,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  errorSub: {
+    fontSize: 13,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+    maxWidth: 300,
+  },
+  btnRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  retryBtn: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  retryBtnTxt: {
+    color: theme.colors.surface,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  backBtn: {
+    backgroundColor: theme.colors.surfaceSecondary,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  backBtnTxt: {
+    color: theme.colors.textPrimary,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
 

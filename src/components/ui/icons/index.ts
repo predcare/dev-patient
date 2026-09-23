@@ -77,4 +77,7 @@ export * from './DropletIcon';
 export * from './ShareIcon';
 export * from './GalleryIcon';
 export * from './CameraIcon';
-
+export * from './CheckCircleIcon';
+export * from './XCircleIcon';
+export * from './AlertTriangleIcon';
+export * from './HelpCircleIcon';

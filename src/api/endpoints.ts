@@ -72,6 +72,13 @@ export const endpoints = {
   payments: {
     verifyPayment: '/payments/verify-payment',
   },
+  supportTickets: {
+    create: '/support-tickets',
+    myTickets: '/support-tickets/my-tickets',
+    categories: '/support-tickets/categories',
+    details: (id: string | number) => `/support-tickets/${id}`,
+    delete: (id: string | number) => `/support-tickets/${id}`,
+  },
   commons: {
     country: '/common/countries',
     states: (countryId: string | number) => `/common/countries/${countryId}/states`,
@@ -93,6 +100,7 @@ export const successEndpoints = [
   endpoints.auth.verifyEmail,
   endpoints.auth.resendEmailOtp,
   endpoints.emr.uploadEMr,
+  endpoints.supportTickets.create,
 ];
 
 export const exclude401Routes = [

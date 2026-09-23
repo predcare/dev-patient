@@ -16,25 +16,13 @@ export const AttachmentPreviewModal: React.FC<AttachmentPreviewModalProps> = ({
   onClose,
 }) => {
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={supportStyles.modalBg}>
-        <TouchableOpacity
-          style={supportStyles.modalCloseBtn}
-          onPress={onClose}
-        >
+        <TouchableOpacity style={supportStyles.modalCloseBtn} onPress={onClose}>
           <CircleXIcon size={28} color={theme.colors.surface} />
         </TouchableOpacity>
         {imageUri && (
-          <Image
-            source={{ uri: imageUri }}
-            style={supportStyles.modalImg}
-            resizeMode="contain"
-          />
+          <Image source={{ uri: imageUri }} style={supportStyles.modalImg} resizeMode="contain" />
         )}
       </View>
     </Modal>
