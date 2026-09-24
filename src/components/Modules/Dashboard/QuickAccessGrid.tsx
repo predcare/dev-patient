@@ -39,7 +39,7 @@ export const QuickAccessGrid: React.FC = () => {
       key: 'appointments',
       label: 'Appointments',
       icon: 'appointments' as const,
-      onPress: () => rootNav.navigate(AppRoute.DOCTOR_SEARCH),
+      onPress: () => rootNav.navigate(AppRoute.SCHEDULE),
     },
     {
       key: 'doctors',

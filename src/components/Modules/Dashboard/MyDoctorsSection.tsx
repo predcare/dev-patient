@@ -59,7 +59,7 @@ export const MyDoctorsSection: React.FC = () => {
   } = useGetMyDoctors();
 
   const handleSeeAll = () => {
-    naviagtion.navigate(AppRoute.DOCTOR_SEARCH);
+    naviagtion.navigate(AppRoute.DOCTORS);
   };
 
   const handleDoctorPress = (doctorId: number, clinicId: number) => {

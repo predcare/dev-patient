@@ -100,8 +100,6 @@ export const DashboardScreen: React.FC = () => {
         userName={profile.name}
         profileImageUrl={profile.profile_picture}
         initials={profile.name ? profile.name.slice(0, 2).toUpperCase() : 'JD'}
-        unreadCount={notifications.length}
-        notifications={notifications}
         onProfilePress={() => setShowProfileModal(true)}
       />
       <ScrollView
