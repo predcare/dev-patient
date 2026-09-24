@@ -66,7 +66,7 @@ export const MyDoctorsScreen: React.FC = () => {
       activeBottomTab="Doctors"
       isPathClear={true}
     >
-      <Header />
+      <Header greeting="My Doctors" />
       {isLoadingMyDoctors && !refreshing && !myDoctorsData ? (
         <MyDoctorsSkeleton />
       ) : (

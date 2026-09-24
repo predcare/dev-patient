@@ -203,7 +203,7 @@ export const AppointmentsScreen: React.FC = () => {
       activeBottomTab="Schedule"
       isPathClear={true}
     >
-      <Header greeting="My Appointments" userName="Schedule & Visits" unreadCount={1} />
+      <Header greeting="My Appointments" userName="Schedule & Visits" />
       <View style={appointmentsStyles.segmentWrap}>
         <View style={appointmentsStyles.segmentTrack}>
           {(['upcoming', 'completed'] as const).map(key => {
