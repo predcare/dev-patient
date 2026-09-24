@@ -1,8 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Text, TouchableOpacity, Vibration, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Sound from 'react-native-sound';
 import { incomingCallStyles } from '../../../styled/IncomingCallBanner.styled';
 import { theme } from '../../../styled/theme.styled';
+import useIncomingCallStore from '../../../zustand/stores/useIncomingCallStore';
 import { VideoIcon } from '../../ui/icons';
 import CrossIcon from '../../ui/icons/CrossIcon';
 
@@ -25,6 +27,18 @@ export const IncomingCallBanner: React.FC<IncomingCallBannerProps> = ({
   const topInset = Math.max(insets.top, 8) + 4;
   const slideAnim = useRef(new Animated.Value(-160)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const { hideCallBanner } = useIncomingCallStore(state => state);
+
+  const handleJoinPress = () => {
+    Vibration.cancel();
+    onJoin?.();
+    hideCallBanner();
+  };
+
+  const handleClose = () => {
+    Vibration.cancel();
+    hideCallBanner();
+  };
 
   useEffect(() => {
     if (visible) {
@@ -68,23 +82,35 @@ export const IncomingCallBanner: React.FC<IncomingCallBannerProps> = ({
     };
   }, [visible, pulseAnim]);
 
-  // Repeating incoming call vibration
   useEffect(() => {
+    let sound: Sound | null = null;
+
     if (visible) {
       Vibration.vibrate(CALL_VIBRATION_PATTERN, true);
+
+      Sound.setCategory('Playback');
+      // @ts-ignore
+      sound = new Sound('ringtone.mp3', Sound.MAIN_BUNDLE, (error: any) => {
+        if (error) {
+          console.log('failed to load the sound', error);
+          return;
+        }
+        sound?.setNumberOfLoops(-1);
+        sound?.setVolume(1.0);
+        sound?.play();
+      });
     } else {
       Vibration.cancel();
     }
 
     return () => {
       Vibration.cancel();
+      if (sound) {
+        sound.stop();
+        sound.release();
+      }
     };
   }, [visible]);
-
-  const handleJoinPress = () => {
-    Vibration.cancel();
-    onJoin?.();
-  };
 
   if (!visible) {
     return null;
@@ -142,7 +168,7 @@ export const IncomingCallBanner: React.FC<IncomingCallBannerProps> = ({
           </TouchableOpacity>
           <TouchableOpacity
             style={incomingCallStyles.crossIcon}
-            onPress={handleJoinPress}
+            onPress={handleClose}
             activeOpacity={0.85}
             hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
           >
