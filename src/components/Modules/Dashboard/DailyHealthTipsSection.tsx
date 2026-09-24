@@ -1,129 +1,99 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Dimensions,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
-import {
-  HeartIcon,
-  PillIcon,
-  PulseIcon,
-  ShieldIcon,
-  StarIcon,
-} from '../../ui/icons';
+import { useGetHealthCareTips } from '../../../hooks/react-query/common/common.hooks';
 import { theme } from '../../../styled/theme.styled';
+import DailyHealthTipsSkeleton from '../../Skeletons/DailyHealthTipsSkeleton';
+import { HeartIcon, PillIcon, PulseIcon, ShieldIcon, StarIcon } from '../../ui/icons';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.72;
 
-export interface HealthTipItem {
-  key: string;
-  title: string;
-  description: string;
-  iconName: 'water' | 'sun' | 'heart' | 'moon' | 'pulse';
-  iconColor: string;
-  backgroundColor: string;
-  borderColor: string;
-}
-
-export const MOCK_HEALTH_TIPS_EXACT: HealthTipItem[] = [
-  {
-    key: '1',
-    title: 'Stay Hydrated',
-    description: 'Drink at least 8-10 glasses of water daily to maintain kidney function and boost energy levels.',
-    iconName: 'water',
-    iconColor: '#0284C7',
-    backgroundColor: '#E0F2FE',
-    borderColor: '#BAE6FD',
-  },
-  {
-    key: '2',
-    title: 'Morning Sun & Vitamin D',
-    description: 'Get 15 minutes of early morning sunlight to support bone density, mood, and immune health.',
-    iconName: 'sun',
-    iconColor: '#16A34A',
-    backgroundColor: '#DCFCE7',
-    borderColor: '#BBF7D0',
-  },
-  {
-    key: '3',
-    title: '30 Mins Daily Movement',
-    description: 'Brisk walking or cardiovascular exercise daily regulates blood pressure and cardiovascular fitness.',
-    iconName: 'pulse',
-    iconColor: '#D97706',
-    backgroundColor: '#FEF3C7',
-    borderColor: '#FDE68A',
-  },
-  {
-    key: '4',
-    title: '7-8 Hours Restful Sleep',
-    description: 'Maintain a consistent sleep schedule to promote cellular recovery, memory, and stress control.',
-    iconName: 'moon',
-    iconColor: '#7C3AED',
-    backgroundColor: '#F3E8FF',
-    borderColor: '#DDD6FE',
-  },
+const THEMES = [
+  { bg: '#E0F2FE', border: '#BAE6FD', iconColor: '#0284C7', Icon: ShieldIcon },
+  { bg: '#DCFCE7', border: '#BBF7D0', iconColor: '#16A34A', Icon: StarIcon },
+  { bg: '#FEF3C7', border: '#FDE68A', iconColor: '#D97706', Icon: PulseIcon },
+  { bg: '#F3E8FF', border: '#DDD6FE', iconColor: '#7C3AED', Icon: PillIcon },
+  { bg: '#FFE4E6', border: '#FECDD3', iconColor: '#E11D48', Icon: HeartIcon },
 ];
 
-interface DailyHealthTipsSectionProps {
-  title?: string;
-  tips?: HealthTipItem[];
-}
+export const DailyHealthTipsSection: React.FC = () => {
+  const { t } = useTranslation();
+  const { data: healthCareTips = [], isPending, isError, refetch } = useGetHealthCareTips();
 
-export const DailyHealthTipsSection: React.FC<DailyHealthTipsSectionProps> = ({
-  title = 'Daily Health Tips',
-  tips = MOCK_HEALTH_TIPS_EXACT,
-}) => {
-  const renderTipIcon = (iconName: string, color: string) => {
-    switch (iconName) {
-      case 'water':
-        return <ShieldIcon size={20} color="#FFFFFF" />;
-      case 'sun':
-        return <StarIcon size={20} color="#FFFFFF" />;
-      case 'heart':
-        return <HeartIcon size={20} color="#FFFFFF" />;
-      case 'pulse':
-        return <PulseIcon size={20} color="#FFFFFF" />;
-      default:
-        return <PillIcon size={20} color="#FFFFFF" />;
-    }
-  };
+  if (isError) {
+    return (
+      <View style={styles.section}>
+        <View style={styles.headerWrap}>
+          <Text style={styles.headerTitle}>{t('dailyHealthTips.title')}</Text>
+        </View>
+        <TouchableOpacity style={styles.errorBox} onPress={() => refetch()} activeOpacity={0.7}>
+          <Text style={styles.errorText}>{t('dailyHealthTips.errorText')}</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.section}>
       <View style={styles.headerWrap}>
-        <Text style={styles.headerTitle}>{title}</Text>
+        <Text style={styles.headerTitle}>{t('dailyHealthTips.title')}</Text>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        decelerationRate="fast"
-        snapToInterval={CARD_WIDTH + 12}
-        snapToAlignment="start"
-      >
-        {tips.map(tip => (
-          <View
-            key={tip.key}
-            style={[
-              styles.card,
-              {
-                backgroundColor: tip.backgroundColor,
-                borderColor: tip.borderColor,
-              },
-            ]}
-          >
-            <View style={[styles.iconCircle, { backgroundColor: tip.iconColor }]}>
-              {renderTipIcon(tip.iconName, tip.iconColor)}
-            </View>
-            <Text style={styles.cardTitle}>{tip.title}</Text>
-            <Text style={styles.cardDescription}>{tip.description}</Text>
-          </View>
-        ))}
-      </ScrollView>
+      {isPending ? (
+        <DailyHealthTipsSkeleton />
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          decelerationRate="fast"
+          snapToInterval={CARD_WIDTH + 12}
+          snapToAlignment="start"
+        >
+          {healthCareTips.map((tip: any, index: number) => {
+            const themeItem = THEMES[index % THEMES.length];
+            const TipIcon = themeItem.Icon;
+
+            return (
+              <View
+                key={tip.id?.toString() || index.toString()}
+                style={[
+                  styles.card,
+                  { backgroundColor: themeItem.bg, borderColor: themeItem.border },
+                ]}
+              >
+                <View style={[styles.iconCircle, { backgroundColor: themeItem.iconColor }]}>
+                  {tip.icon_url ? (
+                    <Image
+                      source={{ uri: tip.icon_url }}
+                      style={styles.customIcon}
+                      resizeMode="contain"
+                    />
+                  ) : (
+                    <TipIcon size={20} color="#FFFFFF" />
+                  )}
+                </View>
+                <Text style={styles.cardTitle} numberOfLines={1}>
+                  {tip.title}
+                </Text>
+                <Text style={styles.cardDescription} numberOfLines={3}>
+                  {tip.short_description}
+                </Text>
+              </View>
+            );
+          })}
+        </ScrollView>
+      )}
     </View>
   );
 };
@@ -131,7 +101,6 @@ export const DailyHealthTipsSection: React.FC<DailyHealthTipsSectionProps> = ({
 const styles = StyleSheet.create({
   section: {
     marginTop: 24,
-    marginBottom: 16,
   },
   headerWrap: {
     paddingHorizontal: 16,
@@ -160,6 +129,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 12,
   },
+  customIcon: {
+    width: 22,
+    height: 22,
+  },
   cardTitle: {
     fontSize: 17,
     fontWeight: '700',
@@ -170,6 +143,18 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: theme.colors.textSecondary,
     lineHeight: 20,
+  },
+  errorBox: {
+    marginHorizontal: 16,
+    padding: 14,
+    borderRadius: 12,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: 13,
+    color: '#DC2626',
+    fontWeight: '500',
   },
 });
 

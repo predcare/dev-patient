@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, View } from 'react-native';
 import LanguageSwitcherModal, { LANGUAGES } from '../../components/commons/LanguageSwitcherModal';
 import LogoutOptionsModal from '../../components/commons/LogoutOptionsModal/LogoutOptionsModal';
@@ -11,6 +12,7 @@ import {
 } from '../../components/Modules/AccountSettings';
 import { queryClient } from '../../components/providers/ReactQueryProvider';
 import { GlobeIcon, HelpIcon, LogoutIcon, ProfileIcon } from '../../components/ui/icons';
+import { useLanguageContext } from '../../contexts/LanguageContext';
 import { useUserLogout } from '../../hooks/react-query/auth/auth.hooks';
 import { Header } from '../../Layout/Header';
 import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
@@ -18,6 +20,7 @@ import { resetToLogin } from '../../lib/common/navigation.utils';
 import { navigationRef } from '../../navigation/navigationRef';
 import { settingStyles } from '../../styled/SettingScreen.styled';
 import { theme } from '../../styled/theme.styled';
+import { TSupportedLanguage } from '../../typescripts/types/i18n.types';
 import { useAuthStore } from '../../zustand/stores/useAuthStore';
 import { useLoadingStore } from '../../zustand/stores/useLoadingStore';
 
@@ -38,7 +41,8 @@ export const SettingScreen: React.FC = () => {
   const [alertConfig, setAlertConfig] = useState<PopupAlertState>({ visible: false });
 
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState<boolean>(false);
-  const [selectedLanguageCode, setSelectedLanguageCode] = useState<string>('en');
+  const { currentLanguage: selectedLanguageCode, changeLanguage } = useLanguageContext();
+  const { t } = useTranslation();
 
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState<boolean>(false);
 
@@ -90,7 +94,7 @@ export const SettingScreen: React.FC = () => {
 
   const handleConfirmLogout = (allDevices: boolean) => {
     setIsLogoutModalOpen(false);
-    showLoader('Logging out... Please wait');
+    showLoader(t('settingScreen.loggingOutMsg'));
     userLogoutMutate(
       { all_devices: allDevices },
       {
@@ -112,64 +116,68 @@ export const SettingScreen: React.FC = () => {
       activeBottomTab="Account"
       isPathClear={true}
     >
-      <Header onProfilePress={handleProfilePress} />
+      <Header
+        title={t('settingScreen.settingsTitle')}
+        subTitle={t('settingScreen.preferencesAccountSubtitle')}
+        onProfilePress={handleProfilePress}
+      />
       <ScrollView
         style={settingStyles.scrollContainer}
         contentContainerStyle={settingStyles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <SettingsSectionLabel title="PROFILE" />
+        <SettingsSectionLabel title={t('settingScreen.profile')} />
         <View style={settingStyles.card}>
           <SettingsRowItem
             icon={<ProfileIcon size={20} color={theme.colors.primary} />}
-            title="Profile"
-            subtitle="View and update your profile"
+            title={t('settingScreen.profile')}
+            subtitle={t('settingScreen.viewUpdateProfile')}
             onPress={handleProfilePress}
           />
         </View>
 
-        <SettingsSectionLabel title="MY MEMBERS" />
+        <SettingsSectionLabel title={t('settingScreen.myMembers')} />
         <FamilyMembersCard />
 
-        <SettingsSectionLabel title="PREFERENCES" />
+        <SettingsSectionLabel title={t('settingScreen.preferences')} />
         <View style={settingStyles.card}>
           <SettingsRowItem
             icon={<GlobeIcon size={20} color={theme.colors.primary} />}
-            title="Language"
+            title={t('settingScreen.language')}
             subtitle={`${currentLanguage.name} • ${currentLanguage.nativeName}`}
             onPress={handleLanguagePress}
           />
         </View>
 
-        <SettingsSectionLabel title="SUPPORT" />
+        <SettingsSectionLabel title={t('settingScreen.support')} />
         <View style={settingStyles.card}>
           <SettingsRowItem
             icon={<HelpIcon size={20} color={theme.colors.primary} />}
-            title="Help & Support"
-            subtitle="FAQ, contact support, and guides"
+            title={t('settingScreen.helpSupport')}
+            subtitle={t('settingScreen.faqContactSupportGuides')}
             onPress={handleSupportPress}
           />
         </View>
 
-        <SettingsSectionLabel title="ACCOUNT ACTIONS" />
+        <SettingsSectionLabel title={t('settingScreen.accountActions')} />
         <View style={settingStyles.card}>
           <SettingsRowItem
             icon={<LogoutIcon size={20} color={theme.colors.errorRed} />}
-            title="Sign Out"
-            subtitle="Sign out of your account"
+            title={t('settingScreen.signOut')}
+            subtitle={t('settingScreen.signOut')}
             danger
             onPress={handleSignOut}
           />
         </View>
 
-        <Text style={settingStyles.versionText}>PredCare v1.0.0</Text>
+        <Text style={settingStyles.versionText}>PRED Care v1.0.0</Text>
       </ScrollView>
       <LanguageSwitcherModal
         visible={isLanguageModalOpen}
         onClose={() => setIsLanguageModalOpen(false)}
         selectedLanguageCode={selectedLanguageCode}
-        onSelectLanguage={setSelectedLanguageCode}
+        onSelectLanguage={langCode => changeLanguage(langCode as TSupportedLanguage)}
       />
 
       <LogoutOptionsModal

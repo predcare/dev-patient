@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { getInitials } from '../../../lib/common/common.utils';
 import { doctorSearchStyles } from '../../../styled/DoctorSearchScreen.styled';
@@ -37,6 +38,7 @@ export const DoctorSearchCard: React.FC<DoctorSearchCardProps> = ({
   onProfilePress,
   onBookPress,
 }) => {
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const rootNav = navigation.getParent() || navigation;
 
@@ -81,7 +83,6 @@ export const DoctorSearchCard: React.FC<DoctorSearchCardProps> = ({
             </Text>
           </View>
         )}
-
         <View style={doctorSearchStyles.cardInfo}>
           <Text style={doctorSearchStyles.doctorName}>{name}</Text>
           <Text style={doctorSearchStyles.doctorMeta} numberOfLines={1}>
@@ -98,26 +99,23 @@ export const DoctorSearchCard: React.FC<DoctorSearchCardProps> = ({
             </TouchableOpacity>
           ) : null}
         </View>
-
         <View style={doctorSearchStyles.cardIcons}>
           {offersInPerson ? <CalendarIcon size={16} color={theme.colors.primary} /> : null}
           {offersVideo ? <VideoIcon size={16} color={theme.colors.primary} /> : null}
         </View>
       </View>
-
       <View style={doctorSearchStyles.dateRow}>
         <View style={doctorSearchStyles.dateChip}>
           <Text style={doctorSearchStyles.dateChipText}>Next Available: {nextAvailableDate}</Text>
         </View>
       </View>
-
       <View style={doctorSearchStyles.actionRow}>
         <TouchableOpacity
           style={doctorSearchStyles.profileBtn}
           onPress={handleProfile}
           activeOpacity={0.85}
         >
-          <Text style={doctorSearchStyles.profileBtnText}>Profile</Text>
+          <Text style={doctorSearchStyles.profileBtnText}>{t('commons.profile')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -125,7 +123,7 @@ export const DoctorSearchCard: React.FC<DoctorSearchCardProps> = ({
           onPress={handleBook}
           activeOpacity={0.85}
         >
-          <Text style={doctorSearchStyles.bookBtnText}>Book Appointment</Text>
+          <Text style={doctorSearchStyles.bookBtnText}>{t('commons.bookAppointment')}</Text>
         </TouchableOpacity>
       </View>
     </View>

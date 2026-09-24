@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { theme } from '../../../styled/theme.styled';
 import { ChevronRightIcon } from '../../ui/icons';
@@ -12,20 +13,22 @@ export const ProfileCompletionCard: React.FC<ProfileCompletionCardProps> = ({
   percent = 83,
   onPress,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
-        <Text style={styles.title}>Complete Your Profile</Text>
+        <Text style={styles.title}>{t('dashboard.completeProfileTitle')}</Text>
         <Text style={styles.percent}>{percent}%</Text>
       </View>
-      <Text style={styles.subtitle}>Help us personalize your care experience.</Text>
+      <Text style={styles.subtitle}>{t('dashboard.completeProfileSubtitle')}</Text>
 
       <View style={styles.track}>
         <View style={[styles.fill, { width: `${percent}%` }]} />
       </View>
 
       <TouchableOpacity style={styles.button} onPress={onPress} activeOpacity={0.85}>
-        <Text style={styles.buttonText}>Finish Setup</Text>
+        <Text style={styles.buttonText}>{t('dashboard.finishSetup')}</Text>
         <ChevronRightIcon size={18} color={theme.colors.surface} style={{ marginLeft: 6 }} />
       </TouchableOpacity>
     </View>

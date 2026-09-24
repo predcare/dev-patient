@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { showInfoToast } from '../../../lib/common/toast.utils';
 import { AppRoute } from '../../../route';
 import { theme } from '../../../styled/theme.styled';
@@ -33,53 +34,66 @@ export interface QuickAccessItem {
 }
 
 export const QuickAccessGrid: React.FC = () => {
+  const { t } = useTranslation();
   const rootNav = useNavigation();
   const quickAccessItems = [
     {
       key: 'appointments',
-      label: 'Appointments',
+      label: t('quickAccess.appointments'),
       icon: 'appointments' as const,
       onPress: () => rootNav.navigate(AppRoute.SCHEDULE),
     },
     {
       key: 'doctors',
-      label: 'My Doctors',
+      label: t('quickAccess.myDoctors'),
       icon: 'doctors' as const,
       onPress: () => rootNav.navigate(AppRoute.DOCTORS),
     },
     {
       key: 'prescriptions',
-      label: 'Prescriptions',
+      label: t('quickAccess.prescriptions'),
       icon: 'prescriptions' as const,
       onPress: () => rootNav.navigate(AppRoute.PRESCRIPTIONS_LIST),
     },
     {
       key: 'records',
-      label: 'Health Records',
+      label: t('quickAccess.healthRecords'),
       icon: 'records' as const,
       onPress: () => rootNav.navigate(AppRoute.HEALTH_RECORDS),
     },
     {
       key: 'insurance',
-      label: 'Insurance',
+      label: t('quickAccess.insurance'),
       icon: 'insurance' as const,
-      onPress: () => showInfoToast('Insurance', 'Insurance feature coming soon.'),
+      onPress: () =>
+        showInfoToast(
+          t('quickAccess.insurance'),
+          t('quickAccess.featureComingSoon', { feature: t('quickAccess.insurance') })
+        ),
     },
     {
       key: 'reports',
-      label: 'Reports',
+      label: t('quickAccess.reports'),
       icon: 'reports' as const,
-      onPress: () => showInfoToast('Insurance', 'Insurance feature coming soon.'),
+      onPress: () =>
+        showInfoToast(
+          t('quickAccess.reports'),
+          t('quickAccess.featureComingSoon', { feature: t('quickAccess.reports') })
+        ),
     },
     {
       key: 'invoices',
-      label: 'Invoices',
+      label: t('quickAccess.invoices'),
       icon: 'invoices' as const,
-      onPress: () => showInfoToast('Invoices', 'Invoices feature coming soon.'),
+      onPress: () =>
+        showInfoToast(
+          t('quickAccess.invoices'),
+          t('quickAccess.featureComingSoon', { feature: t('quickAccess.invoices') })
+        ),
     },
     {
       key: 'support',
-      label: 'Support',
+      label: t('quickAccess.support'),
       icon: 'support' as const,
       onPress: () => rootNav.navigate(AppRoute.SUPPORT),
     },
@@ -110,7 +124,7 @@ export const QuickAccessGrid: React.FC = () => {
   return (
     <View style={styles.section}>
       <View style={styles.headerWrap}>
-        <Text style={styles.headerTitle}>Quick Access</Text>
+        <Text style={styles.headerTitle}>{t('quickAccess.title')}</Text>
       </View>
       <View style={styles.grid}>
         {quickAccessItems.map(item => (
@@ -127,10 +141,6 @@ export const QuickAccessGrid: React.FC = () => {
       </View>
     </View>
   );
-};
-
-export const showComingSoonAlert = (feature: string) => {
-  Alert.alert('Coming Soon', `${feature} coming soon.`);
 };
 
 const styles = StyleSheet.create({

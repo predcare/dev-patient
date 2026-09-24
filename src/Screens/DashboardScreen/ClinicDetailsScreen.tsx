@@ -1,5 +1,6 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Image,
@@ -29,14 +30,14 @@ import { clinicDetailsStyles } from '../../styled/ClinicDetailsScreen.styled';
 import { theme } from '../../styled/theme.styled';
 
 export const ClinicDetailsScreen: React.FC = () => {
-  const navigation = useNavigation<any>();
+  const { t } = useTranslation();
+  const navigation = useNavigation();
   const route = useRoute<any>();
   const clinicId = route.params?.clinicId ?? 0;
   const [isRefreshing, setIsRefreshing] = useState(false);
   const {
     data: clinicData,
     isFetching: isClinicFetching,
-    isRefetching: isClinicRefetching,
     refetch: refetchClinic,
     error: clinicError,
   } = useClinicInfo({
@@ -46,7 +47,6 @@ export const ClinicDetailsScreen: React.FC = () => {
   const {
     data: doctorsData,
     isFetching: isDoctorsFetching,
-    isRefetching: isDoctorsRefetching,
     refetch: refetchDoctors,
     error: doctorsError,
   } = useClinicDoctors({
@@ -80,7 +80,7 @@ export const ClinicDetailsScreen: React.FC = () => {
           <BackIcon size={22} color={theme.colors.surface} />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '700', color: theme.colors.surface }}>
-          Clinic Details
+          {t('clinicDetailsScreen.title')}
         </Text>
         <View style={{ width: 28 }} />
       </View>
@@ -90,8 +90,8 @@ export const ClinicDetailsScreen: React.FC = () => {
       ) : clinicError || !clinicData ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 16 }}>
           <CommonErrorCard
-            title="Unable to Load Clinic Details"
-            message="We couldn't fetch the clinic information. Please try again."
+            title={t('clinicDetailsScreen.unableToLoadClinic')}
+            message={t('clinicDetailsScreen.unableToLoadClinicMsg')}
             onRetry={() => refetchClinic()}
           />
         </View>
@@ -99,6 +99,7 @@ export const ClinicDetailsScreen: React.FC = () => {
         <ScrollView
           style={clinicDetailsStyles.container}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
@@ -115,7 +116,9 @@ export const ClinicDetailsScreen: React.FC = () => {
                   <ClinicIcon size={44} color={theme.colors.surface} />
                 </View>
 
-                <Text style={clinicDetailsStyles.name}>{clinicData?.name || 'Unknown'}</Text>
+                <Text style={clinicDetailsStyles.name}>
+                  {clinicData?.name || t('clinicDetailsScreen.unknown')}
+                </Text>
 
                 {clinicData?.fullAddress ? (
                   <View style={clinicDetailsStyles.addressBadge}>
@@ -136,7 +139,9 @@ export const ClinicDetailsScreen: React.FC = () => {
                   <View style={clinicDetailsStyles.iconCircle}>
                     <InfoCircleIcon size={20} color={theme.colors.primary} />
                   </View>
-                  <Text style={clinicDetailsStyles.cardTitle}>About Clinic</Text>
+                  <Text style={clinicDetailsStyles.cardTitle}>
+                    {t('clinicDetailsScreen.aboutClinic')}
+                  </Text>
                 </View>
                 <Text style={clinicDetailsStyles.bioText}>{clinicData?.about}</Text>
               </View>
@@ -148,7 +153,9 @@ export const ClinicDetailsScreen: React.FC = () => {
                 <View style={clinicDetailsStyles.iconCircle}>
                   <PhoneIcon size={20} color={theme.colors.primary} />
                 </View>
-                <Text style={clinicDetailsStyles.cardTitle}>Contact Information</Text>
+                <Text style={clinicDetailsStyles.cardTitle}>
+                  {t('clinicDetailsScreen.contactInformation')}
+                </Text>
               </View>
 
               {clinicData?.email ? (
@@ -187,7 +194,9 @@ export const ClinicDetailsScreen: React.FC = () => {
                   <View style={clinicDetailsStyles.iconCircle}>
                     <SpecializationIcon size={20} color={theme.colors.primary} />
                   </View>
-                  <Text style={clinicDetailsStyles.cardTitle}>Specialities</Text>
+                  <Text style={clinicDetailsStyles.cardTitle}>
+                    {t('clinicDetailsScreen.specialities')}
+                  </Text>
                 </View>
                 <View style={clinicDetailsStyles.specialitiesGrid}>
                   {clinicData?.specialities.map((spec, idx) => (
@@ -205,33 +214,35 @@ export const ClinicDetailsScreen: React.FC = () => {
                 <View style={clinicDetailsStyles.iconCircle}>
                   <StethoscopeIcon size={20} color={theme.colors.primary} />
                 </View>
-                <Text style={clinicDetailsStyles.cardTitle}>Available Doctors</Text>
+                <Text style={clinicDetailsStyles.cardTitle}>
+                  {t('clinicDetailsScreen.availableDoctors')}
+                </Text>
               </View>
 
               {isDoctorsFetching && !doctorsData ? (
                 <View style={clinicDetailsStyles.doctorsLoadingContainer}>
                   <ActivityIndicator size="small" color={theme.colors.primary} />
                   <Text style={clinicDetailsStyles.doctorsLoadingText}>
-                    Loading available doctors...
+                    {t('clinicDetailsScreen.loadingAvailableDoctors')}
                   </Text>
                 </View>
               ) : doctorsError ? (
                 <View style={clinicDetailsStyles.doctorsErrorContainer}>
                   <Text style={clinicDetailsStyles.doctorsErrorText}>
-                    Failed to load doctors list.
+                    {t('clinicDetailsScreen.failedToLoadDoctors')}
                   </Text>
                   <TouchableOpacity
                     style={clinicDetailsStyles.retryButton}
                     onPress={() => refetchDoctors()}
                     activeOpacity={0.7}
                   >
-                    <Text style={clinicDetailsStyles.retryButtonText}>Retry</Text>
+                    <Text style={clinicDetailsStyles.retryButtonText}>{t('commons.retry')}</Text>
                   </TouchableOpacity>
                 </View>
               ) : !doctorsData || doctorsData.length === 0 ? (
                 <View style={clinicDetailsStyles.doctorsEmptyContainer}>
                   <Text style={clinicDetailsStyles.doctorsEmptyText}>
-                    No doctors are currently available at this clinic.
+                    {t('clinicDetailsScreen.noDoctorsAvailable')}
                   </Text>
                 </View>
               ) : (
@@ -254,11 +265,12 @@ export const ClinicDetailsScreen: React.FC = () => {
                         ) : (
                           <View style={clinicDetailsStyles.doctorAvatar}>
                             <Text style={clinicDetailsStyles.doctorAvatarText}>
-                              {getInitials(doctor.doctor_name || 'Doctor')}
+                              {getInitials(
+                                doctor.doctor_name || t('clinicDetailsScreen.doctorDefault')
+                              )}
                             </Text>
                           </View>
                         )}
-
                         <View style={clinicDetailsStyles.doctorInfo}>
                           <Text style={clinicDetailsStyles.doctorName}>
                             Dr. {doctor?.doctor_name}
@@ -271,8 +283,13 @@ export const ClinicDetailsScreen: React.FC = () => {
                           {doctor.year_of_experience !== null &&
                           doctor.year_of_experience !== undefined ? (
                             <Text style={clinicDetailsStyles.doctorExp}>
-                              {doctor.year_of_experience}{' '}
-                              {doctor.year_of_experience === 1 ? 'Year' : 'Years'} Experience
+                              {doctor.year_of_experience === 1
+                                ? t('clinicDetailsScreen.yearsExperienceSingle', {
+                                    count: doctor.year_of_experience,
+                                  })
+                                : t('clinicDetailsScreen.yearsExperience', {
+                                    count: doctor.year_of_experience,
+                                  })}
                             </Text>
                           ) : null}
                         </View>

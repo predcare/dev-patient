@@ -39,7 +39,7 @@ export const ConsultationCompletedScreen: React.FC = () => {
 
   return (
     <SafeAreaWrapper style={consultationCompletedStyles.screen}>
-      <Header greeting="Consultation Ended" userName="Visit Summary" unreadCount={1} />
+      <Header title="Consultation Ended" subTitle="Visit Summary" />
 
       <ScrollView
         contentContainerStyle={consultationCompletedStyles.content}

@@ -89,6 +89,7 @@ export const endpoints = {
     specializations: '/common/specializations',
     getCommisionSlabs: '/commission-slabs',
     getEmrCategories: '/common/emr-categories',
+    healthCareTips: '/common/daily-health-tips',
   },
   notifications: {
     getAll: '/notifications',

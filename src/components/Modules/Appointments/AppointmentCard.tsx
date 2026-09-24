@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { getInitials } from '../../../lib/common/common.utils';
 import { appointmentsStyles } from '../../../styled/AppointmentsScreen.styled';
@@ -38,6 +39,8 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
   onReschedule,
   onOpenDirections,
 }) => {
+  const { t } = useTranslation();
+
   const statusConfig = useMemo(() => {
     const s = String(apptStatus || '')
       .toLowerCase()
@@ -132,7 +135,7 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
       {isInProgress && (
         <View style={[appointmentsStyles.banner, { backgroundColor: '#7C3AED' }]}>
           <View style={appointmentsStyles.bDot} />
-          <Text style={appointmentsStyles.bTxt}>SLOT RUNNING • IN PROGRESS</Text>
+          <Text style={appointmentsStyles.bTxt}>{t('appointments.slotRunningInProgress')}</Text>
         </View>
       )}
 
@@ -148,13 +151,13 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
 
           <View style={appointmentsStyles.drInfo}>
             <Text style={appointmentsStyles.drName} numberOfLines={1}>
-              {doctorName || 'Unknown Doctor'}
+              {doctorName || t('appointments.unknownDoctor')}
             </Text>
             <Text style={appointmentsStyles.clinic} numberOfLines={1}>
-              {clinicName || 'Unknown Clinic'}
+              {clinicName || t('appointments.unknownClinic')}
             </Text>
             <Text style={appointmentsStyles.aptId} numberOfLines={1}>
-              ID - {apptId}
+              {t('appointments.idPrefix', { id: apptId })}
             </Text>
           </View>
 
@@ -175,7 +178,7 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
               <CalendarIcon size={16} color={theme.colors.primary} />
             </View>
             <View style={appointmentsStyles.gridText}>
-              <Text style={appointmentsStyles.gridLbl}>DATE</Text>
+              <Text style={appointmentsStyles.gridLbl}>{t('appointments.dateLabel')}</Text>
               <Text style={appointmentsStyles.gridVal}>{date}</Text>
             </View>
           </View>
@@ -185,7 +188,7 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
               <ClockIcon size={16} color={theme.colors.primary} />
             </View>
             <View style={appointmentsStyles.gridText}>
-              <Text style={appointmentsStyles.gridLbl}>TIME</Text>
+              <Text style={appointmentsStyles.gridLbl}>{t('appointments.timeLabel')}</Text>
               <Text style={appointmentsStyles.gridVal}>{time}</Text>
             </View>
           </View>
@@ -195,7 +198,7 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
               <ClockIcon size={16} color={theme.colors.primary} />
             </View>
             <View style={appointmentsStyles.gridText}>
-              <Text style={appointmentsStyles.gridLbl}>DURATION</Text>
+              <Text style={appointmentsStyles.gridLbl}>{t('appointments.durationLabel')}</Text>
               <Text style={appointmentsStyles.gridVal}>{duration}</Text>
             </View>
           </View>
@@ -209,9 +212,9 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
               )}
             </View>
             <View style={appointmentsStyles.gridText}>
-              <Text style={appointmentsStyles.gridLbl}>MODE</Text>
+              <Text style={appointmentsStyles.gridLbl}>{t('appointments.modeLabel')}</Text>
               <Text style={appointmentsStyles.gridVal}>
-                {mode === 'video' ? 'Video Call' : 'In-Person'}
+                {mode === 'video' ? t('appointments.videoCall') : t('appointments.inPerson')}
               </Text>
             </View>
           </View>
@@ -234,7 +237,9 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
                 activeOpacity={0.8}
                 onPress={onOpenDirections}
               >
-                <Text style={appointmentsStyles.btnOutlineTxt}>Get Directions</Text>
+                <Text style={appointmentsStyles.btnOutlineTxt}>
+                  {t('appointments.getDirections')}
+                </Text>
               </TouchableOpacity>
             </View>
           )}
@@ -245,7 +250,7 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
             onPress={onJoinVideo}
           >
             <VideoIcon size={18} color={theme.colors.surface} />
-            <Text style={appointmentsStyles.btnJoinTxt}>Join Video Call</Text>
+            <Text style={appointmentsStyles.btnJoinTxt}>{t('appointments.joinVideoCall')}</Text>
           </TouchableOpacity>
         )}
         {apptStatus === 'confirmed' && (
@@ -255,14 +260,14 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
               activeOpacity={1}
               onPress={onReschedule}
             >
-              <Text style={appointmentsStyles.btnOutlineTxt}>Reschedule</Text>
+              <Text style={appointmentsStyles.btnOutlineTxt}>{t('appointments.reschedule')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={appointmentsStyles.btnCancel}
               activeOpacity={1}
               onPress={onCancelPress}
             >
-              <Text style={appointmentsStyles.btnCancelTxt}>Cancel</Text>
+              <Text style={appointmentsStyles.btnCancelTxt}>{t('appointments.cancel')}</Text>
             </TouchableOpacity>
           </View>
         )}

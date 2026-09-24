@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, Text, TouchableOpacity, View } from 'react-native';
 import {
   useGetFamilyMembers,
@@ -27,6 +28,7 @@ export interface FamilyMemberItemData {
 
 export const FamilyMembersCard: React.FC = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const [isRefetching, setIsRefetching] = useState(false);
   const { hideLoader, showLoader } = useLoadingStore(state => state);
   const { showConfirm } = useAlertStore(state => state);
@@ -187,7 +189,7 @@ export const FamilyMembersCard: React.FC = () => {
         <View style={settingStyles.addMemberPlusCircle}>
           <Text style={settingStyles.addMemberPlusText}>+</Text>
         </View>
-        <Text style={settingStyles.addMemberLabel}>Add New Member</Text>
+        <Text style={settingStyles.addMemberLabel}>{t('settingScreen.addNewMember')}</Text>
         <Text style={settingStyles.rowArrow}>›</Text>
       </TouchableOpacity>
     </View>

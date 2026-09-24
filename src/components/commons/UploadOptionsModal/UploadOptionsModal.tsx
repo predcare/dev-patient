@@ -9,6 +9,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { theme } from '../../../styled/theme.styled';
@@ -71,6 +72,7 @@ export const UploadOptionsModal: React.FC<UploadOptionsModalProps> = ({
   onSelectGallery,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(300)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -109,9 +111,16 @@ export const UploadOptionsModal: React.FC<UploadOptionsModalProps> = ({
 
   if (!visible) return null;
 
-  const displayTitle = title || `Upload ${type === 'logo' ? 'Clinic Logo' : 'Doctor Signature'}`;
+  const displayTitle =
+    title ||
+    (type === 'logo'
+      ? t('uploadOptionsModal.uploadLogo')
+      : t('uploadOptionsModal.uploadSignature'));
   const displaySubtitle =
-    subtitle || `Choose a source to add your ${type === 'logo' ? 'logo image' : 'signature'}`;
+    subtitle ||
+    (type === 'logo'
+      ? t('uploadOptionsModal.uploadLogoSubtitle')
+      : t('uploadOptionsModal.uploadSignatureSubtitle'));
 
   return (
     <Modal
@@ -133,10 +142,7 @@ export const UploadOptionsModal: React.FC<UploadOptionsModalProps> = ({
                 },
               ]}
             >
-              {/* Drag Handle */}
               <View style={styles.handle} />
-
-              {/* Header */}
               <View style={styles.headerRow}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.sheetTitle}>{displayTitle}</Text>
@@ -146,10 +152,7 @@ export const UploadOptionsModal: React.FC<UploadOptionsModalProps> = ({
                   <CloseIcon />
                 </TouchableOpacity>
               </View>
-
-              {/* Options */}
               <View style={styles.optionsContainer}>
-                {/* Camera Option */}
                 <TouchableOpacity
                   style={styles.optionCard}
                   onPress={() => {
@@ -164,17 +167,15 @@ export const UploadOptionsModal: React.FC<UploadOptionsModalProps> = ({
                     <CameraBadgeIcon />
                   </View>
                   <View style={styles.optionTextWrap}>
-                    <Text style={styles.optionTitle}>Take Photo</Text>
+                    <Text style={styles.optionTitle}>{t('uploadOptionsModal.takePhoto')}</Text>
                     <Text style={styles.optionDesc}>
                       {type === 'signature'
-                        ? 'Snap a clear photo of your signature on white paper'
-                        : 'Take a photo of your clinic logo'}
+                        ? t('uploadOptionsModal.takePhotoDescSignature')
+                        : t('uploadOptionsModal.takePhotoDescLogo')}
                     </Text>
                   </View>
                   <Text style={styles.arrowIcon}>›</Text>
                 </TouchableOpacity>
-
-                {/* Gallery Option */}
                 <TouchableOpacity
                   style={styles.optionCard}
                   onPress={() => {
@@ -189,9 +190,9 @@ export const UploadOptionsModal: React.FC<UploadOptionsModalProps> = ({
                     <GalleryBadgeIcon />
                   </View>
                   <View style={styles.optionTextWrap}>
-                    <Text style={styles.optionTitle}>Choose from Gallery</Text>
+                    <Text style={styles.optionTitle}>{t('uploadOptionsModal.chooseFromGallery')}</Text>
                     <Text style={styles.optionDesc}>
-                      Select a PNG or JPG file stored on your device
+                      {t('uploadOptionsModal.galleryDesc')}
                     </Text>
                   </View>
                   <Text style={styles.arrowIcon}>›</Text>
@@ -200,7 +201,7 @@ export const UploadOptionsModal: React.FC<UploadOptionsModalProps> = ({
 
               {/* Cancel Button */}
               <TouchableOpacity style={styles.cancelBtn} onPress={onClose} activeOpacity={0.8}>
-                <Text style={styles.cancelBtnText}>Cancel</Text>
+                <Text style={styles.cancelBtnText}>{t('commons.cancel')}</Text>
               </TouchableOpacity>
             </Animated.View>
           </TouchableWithoutFeedback>

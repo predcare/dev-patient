@@ -1,5 +1,6 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image, ScrollView, Text, View } from 'react-native';
 import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import { ClinicBookingCard } from '../../components/Modules/Doctors';
@@ -14,6 +15,7 @@ import { doctorDetailsStyles } from '../../styled/DoctorDetailsScreen.styled';
 import { theme } from '../../styled/theme.styled';
 
 export const DoctorDetailsScreen: React.FC = () => {
+  const { t } = useTranslation();
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const doctorId: number = Number(route.params?.doctorId);
@@ -26,7 +28,8 @@ export const DoctorDetailsScreen: React.FC = () => {
   } = useDoctorDetails(doctorId);
 
   const handleBookAppointment = (clinicId: string) => {
-    if (!doctorDetailsData) return showErrorToast('Error', 'Doctor details not found');
+    if (!doctorDetailsData)
+      return showErrorToast(t('commons.error'), t('doctorDetailsScreen.doctorNotFound'));
     navigation.navigate('BookAppointment', {
       doctorId: doctorDetailsData.user_id,
       clinicId,
@@ -35,14 +38,13 @@ export const DoctorDetailsScreen: React.FC = () => {
 
   return (
     <SafeAreaWrapper style={doctorDetailsStyles.screen}>
-      <AppHeader title="Doctor Profile" showBack={true} />
-
+      <AppHeader title={t('doctorDetailsScreen.title')} showBack={true} />
       {doctorDetailsPending ? (
         <DoctorDetailsSkeleton cardOnly={true} />
       ) : !doctorDetailsData || doctorDetailsError ? (
         <CommonErrorCard
-          title="Unable to Load Profile"
-          message="We couldn't load the doctor details. Please try again."
+          title={t('doctorDetailsScreen.unableToLoadProfile')}
+          message={t('doctorDetailsScreen.unableToLoadProfileMsg')}
           onRetry={() => refetch()}
         />
       ) : (
@@ -50,6 +52,7 @@ export const DoctorDetailsScreen: React.FC = () => {
           style={doctorDetailsStyles.scroll}
           contentContainerStyle={doctorDetailsStyles.scrollContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
           <View style={doctorDetailsStyles.profileHeader}>
             <View style={doctorDetailsStyles.avatarWrap}>
@@ -92,10 +95,14 @@ export const DoctorDetailsScreen: React.FC = () => {
               <StethoscopeIcon size={22} color={theme.colors.primary} />
               <Text style={doctorDetailsStyles.statValue}>
                 {doctorDetailsData.experience_years
-                  ? `${doctorDetailsData.experience_years}+ Yrs`
-                  : 'N/A'}
+                  ? t('doctorDetailsScreen.experienceYrs', {
+                      count: doctorDetailsData.experience_years,
+                    })
+                  : t('commons.na')}
               </Text>
-              <Text style={doctorDetailsStyles.statLabel}>EXPERIENCE</Text>
+              <Text style={doctorDetailsStyles.statLabel}>
+                {t('doctorDetailsScreen.experience')}
+              </Text>
             </View>
 
             <View style={doctorDetailsStyles.statCard}>
@@ -103,12 +110,14 @@ export const DoctorDetailsScreen: React.FC = () => {
               <Text style={doctorDetailsStyles.statValue}>
                 {doctorDetailsData.reviews_count ? `${doctorDetailsData.reviews_count}+` : '0'}
               </Text>
-              <Text style={doctorDetailsStyles.statLabel}>CONSULTS</Text>
+              <Text style={doctorDetailsStyles.statLabel}>{t('doctorDetailsScreen.consults')}</Text>
             </View>
           </View>
           {doctorDetailsData.bio ? (
             <>
-              <Text style={doctorDetailsStyles.sectionTitle}>Professional Bio</Text>
+              <Text style={doctorDetailsStyles.sectionTitle}>
+                {t('doctorDetailsScreen.professionalBio')}
+              </Text>
               <View style={doctorDetailsStyles.card}>
                 <Text style={doctorDetailsStyles.bioText}>{doctorDetailsData.bio}</Text>
               </View>
@@ -117,7 +126,9 @@ export const DoctorDetailsScreen: React.FC = () => {
           {Array.isArray(doctorDetailsData.languages_spoken) &&
             doctorDetailsData.languages_spoken.length > 0 && (
               <>
-                <Text style={doctorDetailsStyles.sectionTitle}>Languages Spoken</Text>
+                <Text style={doctorDetailsStyles.sectionTitle}>
+                  {t('doctorDetailsScreen.languagesSpoken')}
+                </Text>
                 <View style={doctorDetailsStyles.card}>
                   <View style={doctorDetailsStyles.langRow}>
                     <GlobeIcon size={18} color={theme.colors.primary} />
@@ -130,7 +141,9 @@ export const DoctorDetailsScreen: React.FC = () => {
             )}
           {Array.isArray(doctorDetailsData.clinics) && doctorDetailsData.clinics.length > 0 && (
             <>
-              <Text style={doctorDetailsStyles.sectionTitle}>Clinical Locations</Text>
+              <Text style={doctorDetailsStyles.sectionTitle}>
+                {t('doctorDetailsScreen.clinicalLocations')}
+              </Text>
               {doctorDetailsData.clinics.map(clinic => (
                 <ClinicBookingCard
                   key={clinic.id}

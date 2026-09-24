@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FlatList, RefreshControl, Text, TouchableOpacity, View } from 'react-native';
 import CommonErrorCard from '../../components/commons/CommonErrorCard/CommonErrorCard';
 import { AppointmentCard, BookNewSessionCard } from '../../components/Modules/Appointments';
@@ -31,6 +32,7 @@ import { useLoadingStore } from '../../zustand/stores/useLoadingStore';
 import { useMeetingStore } from '../../zustand/stores/useMeetingStore';
 
 export const AppointmentsScreen: React.FC = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const rootNav = navigation.getParent() || navigation;
 
@@ -56,7 +58,7 @@ export const AppointmentsScreen: React.FC = () => {
     refetch: appointmentRefetch,
   } = useMyAppointments({
     status: statusParam,
-    limit: 10,
+    limit: 100,
     page: 1,
   });
 
@@ -88,16 +90,13 @@ export const AppointmentsScreen: React.FC = () => {
       }
 
       if (isCallActive) {
-        showInfoToast(
-          'You are currently in an active consultation. Please end that call first.',
-          'Active Call Ongoing'
-        );
+        showInfoToast(t('appointments.activeCallToast'), t('appointments.activeCallOngoing'));
         return;
       }
 
       const hasPermissions = await requestAudioVideoPermissions();
       if (!hasPermissions) {
-        showErrorToast('Camera and Microphone permissions are required to join the consultation.');
+        showErrorToast(t('appointments.permissionsRequired'));
         return;
       }
 
@@ -106,11 +105,10 @@ export const AppointmentsScreen: React.FC = () => {
       let meetingId: string | undefined = appointment.meeting_id;
       let call_duration_seconds: number | undefined = appointment.call_duration_seconds;
       if (!apptId) {
-        showErrorToast('No valid appointment ID found to fetch token');
+        showErrorToast(t('appointments.noApptId'));
         return;
       }
-      if (!appointment?.patient_id)
-        return showErrorToast('No valid patient ID found to fetch token');
+      if (!appointment?.patient_id) return showErrorToast(t('appointments.noPatientId'));
 
       try {
         const tokenResponse = await queryClient.fetchQuery({
@@ -124,18 +122,18 @@ export const AppointmentsScreen: React.FC = () => {
       }
 
       if (!token || !meetingId) {
-        return showErrorToast('Failed to fetch meeting credentials');
+        return showErrorToast(t('appointments.failedMeetingCredentials'));
       }
 
       const cleanedToken = token?.trim().replace(/^["']|["']$/g, '');
       const cleanedMeetingId = meetingId?.trim().replace(/^["']|["']$/g, '');
 
       if (!cleanedToken || !cleanedMeetingId) {
-        showErrorToast('Meeting credentials missing or invalid');
+        showErrorToast(t('appointments.invalidMeetingCredentials'));
         return;
       }
 
-      const docName = appointment.doctorInfo?.name || 'Doctor';
+      const docName = appointment.doctorInfo?.name || t('appointments.doctorDefault');
       const docDisplayName = docName.startsWith('Dr.') ? docName : `Dr. ${docName}`;
 
       setMeetingSession({
@@ -153,24 +151,28 @@ export const AppointmentsScreen: React.FC = () => {
 
       navigation.navigate(AppRoute.MEETING);
     },
-    [navigation, queryClient, setMeetingSession, requestAudioVideoPermissions]
+    [navigation, queryClient, setMeetingSession, requestAudioVideoPermissions, t]
   );
 
   const handleCancelAppt = (apt: IMyAppointmentDoc) => {
     if (!apt?.id) return;
-    const docName = apt.doctorInfo?.name || 'Doctor';
+    const docName = apt.doctorInfo?.name || t('appointments.doctorDefault');
     const formattedDocName = docName.startsWith('Dr.') ? docName : `Dr. ${docName}`;
-    const formattedDate = formatDate(apt.appointment_date) || 'scheduled date';
+    const formattedDate = formatDate(apt.appointment_date) || t('appointments.scheduledDate');
     const formattedTime = _formatTime(apt?.start_time);
     const timeText = formattedTime ? ` at ${formattedTime}` : '';
 
     showConfirm({
-      title: 'Cancel Appointment',
-      message: `Are you sure you want to cancel your appointment with ${formattedDocName} on ${formattedDate}${timeText}?`,
-      buttonText: 'Yes, Cancel',
-      cancelText: 'No, Keep',
+      title: t('appointments.cancelAppointmentTitle'),
+      message: t('appointments.cancelAppointmentConfirm', {
+        doctorName: formattedDocName,
+        date: formattedDate,
+        time: timeText,
+      }),
+      buttonText: t('appointments.yesCancel'),
+      cancelText: t('appointments.noKeep'),
       onConfirm: () => {
-        showLoader('Cancelling appointment...');
+        showLoader(t('appointments.cancellingAppointment'));
         const payload = {
           appointment_id: String(apt.id),
           call_end_reason: 'Cancelled by patient',
@@ -178,7 +180,7 @@ export const AppointmentsScreen: React.FC = () => {
         cancelAppt(payload, {
           onSuccess: async res => {
             if (res?.success) {
-              showSuccessToast(res?.message || 'Appointment cancelled successfully');
+              showSuccessToast(res?.message || t('appointments.appointmentCancelledSuccess'));
               await appointmentRefetch();
               hideLoader();
             } else {
@@ -203,7 +205,7 @@ export const AppointmentsScreen: React.FC = () => {
       activeBottomTab="Schedule"
       isPathClear={true}
     >
-      <Header greeting="My Appointments" userName="Schedule & Visits" />
+      <Header title={t('appointments.title')} subTitle={t('appointments.subTitle')} />
       <View style={appointmentsStyles.segmentWrap}>
         <View style={appointmentsStyles.segmentTrack}>
           {(['upcoming', 'completed'] as const).map(key => {
@@ -224,7 +226,7 @@ export const AppointmentsScreen: React.FC = () => {
                     active && appointmentsStyles.segmentTxtActive,
                   ]}
                 >
-                  {key === 'upcoming' ? 'Upcoming' : 'Completed'}
+                  {key === 'upcoming' ? t('appointments.upcoming') : t('appointments.completed')}
                 </Text>
               </TouchableOpacity>
             );
@@ -235,11 +237,11 @@ export const AppointmentsScreen: React.FC = () => {
         <AppointmentsSkeleton />
       ) : allAppointmentIsError ? (
         <CommonErrorCard
-          title="Unable to Load Appointments"
+          title={t('appointments.unableToLoadAppointments')}
           message={
             (allAppointmentError as any)?.response?.data?.message ||
             allAppointmentError?.message ||
-            'Something went wrong while loading your appointments.'
+            t('appointments.errorLoadingAppointments')
           }
           onRetry={appointmentRefetch}
         />
@@ -264,8 +266,8 @@ export const AppointmentsScreen: React.FC = () => {
               onJoinVideo={() => handleJoinVideoCall(apt)}
               onReschedule={() =>
                 showInfoToast(
-                  'Reschedule functionality will be available in the next update.',
-                  'Under Development'
+                  t('appointments.rescheduleUnavailable'),
+                  t('appointments.underDevelopment')
                 )
               }
               onOpenDirections={() =>
@@ -284,13 +286,13 @@ export const AppointmentsScreen: React.FC = () => {
               </View>
               <Text style={appointmentsStyles.emptyH}>
                 {activeTab === 'upcoming'
-                  ? 'No Upcoming Appointments'
-                  : 'No Completed Appointments'}
+                  ? t('appointments.noUpcomingTitle')
+                  : t('appointments.noCompletedTitle')}
               </Text>
               <Text style={appointmentsStyles.emptyB}>
                 {activeTab === 'upcoming'
-                  ? "You don't have any upcoming doctor consultations scheduled right now."
-                  : 'No completed or past appointments found.'}
+                  ? t('appointments.noUpcomingSubtitle')
+                  : t('appointments.noCompletedSubtitle')}
               </Text>
             </View>
           }

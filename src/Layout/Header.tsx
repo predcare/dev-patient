@@ -5,39 +5,45 @@ import { mediaPaths } from '../api/endpoints';
 import LanguageSwitcherModal, { LANGUAGES } from '../components/commons/LanguageSwitcherModal';
 import NotificationModal from '../components/commons/NotificationModal/NotificationModal';
 import { BellIcon, GlobeIcon } from '../components/ui/icons';
+import { useLanguageContext } from '../contexts/LanguageContext';
 import { useNotificationCount } from '../hooks/react-query/notifications/notifications.hooks';
 import { getInitials } from '../lib/common/common.utils';
 import { headerStyles } from '../styled/Header.styled';
 import { theme } from '../styled/theme.styled';
+import { TSupportedLanguage } from '../typescripts/types/i18n.types';
 import { useAuthStore } from '../zustand/stores/useAuthStore';
 
 export interface HeaderProps {
-  greeting?: string;
-  userName?: string;
+  title?: string;
+  subTitle?: string;
+  isHomeScreen?: boolean;
   profileImageUrl?: string | null;
   initials?: string;
   avatarColor?: string;
+  unreadCount?: number;
   onAvatarPress?: () => void;
   onProfilePress?: () => void;
   onNotificationPress?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  greeting = 'Welcome Back 👋',
+  title = 'Welcome Back 👋',
+  subTitle,
+  isHomeScreen = false,
+  initials,
   avatarColor = theme.colors.primary,
   onAvatarPress,
   onProfilePress,
   onNotificationPress,
 }) => {
   const navigation = useNavigation<any>();
-
   const [isLangModalOpen, setIsLangModalOpen] = useState<boolean>(false);
   const [isNotifModalOpen, setIsNotifModalOpen] = useState<boolean>(false);
-  const [selectedLangCode, setSelectedLangCode] = useState<string>('en');
 
+  const { currentLanguage, changeLanguage } = useLanguageContext();
   const { userData } = useAuthStore(state => state);
 
-  const currentLang = LANGUAGES.find(l => l.code === selectedLangCode) || LANGUAGES[0];
+  const currentLang = LANGUAGES.find(l => l.code === currentLanguage) || LANGUAGES[0];
 
   const { data: notifyCounts, isPending: isLoadingNotifyCounts } = useNotificationCount();
 
@@ -72,17 +78,34 @@ export const Header: React.FC<HeaderProps> = ({
             />
           ) : (
             <View style={[headerStyles.avatar, { backgroundColor: avatarColor }]}>
-              <Text style={headerStyles.avatarText}>{getInitials(userData?.name || '')}</Text>
+              <Text style={headerStyles.avatarText}>
+                {initials || getInitials(userData?.name || '')}
+              </Text>
             </View>
           )}
 
           <View style={headerStyles.greetingWrap}>
-            <Text style={headerStyles.greeting} numberOfLines={1} ellipsizeMode="tail">
-              {greeting}
-            </Text>
-            <Text style={headerStyles.userName} numberOfLines={1} ellipsizeMode="tail">
-              {userData?.name || 'Unknown'}
-            </Text>
+            {isHomeScreen ? (
+              <>
+                <Text style={headerStyles.greeting} numberOfLines={1} ellipsizeMode="tail">
+                  {title}
+                </Text>
+                <Text style={headerStyles.userName} numberOfLines={1} ellipsizeMode="tail">
+                  {userData?.name || 'Unknown'}
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text style={headerStyles.userName} numberOfLines={1} ellipsizeMode="tail">
+                  {title}
+                </Text>
+                {subTitle ? (
+                  <Text style={headerStyles.greeting} numberOfLines={1} ellipsizeMode="tail">
+                    {subTitle}
+                  </Text>
+                ) : null}
+              </>
+            )}
           </View>
         </TouchableOpacity>
 
@@ -119,8 +142,8 @@ export const Header: React.FC<HeaderProps> = ({
       {isLangModalOpen && (
         <LanguageSwitcherModal
           visible={isLangModalOpen}
-          selectedLanguageCode={selectedLangCode}
-          onSelectLanguage={langCode => setSelectedLangCode(langCode)}
+          selectedLanguageCode={currentLanguage}
+          onSelectLanguage={langCode => changeLanguage(langCode as TSupportedLanguage)}
           onClose={() => setIsLangModalOpen(false)}
         />
       )}

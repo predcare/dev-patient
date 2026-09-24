@@ -73,26 +73,50 @@ export async function requestNotificationPermission(): Promise<{
 
 /**
  * 2. getFirebaseToken
- * Fetches the current FCM token for this device and persists it in AsyncStorage
+ * Fetches the current FCM token for this device with automatic retry for transient errors (e.g. SERVICE_NOT_AVAILABLE)
+ * and persists it in AsyncStorage
  */
-export async function getFirebaseToken(): Promise<string | null> {
-  try {
-    const messagingInstance = getMessaging();
-    const token = await getToken(messagingInstance);
-    if (token) {
-      console.log('[FCM] Device Firebase FCM Token:', token);
-      await setItem(STORAGE_KEYS.FCM_TOKEN, token);
-      return token;
-    } else {
-      console.warn('[FCM] Failed to retrieve FCM token: Token is empty');
-      const cachedToken = await getItem(STORAGE_KEYS.FCM_TOKEN);
-      return cachedToken;
+export async function getFirebaseToken(retries: number = 2, delayMs: number = 1500): Promise<string | null> {
+  const messagingInstance = getMessaging();
+
+  for (let attempt = 1; attempt <= retries + 1; attempt++) {
+    try {
+      const token = await getToken(messagingInstance);
+      if (token) {
+        console.log('[FCM] Device Firebase FCM Token:', token);
+        await setItem(STORAGE_KEYS.FCM_TOKEN, token);
+        return token;
+      } else {
+        console.warn('[FCM] Failed to retrieve FCM token: Token is empty');
+        break;
+      }
+    } catch (error: any) {
+      const errorMsg = String(error?.message || error || '');
+      const isServiceUnavailable =
+        errorMsg.includes('SERVICE_NOT_AVAILABLE') ||
+        error?.code === 'messaging/unknown' ||
+        errorMsg.includes('ExecutionException');
+
+      if (isServiceUnavailable && attempt <= retries) {
+        console.warn(
+          `[FCM] Google Play Services / FCM initializing or unavailable (attempt ${attempt}/${retries + 1}). Retrying in ${delayMs * attempt}ms...`
+        );
+        await new Promise(resolve => setTimeout(resolve, delayMs * attempt));
+        continue;
+      }
+
+      if (isServiceUnavailable) {
+        console.warn(
+          '[FCM] Google Play Services unavailable: If testing on an Android Emulator, ensure the AVD uses a "Google Play" image with internet access.'
+        );
+      } else {
+        console.error('[FCM] Error getting Firebase token:', error);
+      }
     }
-  } catch (error) {
-    console.error('[FCM] Error getting Firebase token:', error);
-    const cachedToken = await getItem(STORAGE_KEYS.FCM_TOKEN);
-    return cachedToken;
   }
+
+  const cachedToken = await getItem(STORAGE_KEYS.FCM_TOKEN);
+  return cachedToken;
 }
 
 /**

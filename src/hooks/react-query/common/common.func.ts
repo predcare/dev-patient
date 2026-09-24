@@ -3,6 +3,7 @@ import { endpoints } from '../../../api/endpoints';
 import {
   ICommisionSlabsDoc,
   ICommonEMRCats,
+  IHealthCareTips,
   IRootResponse,
 } from '../../../typescripts/interfaces/common.interfaces';
 import { ILocationDoc } from '../../../typescripts/interfaces/locations.interfaces';
@@ -43,6 +44,24 @@ export const getCommisionSlabs = async () => {
 export const getCmnEmrCategories = async () => {
   const res = await axiosInstance.get<IRootResponse<ICommonEMRCats[]>>(
     `${endpoints.commons.getEmrCategories}`
+  );
+  return res.data;
+};
+
+// Heallth Care Tips
+export const getHealthCareTips = async () => {
+  const res = await axiosInstance.get<IRootResponse<IHealthCareTips[]>>(
+    `${endpoints.commons.healthCareTips}`
+  );
+  return res.data;
+};
+
+export const getAllCities = async (params?: { search?: string }) => {
+  const res = await axiosInstance.get<IRootResponse<ILocationDoc[]>>(
+    `${endpoints.commons.cities(0)}`,
+    {
+      params,
+    }
   );
   return res.data;
 };

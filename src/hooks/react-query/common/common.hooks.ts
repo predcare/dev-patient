@@ -1,10 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { CommonQueryKeys } from '../query.keys';
 import {
+  getAllCities,
   getCities,
+  getCmnEmrCategories,
   getCommisionSlabs,
   getCountries,
-  getCmnEmrCategories,
+  getHealthCareTips,
   getSpecializations,
   getStates,
 } from './common.func';
@@ -66,10 +68,33 @@ export const useCommisionSlabs = () =>
     },
   });
 
-  export const useCmnEmrCategories = () =>
+export const useCmnEmrCategories = () =>
   useQuery({
     queryKey: [CommonQueryKeys.GET_EMR_CATEGORIES],
     queryFn: () => getCmnEmrCategories(),
+    select: (v: any) => {
+      if (Array.isArray(v)) return v;
+      if (Array.isArray(v?.data)) return v.data;
+      return [];
+    },
+  });
+
+export const useGetHealthCareTips = () =>
+  useQuery({
+    queryKey: [CommonQueryKeys.GET_HEALTH_CARE_TIPS],
+    queryFn: () => getHealthCareTips(),
+    select: (v: any) => {
+      if (Array.isArray(v)) return v;
+      if (Array.isArray(v?.data)) return v.data;
+      return [];
+    },
+  });
+
+export const useAllCities = (params?: { search?: string }) =>
+  useQuery({
+    queryKey: [CommonQueryKeys.Cities, params],
+    queryFn: () => getAllCities(params),
+    enabled: !!params?.search,
     select: (v: any) => {
       if (Array.isArray(v)) return v;
       if (Array.isArray(v?.data)) return v.data;

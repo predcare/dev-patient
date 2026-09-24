@@ -34,3 +34,13 @@ export enum UserRoles {
   STAFF = 'staff',
   ADMIN = 'admin',
 }
+
+export enum TLanguage {
+  English = 'en',
+  Hindi = 'hi',
+  Kannada = 'kn',
+  Tamil = 'ta',
+  Urdu = 'ur',
+  Telugu = 'te',
+  Bengali = 'bn',
+}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { getInitials } from '../../../lib/common/common.utils';
 import { doctorStyles } from '../../../styled/DoctorScreen.styled';
@@ -20,6 +21,8 @@ export const DoctorCard: React.FC<DoctorCardProps> = ({
   onBookPress,
   onProfilePress,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <View style={doctorStyles.doctorCard}>
       <View style={doctorStyles.doctorMainInfo}>
@@ -89,11 +92,11 @@ export const DoctorCard: React.FC<DoctorCardProps> = ({
           onPress={onProfilePress}
           activeOpacity={0.85}
         >
-          <Text style={doctorStyles.profileBtnTxt}>Profile</Text>
+          <Text style={doctorStyles.profileBtnTxt}>{t('commons.profile')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={doctorStyles.bookBtn} onPress={onBookPress} activeOpacity={0.85}>
-          <Text style={doctorStyles.bookBtnTxt}>Book Now</Text>
+          <Text style={doctorStyles.bookBtnTxt}>{t('commons.bookNow')}</Text>
         </TouchableOpacity>
       </View>
     </View>

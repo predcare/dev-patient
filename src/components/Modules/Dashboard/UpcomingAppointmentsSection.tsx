@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import useDevicePermissions from '../../../hooks/commons/useDevicePermissions';
 import { getApptToken } from '../../../hooks/react-query/appointments/appointments.funcs';
@@ -23,6 +24,7 @@ import {
 
 export const UpcomingAppointmentsSection: React.FC = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const { setMeetingSession } = useMeetingStore(state => state);
   const { requestAudioVideoPermissions } = useDevicePermissions();
   const { data: upcomingAppts, isFetching: upcomingAppointmentsIsPending } = useMyAppointments({
@@ -139,7 +141,7 @@ export const UpcomingAppointmentsSection: React.FC = () => {
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <View style={styles.titleContainer}>
-          <Text style={styles.sectionTitle}>Upcoming Consultations</Text>
+          <Text style={styles.sectionTitle}>{t('dashboard.upcomingConsultations')}</Text>
           {totalCount > 0 && (
             <View style={styles.countBadge}>
               <Text style={styles.countBadgeText}>{totalCount}</Text>
@@ -153,14 +155,14 @@ export const UpcomingAppointmentsSection: React.FC = () => {
           style={styles.seeAllButton}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Text style={styles.seeAllText}>See All</Text>
+          <Text style={styles.seeAllText}>{t('commons.seeAll')}</Text>
           <ChevronRightIcon size={14} color={theme.colors.primary} />
         </TouchableOpacity>
       </View>
       {upcomingAppointmentsIsPending && !upcomingAppts ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color={theme.colors.primary} />
-          <Text style={styles.loadingText}>Loading your upcoming consultations...</Text>
+          <Text style={styles.loadingText}>{t('commons.loadingUpcomingConsultations')}</Text>
         </View>
       ) : totalCount === 0 ? (
         <View style={styles.emptyCard}>

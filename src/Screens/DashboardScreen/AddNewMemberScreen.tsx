@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import CustomDropDownPicker from '../../components/commons/CustomDropDownPicker/CustomDropDownPicker';
 import PredDatePickerModal from '../../components/commons/PredDatePickerModal/PredDatePickerModal';
 import { queryClient } from '../../components/providers/ReactQueryProvider';
@@ -41,6 +42,7 @@ import { useAuthStore } from '../../zustand/stores/useAuthStore';
 import { useLoadingStore } from '../../zustand/stores/useLoadingStore';
 
 export const AddNewMemberScreen: React.FC = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const router = useRoute<any>();
   const memberId = router.params?.memberId;
@@ -92,11 +94,11 @@ export const AddNewMemberScreen: React.FC = () => {
         id: memberId,
         body: data,
       };
-      showLoader('Editing family member...');
+      showLoader(t('addNewMember.editingMember'));
       editFamilyMemberMutation(payload, {
         onSuccess: async res => {
           if (res?.success) {
-            showSuccessToast(res?.message || 'Family member edited successfully');
+            showSuccessToast(res?.message || t('addNewMember.memberEditedSuccess'));
             reset();
             await queryClient.invalidateQueries({
               queryKey: [ProfileQueryKeys.FAMILY_MEMBER_LIST],
@@ -113,11 +115,11 @@ export const AddNewMemberScreen: React.FC = () => {
         },
       });
     } else {
-      showLoader('Adding family member...');
+      showLoader(t('addNewMember.addingMember'));
       addFamilyMemberMutation(data, {
         onSuccess: async res => {
           if (res?.success) {
-            showSuccessToast(res?.message || 'Family member added successfully');
+            showSuccessToast(res?.message || t('addNewMember.memberAddedSuccess'));
             reset();
             await queryClient.invalidateQueries({
               queryKey: [ProfileQueryKeys.FAMILY_MEMBER_LIST],
@@ -147,7 +149,14 @@ export const AddNewMemberScreen: React.FC = () => {
 
   return (
     <SafeAreaWrapper style={memberStyles.screen}>
-      <AppHeader title={memberId ? 'Edit Family Member' : 'Add Family Member'} showBack={true} />
+      <AppHeader
+        title={
+          memberId
+            ? t('addNewMember.editFamilyMemberTitle')
+            : t('addNewMember.addFamilyMemberTitle')
+        }
+        showBack={true}
+      />
       <ScrollView
         contentContainerStyle={memberStyles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -156,17 +165,16 @@ export const AddNewMemberScreen: React.FC = () => {
         <View style={memberStyles.inheritedBanner}>
           <InfoCircleIcon size={18} color={theme.colors.primaryDark} />
           <Text style={memberStyles.inheritedText}>
-            Inherited Contact Info: Phone, Email, and Address will be automatically linked from your
-            primary account.
+            {t('addNewMember.inheritedInfoBanner')}
           </Text>
         </View>
 
         <View style={memberStyles.section}>
-          <Text style={memberStyles.sectionTitle}>MEMBER DETAILS</Text>
-          <Text style={memberStyles.sectionSubtitle}>Enter member personal details</Text>
+          <Text style={memberStyles.sectionTitle}>{t('addNewMember.memberDetailsHeader')}</Text>
+          <Text style={memberStyles.sectionSubtitle}>{t('addNewMember.memberDetailsSub')}</Text>
           <View style={memberStyles.fieldWrapper}>
             <Text style={memberStyles.fieldLabel}>
-              Full Name<Text style={memberStyles.required}> *</Text>
+              {t('addNewMember.fullName')}<Text style={memberStyles.required}> *</Text>
             </Text>
             <Controller
               control={control}
@@ -174,7 +182,7 @@ export const AddNewMemberScreen: React.FC = () => {
               render={({ field: { onChange, value } }) => (
                 <TextInput
                   style={[memberStyles.textInput, errors.name ? memberStyles.fieldError : null]}
-                  placeholder="Enter member full name"
+                  placeholder={t('addNewMember.enterFullName')}
                   placeholderTextColor={theme.colors.textMuted}
                   value={value}
                   onChangeText={onChange}
@@ -185,7 +193,7 @@ export const AddNewMemberScreen: React.FC = () => {
           </View>
           <View style={memberStyles.fieldWrapper}>
             <Text style={memberStyles.fieldLabel}>
-              Relation<Text style={memberStyles.required}> *</Text>
+              {t('addNewMember.relation')}<Text style={memberStyles.required}> *</Text>
             </Text>
             <TouchableOpacity
               style={[
@@ -201,7 +209,7 @@ export const AddNewMemberScreen: React.FC = () => {
                   !selectedRelationLabel && memberStyles.dropdownPlaceholder,
                 ]}
               >
-                {selectedRelationLabel || 'Select Relation'}
+                {selectedRelationLabel || t('addNewMember.selectRelation')}
               </Text>
               <ChevronDownIcon size={18} color={theme.colors.textMuted} />
             </TouchableOpacity>
@@ -211,7 +219,7 @@ export const AddNewMemberScreen: React.FC = () => {
           </View>
           <View style={memberStyles.fieldWrapper}>
             <Text style={memberStyles.fieldLabel}>
-              Gender<Text style={memberStyles.required}> *</Text>
+              {t('addNewMember.gender')}<Text style={memberStyles.required}> *</Text>
             </Text>
             <TouchableOpacity
               style={[memberStyles.dropdownTrigger, errors.gender ? memberStyles.fieldError : null]}
@@ -224,7 +232,7 @@ export const AddNewMemberScreen: React.FC = () => {
                   !selectedGenderLabel && memberStyles.dropdownPlaceholder,
                 ]}
               >
-                {selectedGenderLabel || 'Select Gender'}
+                {selectedGenderLabel || t('addNewMember.selectGender')}
               </Text>
               <ChevronDownIcon size={18} color={theme.colors.textMuted} />
             </TouchableOpacity>
@@ -232,7 +240,7 @@ export const AddNewMemberScreen: React.FC = () => {
           </View>
           <View style={memberStyles.fieldWrapper}>
             <Text style={memberStyles.fieldLabel}>
-              Date of Birth<Text style={memberStyles.required}> *</Text>
+              {t('addNewMember.dateOfBirth')}<Text style={memberStyles.required}> *</Text>
             </Text>
             <TouchableOpacity
               style={[
@@ -248,7 +256,7 @@ export const AddNewMemberScreen: React.FC = () => {
                   !formattedDobDisplay && memberStyles.dropdownPlaceholder,
                 ]}
               >
-                {formattedDobDisplay || 'Select Date of Birth'}
+                {formattedDobDisplay || t('addNewMember.selectDateOfBirth')}
               </Text>
               {currentDateOfBirth ? (
                 <TouchableOpacity
@@ -272,49 +280,49 @@ export const AddNewMemberScreen: React.FC = () => {
         </View>
 
         <View style={memberStyles.section}>
-          <Text style={memberStyles.sectionTitle}>CONTACT INFO (LINKED)</Text>
+          <Text style={memberStyles.sectionTitle}>{t('addNewMember.contactInfoLinkedHeader')}</Text>
           <Text style={memberStyles.sectionSubtitle}>
-            Contact details inherited from primary account
+            {t('addNewMember.contactInfoSub')}
           </Text>
           <View style={memberStyles.fieldWrapper}>
-            <Text style={memberStyles.fieldLabel}>Phone Number</Text>
+            <Text style={memberStyles.fieldLabel}>{t('addNewMember.phoneNumber')}</Text>
             <View style={memberStyles.readOnlyField}>
               <PhoneIcon size={16} color={theme.colors.textMuted} />
               <Text style={memberStyles.readOnlyValue} numberOfLines={2}>
-                {userData?.phone_number || 'Not set'}
+                {userData?.phone_number || t('addNewMember.notSet')}
               </Text>
               <View style={memberStyles.lockedBadge}>
                 <ShieldIcon size={12} color={theme.colors.textMuted} />
               </View>
             </View>
-            <Text style={memberStyles.readOnlyHint}>Inherited from primary account</Text>
+            <Text style={memberStyles.readOnlyHint}>{t('addNewMember.inheritedFromPrimary')}</Text>
           </View>
           <View style={memberStyles.fieldWrapper}>
-            <Text style={memberStyles.fieldLabel}>Email Address</Text>
+            <Text style={memberStyles.fieldLabel}>{t('addNewMember.emailAddress')}</Text>
             <View style={memberStyles.readOnlyField}>
               <MailIcon size={16} color={theme.colors.textMuted} />
               <Text style={memberStyles.readOnlyValue} numberOfLines={2}>
-                {userData?.email || 'Not set'}
+                {userData?.email || t('addNewMember.notSet')}
               </Text>
               <View style={memberStyles.lockedBadge}>
                 <ShieldIcon size={12} color={theme.colors.textMuted} />
               </View>
             </View>
-            <Text style={memberStyles.readOnlyHint}>Inherited from primary account</Text>
+            <Text style={memberStyles.readOnlyHint}>{t('addNewMember.inheritedFromPrimary')}</Text>
           </View>
           <View style={memberStyles.fieldWrapper}>
-            <Text style={memberStyles.fieldLabel}>Address</Text>
+            <Text style={memberStyles.fieldLabel}>{t('addNewMember.address')}</Text>
             <View style={memberStyles.readOnlyField}>
               <BuildingIcon size={16} color={theme.colors.textMuted} />
               <Text style={memberStyles.readOnlyValue} numberOfLines={2}>
                 {[userData?.address, userData?.city, userData?.state].filter(Boolean).join(', ') ||
-                  'Not set'}
+                  t('addNewMember.notSet')}
               </Text>
               <View style={memberStyles.lockedBadge}>
                 <ShieldIcon size={12} color={theme.colors.textMuted} />
               </View>
             </View>
-            <Text style={memberStyles.readOnlyHint}>Inherited from primary account</Text>
+            <Text style={memberStyles.readOnlyHint}>{t('addNewMember.inheritedFromPrimary')}</Text>
           </View>
         </View>
         <TouchableOpacity
@@ -330,14 +338,16 @@ export const AddNewMemberScreen: React.FC = () => {
             <ActivityIndicator color={theme.colors.surface} size="small" />
           ) : (
             <Text style={memberStyles.submitBtnText}>
-              {memberId ? 'Edit Family Member' : 'Add Family Member'}
+              {memberId
+                ? t('addNewMember.editFamilyMemberTitle')
+                : t('addNewMember.addFamilyMemberTitle')}
             </Text>
           )}
         </TouchableOpacity>
       </ScrollView>
       <CustomDropDownPicker
         visible={showRelationPicker}
-        title="Relation"
+        title={t('addNewMember.relation')}
         options={FamilyRelations}
         selectedValue={currentRelation}
         onSelect={val => {
@@ -348,7 +358,7 @@ export const AddNewMemberScreen: React.FC = () => {
       />
       <CustomDropDownPicker
         visible={showGenderPicker}
-        title="Gender"
+        title={t('addNewMember.gender')}
         options={GenderOptions}
         selectedValue={currentGender}
         onSelect={val => {
@@ -361,7 +371,7 @@ export const AddNewMemberScreen: React.FC = () => {
         visible={showDOBPicker}
         value={currentDateOfBirth ? new Date(currentDateOfBirth) : new Date(2000, 0, 1)}
         maxYear={new Date().getFullYear()}
-        title="Date of Birth"
+        title={t('addNewMember.dateOfBirth')}
         onCancel={() => setShowDOBPicker(false)}
         onConfirm={date => {
           const formatted = dayjs(date).format('YYYY-MM-DD');

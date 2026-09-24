@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Modal,
   ScrollView,
@@ -31,13 +32,6 @@ export const defaultPrescriptionFilters: PrescriptionFilterValues = {
   customTo: '',
 };
 
-const DATE_PRESETS: { key: RxDatePreset; label: string }[] = [
-  { key: 'today', label: 'Today' },
-  { key: 'this_week', label: 'This Week' },
-  { key: 'current_month', label: 'This Month' },
-  { key: 'current_year', label: 'This Year' },
-];
-
 export interface PrescriptionFilterModalProps {
   visible: boolean;
   initialValues?: PrescriptionFilterValues;
@@ -51,8 +45,19 @@ export const PrescriptionFilterModal: React.FC<PrescriptionFilterModalProps> = (
   onClose,
   onApply,
 }) => {
+  const { t } = useTranslation();
   const [filters, setFilters] = useState<PrescriptionFilterValues>(initialValues);
   const [datePickerTarget, setDatePickerTarget] = useState<'from' | 'to' | null>(null);
+
+  const datePresets = useMemo(
+    (): { key: RxDatePreset; label: string }[] => [
+      { key: 'today', label: t('prescriptionFilterModal.today') },
+      { key: 'this_week', label: t('prescriptionFilterModal.thisWeek') },
+      { key: 'current_month', label: t('prescriptionFilterModal.thisMonth') },
+      { key: 'current_year', label: t('prescriptionFilterModal.thisYear') },
+    ],
+    [t]
+  );
 
   const reset = () => {
     setFilters(defaultPrescriptionFilters);
@@ -66,12 +71,6 @@ export const PrescriptionFilterModal: React.FC<PrescriptionFilterModalProps> = (
       customTo: '',
     }));
   };
-
-  useEffect(() => {
-    if (visible) {
-      setFilters(initialValues);
-    }
-  }, [visible, initialValues]);
 
   const currentPickerValue = useMemo(() => {
     if (datePickerTarget === 'from' && filters.customFrom) {
@@ -98,6 +97,12 @@ export const PrescriptionFilterModal: React.FC<PrescriptionFilterModalProps> = (
     [datePickerTarget]
   );
 
+  useEffect(() => {
+    if (visible) {
+      setFilters(initialValues);
+    }
+  }, [visible, initialValues]);
+
   return (
     <>
       <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -109,9 +114,13 @@ export const PrescriptionFilterModal: React.FC<PrescriptionFilterModalProps> = (
                   <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
                     <CircleXIcon size={22} color={theme.colors.textMuted} />
                   </TouchableOpacity>
-                  <Text style={prescriptionsStyles.filterTitle}>Filter Prescriptions</Text>
+                  <Text style={prescriptionsStyles.filterTitle}>
+                    {t('prescriptionFilterModal.filterTitle')}
+                  </Text>
                   <TouchableOpacity onPress={reset} activeOpacity={0.7}>
-                    <Text style={prescriptionsStyles.filterResetLink}>Reset</Text>
+                    <Text style={prescriptionsStyles.filterResetLink}>
+                      {t('prescriptionFilterModal.reset')}
+                    </Text>
                   </TouchableOpacity>
                 </View>
 
@@ -120,12 +129,14 @@ export const PrescriptionFilterModal: React.FC<PrescriptionFilterModalProps> = (
                   showsVerticalScrollIndicator={false}
                   keyboardShouldPersistTaps="handled"
                 >
-                  <Text style={prescriptionsStyles.filterSectionLabel}>DOCTOR NAME</Text>
+                  <Text style={prescriptionsStyles.filterSectionLabel}>
+                    {t('prescriptionFilterModal.doctorNameLabel')}
+                  </Text>
                   <View style={prescriptionsStyles.filterSearchBox}>
                     <SearchIcon size={18} color={theme.colors.textMuted} />
                     <TextInput
                       style={prescriptionsStyles.searchInput}
-                      placeholder="Search doctor..."
+                      placeholder={t('prescriptionFilterModal.searchDoctorPlaceholder')}
                       placeholderTextColor={theme.colors.textMuted}
                       value={filters.doctorQuery}
                       onChangeText={text => setFilters(prev => ({ ...prev, doctorQuery: text }))}
@@ -139,8 +150,10 @@ export const PrescriptionFilterModal: React.FC<PrescriptionFilterModalProps> = (
                     ) : null}
                   </View>
 
-                  <Text style={prescriptionsStyles.filterSectionLabel}>DATE PRESETS</Text>
-                  {DATE_PRESETS.map(opt => {
+                  <Text style={prescriptionsStyles.filterSectionLabel}>
+                    {t('prescriptionFilterModal.datePresetsLabel')}
+                  </Text>
+                  {datePresets.map(opt => {
                     const selected = filters.datePreset === opt.key;
                     return (
                       <TouchableOpacity
@@ -173,19 +186,25 @@ export const PrescriptionFilterModal: React.FC<PrescriptionFilterModalProps> = (
                   })}
 
                   <View style={prescriptionsStyles.customCard}>
-                    <Text style={prescriptionsStyles.customTitle}>Custom Range</Text>
-                    <Text style={prescriptionsStyles.customSub}>Specify date window</Text>
+                    <Text style={prescriptionsStyles.customTitle}>
+                      {t('prescriptionFilterModal.customRange')}
+                    </Text>
+                    <Text style={prescriptionsStyles.customSub}>
+                      {t('prescriptionFilterModal.specifyDateWindow')}
+                    </Text>
                     <View style={prescriptionsStyles.dateRow}>
                       <TouchableOpacity
                         style={prescriptionsStyles.dateField}
                         onPress={() => setDatePickerTarget('from')}
                         activeOpacity={0.75}
                       >
-                        <Text style={prescriptionsStyles.dateFieldLabel}>FROM</Text>
+                        <Text style={prescriptionsStyles.dateFieldLabel}>
+                          {t('prescriptionFilterModal.fromLabel')}
+                        </Text>
                         <View style={prescriptionsStyles.dateFieldValue}>
                           <CalendarIcon size={14} color={theme.colors.textMuted} />
                           <Text style={prescriptionsStyles.dateFieldText}>
-                            {filters.customFrom || 'Select Date'}
+                            {filters.customFrom || t('prescriptionFilterModal.selectDate')}
                           </Text>
                         </View>
                       </TouchableOpacity>
@@ -194,11 +213,13 @@ export const PrescriptionFilterModal: React.FC<PrescriptionFilterModalProps> = (
                         onPress={() => setDatePickerTarget('to')}
                         activeOpacity={0.75}
                       >
-                        <Text style={prescriptionsStyles.dateFieldLabel}>TO</Text>
+                        <Text style={prescriptionsStyles.dateFieldLabel}>
+                          {t('prescriptionFilterModal.toLabel')}
+                        </Text>
                         <View style={prescriptionsStyles.dateFieldValue}>
                           <CalendarIcon size={14} color={theme.colors.textMuted} />
                           <Text style={prescriptionsStyles.dateFieldText}>
-                            {filters.customTo || 'Select Date'}
+                            {filters.customTo || t('prescriptionFilterModal.selectDate')}
                           </Text>
                         </View>
                       </TouchableOpacity>
@@ -212,7 +233,9 @@ export const PrescriptionFilterModal: React.FC<PrescriptionFilterModalProps> = (
                     activeOpacity={0.85}
                     onPress={() => onApply(filters)}
                   >
-                    <Text style={prescriptionsStyles.applyBtnText}>Apply Filters</Text>
+                    <Text style={prescriptionsStyles.applyBtnText}>
+                      {t('prescriptionFilterModal.applyFilters')}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -223,7 +246,11 @@ export const PrescriptionFilterModal: React.FC<PrescriptionFilterModalProps> = (
 
       <PredDatePickerModal
         visible={datePickerTarget !== null}
-        title={datePickerTarget === 'from' ? 'Select Start Date' : 'Select End Date'}
+        title={
+          datePickerTarget === 'from'
+            ? t('prescriptionFilterModal.selectStartDate')
+            : t('prescriptionFilterModal.selectEndDate')
+        }
         value={currentPickerValue}
         onConfirm={handleConfirmDate}
         onCancel={() => setDatePickerTarget(null)}

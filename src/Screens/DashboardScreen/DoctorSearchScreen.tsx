@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   FlatList,
@@ -72,6 +73,7 @@ export const defaultFilterStates: IDoctorFilterStates = {
 
 export const DoctorSearchScreen: React.FC = () => {
   const navigation = useNavigation<any>();
+  const { t } = useTranslation();
 
   const [filterStates, setFilterStates] = useState<IDoctorFilterStates>(defaultFilterStates);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -232,13 +234,13 @@ export const DoctorSearchScreen: React.FC = () => {
 
   return (
     <SafeAreaWrapper style={doctorSearchStyles.container} showBottomBar isPathClear>
-      <AppHeader title="Find a Specialist" showBack={true} />
+      <AppHeader title={t('commons.findSpecialist')} showBack={true} />
       <View style={doctorSearchStyles.searchChrome}>
         <View style={doctorSearchStyles.searchBox}>
           <SearchIcon size={18} color={theme.colors.textMuted} />
           <TextInput
             style={doctorSearchStyles.searchInput}
-            placeholder="Search doctors, clinics..."
+            placeholder={t('doctorSearchScreen.searchPlaceholder')}
             placeholderTextColor={theme.colors.textMuted}
             value={filterStates.searchQuery}
             onChangeText={searchQuery => updateFilterState({ searchQuery })}
@@ -246,7 +248,7 @@ export const DoctorSearchScreen: React.FC = () => {
           />
           <TouchableOpacity
             onPress={() => setShowFilterModal(true)}
-            activeOpacity={0.7}
+            activeOpacity={1}
             style={{ paddingLeft: 8 }}
           >
             <FilterIcon size={20} color={theme.colors.primaryDark} />
@@ -269,7 +271,7 @@ export const DoctorSearchScreen: React.FC = () => {
               ]}
               numberOfLines={1}
             >
-              {filterStates.selectedSpecialty || 'Specility'}
+              {filterStates.selectedSpecialty || t('commons.specialty')}
             </Text>
             <ChevronDownIcon
               size={14}
@@ -294,7 +296,7 @@ export const DoctorSearchScreen: React.FC = () => {
               ]}
               numberOfLines={1}
             >
-              {filterStates.selectedCity || 'City'}
+              {filterStates.selectedCity || t('commons.city')}
             </Text>
             <ChevronDownIcon
               size={16}
@@ -308,7 +310,7 @@ export const DoctorSearchScreen: React.FC = () => {
         <View style={doctorSearchStyles.toggleRow}>
           <View style={doctorSearchStyles.toggleCard}>
             <CalendarIcon size={18} color={theme.colors.primary} />
-            <Text style={doctorSearchStyles.toggleLabel}>Today</Text>
+            <Text style={doctorSearchStyles.toggleLabel}>{t('commons.today')}</Text>
             <Switch
               value={filterStates.todayOnly}
               onValueChange={todayOnly =>
@@ -324,7 +326,7 @@ export const DoctorSearchScreen: React.FC = () => {
 
           <View style={doctorSearchStyles.toggleCard}>
             <VideoIcon size={18} color={theme.colors.primary} />
-            <Text style={doctorSearchStyles.toggleLabel}>Video</Text>
+            <Text style={doctorSearchStyles.toggleLabel}>{t('commons.video')}</Text>
             <Switch
               value={filterStates.videoOnly}
               onValueChange={videoOnly =>
@@ -348,12 +350,12 @@ export const DoctorSearchScreen: React.FC = () => {
           }}
         >
           <Text style={[doctorSearchStyles.sectionTitle, { marginBottom: 0 }]}>
-            Specialists & Clinics for you
+            {t('doctorSearchScreen.sectionTitle')}
           </Text>
           {hasActiveFilters && (
             <TouchableOpacity
               onPress={handleResetFilters}
-              activeOpacity={0.7}
+              activeOpacity={1}
               style={{
                 paddingHorizontal: 10,
                 paddingVertical: 4,
@@ -362,7 +364,7 @@ export const DoctorSearchScreen: React.FC = () => {
               }}
             >
               <Text style={{ fontSize: 12, fontWeight: '600', color: theme.colors.surface }}>
-                Clear All
+                {t('commons.clearAll')}
               </Text>
             </TouchableOpacity>
           )}
@@ -439,12 +441,14 @@ export const DoctorSearchScreen: React.FC = () => {
             <View style={doctorSearchStyles.emptyBox}>
               <StethoscopeIcon size={36} color={theme.colors.primaryDark} />
               <Text style={doctorSearchStyles.emptyTitle}>
-                {hasActiveFilters ? 'No Results Found' : 'Search for Doctors'}
+                {hasActiveFilters
+                  ? t('commons.noResultsFound')
+                  : t('doctorSearchScreen.searchDoctorsTitle')}
               </Text>
               <Text style={doctorSearchStyles.emptySubtitle}>
                 {hasActiveFilters
-                  ? 'Try adjusting your search terms or filter criteria.'
-                  : 'Search for doctors by name, specialization, or clinic.'}
+                  ? t('doctorSearchScreen.noResultsSub')
+                  : t('doctorSearchScreen.searchDoctorsSub')}
               </Text>
             </View>
           }

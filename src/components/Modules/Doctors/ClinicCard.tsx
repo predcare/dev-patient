@@ -1,8 +1,8 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { doctorSearchStyles } from '../../../styled/DoctorSearchScreen.styled';
 import { theme } from '../../../styled/theme.styled';
-import { IClinicDoc } from '../../../typescripts/interfaces/doctors.interfaces';
 import { ClinicIcon, MapPinIcon, StethoscopeIcon } from '../../ui/icons';
 
 export interface ClinicCardProps {
@@ -25,6 +25,7 @@ export const ClinicCard: React.FC<ClinicCardProps> = ({
   availableDoctorsCount = 0,
   onPress,
 }) => {
+  const { t } = useTranslation();
   const doctorCount = availableDoctorsCount;
   const locationLabel = location || [city, state].filter(Boolean).join(', ');
 
@@ -57,8 +58,6 @@ export const ClinicCard: React.FC<ClinicCardProps> = ({
           ) : null}
         </View>
       </View>
-
-      {/* Specialities Chips */}
       {specialities && specialities.length > 0 && (
         <View style={doctorSearchStyles.clinicChipsRow}>
           {specialities.slice(0, 3).map((spec, idx) => (
@@ -75,8 +74,6 @@ export const ClinicCard: React.FC<ClinicCardProps> = ({
           )}
         </View>
       )}
-
-      {/* Bottom Footer */}
       <View style={doctorSearchStyles.clinicFooter}>
         <View style={doctorSearchStyles.clinicDocCountRow}>
           <StethoscopeIcon size={14} color={theme.colors.primary} />
@@ -90,7 +87,7 @@ export const ClinicCard: React.FC<ClinicCardProps> = ({
           onPress={handlePress}
           activeOpacity={0.8}
         >
-          <Text style={doctorSearchStyles.viewClinicBtnTxt}>View Clinic →</Text>
+          <Text style={doctorSearchStyles.viewClinicBtnTxt}>{t('commons.viewClinic')}</Text>
         </TouchableOpacity>
       </View>
     </TouchableOpacity>

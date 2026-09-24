@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { doctorStyles } from '../../../styled/DoctorScreen.styled';
 import { theme } from '../../../styled/theme.styled';
@@ -11,6 +12,7 @@ export interface FindDoctorCardProps {
 
 export const FindDoctorCard: React.FC<FindDoctorCardProps> = ({ onExplorePress }) => {
   const navigation = useNavigation<any>();
+  const { t } = useTranslation();
   const rootNav = navigation.getParent() || navigation;
 
   const handlePress = () => {
@@ -26,12 +28,10 @@ export const FindDoctorCard: React.FC<FindDoctorCardProps> = ({ onExplorePress }
       <View style={doctorStyles.findPlus}>
         <PlusIcon size={24} color={theme.colors.primaryDark} />
       </View>
-      <Text style={doctorStyles.findTitle}>Find New Doctors</Text>
-      <Text style={doctorStyles.findSub}>
-        Browse our network of top specialists and book instant consultations.
-      </Text>
+      <Text style={doctorStyles.findTitle}>{t('myDoctorsScreen.findNewDoctorsTitle')}</Text>
+      <Text style={doctorStyles.findSub}>{t('myDoctorsScreen.findNewDoctorsSub')}</Text>
       <View style={doctorStyles.findLinkRow}>
-        <Text style={doctorStyles.findLink}>Find a Specialist</Text>
+        <Text style={doctorStyles.findLink}>{t('myDoctorsScreen.findSpecialistLink')}</Text>
         <ChevronRightIcon size={16} color={theme.colors.primaryDark} />
       </View>
     </TouchableOpacity>

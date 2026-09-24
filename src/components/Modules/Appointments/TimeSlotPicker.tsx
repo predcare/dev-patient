@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { SlotGroups } from '../../../config/constants';
 import { showErrorToast } from '../../../lib/common/toast.utils';
@@ -49,6 +50,17 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
   isLoading,
   multiSelect = true,
 }) => {
+  const { t } = useTranslation();
+
+  const groupTitleMap = useMemo<Record<string, string>>(
+    () => ({
+      morning: t('bookAppointmentScreen.morning'),
+      afternoon: t('bookAppointmentScreen.afternoon'),
+      evening: t('bookAppointmentScreen.evening'),
+    }),
+    [t]
+  );
+
   const groupedSlots = useMemo(() => {
     const groups: Record<string, ITimeSlotsDoc[]> = {
       morning: [],
@@ -94,7 +106,7 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
         const nextSelected = selectedSlots.slice(0, -1);
         if (onSelectSlots) onSelectSlots(nextSelected);
       } else {
-        showErrorToast('You can only unselect slots from the start or end of your selection.');
+        showErrorToast(t('bookAppointmentScreen.unselectEdgeSlotsOnly'));
       }
       return;
     }
@@ -127,7 +139,7 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
       if (onSelectSlots) onSelectSlots(nextSelected);
       if (onSelectSlot && nextSelected[0]) onSelectSlot(nextSelected[0]);
     } else {
-      showErrorToast('Please select consecutive time slots only.');
+      showErrorToast(t('bookAppointmentScreen.selectConsecutiveSlotsOnly'));
     }
   };
 
@@ -146,7 +158,7 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
           textAlign: 'center',
         }}
       >
-        No slots available for this consultation type on this date.
+        {t('bookAppointmentScreen.noSlotsAvailable')}
       </Text>
     );
   }
@@ -155,7 +167,9 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
     <View>
       {SlotGroups.filter(group => groupedSlots[group.key].length > 0).map(group => (
         <View key={group.key} style={bookAppointmentStyles.slotGroupContainer}>
-          <Text style={bookAppointmentStyles.slotGroupTitle}>{group.title}</Text>
+          <Text style={bookAppointmentStyles.slotGroupTitle}>
+            {groupTitleMap[group.key] || group.title}
+          </Text>
           <View style={bookAppointmentStyles.slotsGrid}>
             {groupedSlots[group.key].map((slot, idx) => {
               const isAvailable = slot.status === 'available' || !slot.status;

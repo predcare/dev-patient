@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as yup from 'yup';
@@ -68,6 +69,7 @@ export const newSupportTicketSchema = yup.object().shape({
 export type TNewSupportTicketFormValues = yup.InferType<typeof newSupportTicketSchema>;
 
 export const NewSupportTicketScreen: React.FC = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
 
@@ -226,7 +228,7 @@ export const NewSupportTicketScreen: React.FC = () => {
         } as any);
       });
     }
-    showLoader('Creating ticket...');
+    showLoader(t('support.creatingTicket'));
     createTicketMutation(formData, {
       onSuccess: async res => {
         if (res?.success) {
@@ -250,7 +252,7 @@ export const NewSupportTicketScreen: React.FC = () => {
   return (
     <SafeAreaWrapper style={supportStyles.screen}>
       <AppHeader
-        title="New Ticket"
+        title={t('support.newTicket')}
         showBack={true}
         right={
           <View style={supportStyles.hdrIcon}>
@@ -268,12 +270,11 @@ export const NewSupportTicketScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
       >
         <Text style={supportStyles.intro}>
-          How can we help you today? Our support team typically responds within 2 hours during
-          business hours.
+          {t('support.introText')}
         </Text>
 
         <View style={supportStyles.formCard}>
-          <Text style={supportStyles.label}>CATEGORY</Text>
+          <Text style={supportStyles.label}>{t('support.categoryLabel')}</Text>
           <TouchableOpacity
             style={[supportStyles.select, !!errors.subject && localStyles.inputErrorBorder]}
             onPress={() => setShowCatModal(true)}
@@ -281,19 +282,19 @@ export const NewSupportTicketScreen: React.FC = () => {
           >
             <Text style={[supportStyles.selectTxt, !selectedSubject && supportStyles.placeholder]}>
               {selectedSubject ||
-                (isLoadingCategories ? 'Loading categories...' : 'Select a category')}
+                (isLoadingCategories ? t('support.loadingCategories') : t('support.selectCategory'))}
             </Text>
             <ChevronDownIcon size={18} color={theme.colors.textMuted} />
           </TouchableOpacity>
           {errors.subject && <Text style={localStyles.errorText}>{errors.subject.message}</Text>}
-          <Text style={supportStyles.label}>MESSAGE</Text>
+          <Text style={supportStyles.label}>{t('support.messageLabel')}</Text>
           <Controller
             control={control}
             name="message"
             render={({ field: { onChange, onBlur, value } }) => (
               <TextInput
                 style={[supportStyles.message, !!errors.message && localStyles.inputErrorBorder]}
-                placeholder="Describe your issue here..."
+                placeholder={t('support.describeIssuePlaceholder')}
                 placeholderTextColor={theme.colors.textMuted}
                 value={value}
                 onChangeText={onChange}
@@ -308,7 +309,7 @@ export const NewSupportTicketScreen: React.FC = () => {
             style={supportStyles.attachBox}
             onPress={() => {
               if (currentAttachments.length >= MAX_IMAGES) {
-                showInfoToast(`You can only upload up to ${MAX_IMAGES} images`, 'Attachment Limit');
+                showInfoToast(t('support.maxAttachmentsWarning', { count: MAX_IMAGES }), 'Attachment Limit');
                 return;
               }
               setShowUploadOptions(true);
@@ -316,9 +317,12 @@ export const NewSupportTicketScreen: React.FC = () => {
             activeOpacity={0.85}
           >
             <UploadIcon size={28} color={theme.colors.primary} />
-            <Text style={supportStyles.attachTxt}>Attach screenshots or documents (optional)</Text>
+            <Text style={supportStyles.attachTxt}>{t('support.attachScreenshotsTitle')}</Text>
             <Text style={supportStyles.attachHint}>
-              Up to {MAX_IMAGES} images • {currentAttachments.length}/{MAX_IMAGES} selected
+              {t('support.attachmentsCounter', {
+                max: MAX_IMAGES,
+                count: currentAttachments.length,
+              })}
             </Text>
           </TouchableOpacity>
           {errors.attachments && (
@@ -344,8 +348,7 @@ export const NewSupportTicketScreen: React.FC = () => {
         <View style={supportStyles.infoRow}>
           <HelpIcon size={14} color={theme.colors.textMuted} />
           <Text style={supportStyles.infoTxt}>
-            Please ensure you do not include sensitive medical information such as full prescription
-            details or passwords.
+            {t('support.privacyNotice')}
           </Text>
         </View>
         <TouchableOpacity
@@ -357,7 +360,7 @@ export const NewSupportTicketScreen: React.FC = () => {
           {isSubmitting ? (
             <ActivityIndicator color={theme.colors.surface} />
           ) : (
-            <Text style={supportStyles.submitTxt}>Submit Ticket</Text>
+            <Text style={supportStyles.submitTxt}>{t('support.submitTicket')}</Text>
           )}
         </TouchableOpacity>
       </ScrollView>

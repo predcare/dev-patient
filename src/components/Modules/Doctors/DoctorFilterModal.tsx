@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Modal,
   ScrollView,
@@ -46,6 +47,7 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
   onClose,
   onApply,
 }) => {
+  const { t } = useTranslation();
   const [filters, setFilters] = useState<DoctorFilterValues>({
     ...defaultDoctorFilters,
     ...initialValues,
@@ -97,45 +99,42 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={styles.container}>
-        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.headerBtn} activeOpacity={0.7}>
             <CircleXIcon size={22} color={theme.colors.textPrimary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Filter Doctors</Text>
+          <Text style={styles.headerTitle}>{t('doctorFilterModal.filterDoctors')}</Text>
           <TouchableOpacity onPress={reset} activeOpacity={0.7}>
-            <Text style={styles.resetTop}>Reset</Text>
+            <Text style={styles.resetTop}>{t('commons.reset')}</Text>
           </TouchableOpacity>
         </View>
-
         <ScrollView
           contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Speciality and Sub Specialty */}
-          <Text style={styles.sectionTitle}>Speciality and Sub Specialty</Text>
+          <Text style={styles.sectionTitle}>
+            {t('doctorFilterModal.specialityAndSubSpecialty')}
+          </Text>
           <View style={styles.searchBox}>
             <SearchIcon size={18} color={theme.colors.textMuted} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search by speciality..."
+              placeholder={t('doctorFilterModal.searchBySpeciality')}
               placeholderTextColor={theme.colors.textMuted}
               value={filters.specialtyQuery}
               onChangeText={specialtyQuery => setFilters(f => ({ ...f, specialtyQuery }))}
             />
           </View>
-
-          {/* Availability */}
           <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionTitle}>Availability</Text>
-            <Text style={styles.selectOne}>SELECT ONE</Text>
+            <Text style={styles.sectionTitle}>{t('doctorFilterModal.availability')}</Text>
+            <Text style={styles.selectOne}>{t('doctorFilterModal.selectOne')}</Text>
           </View>
           {(
             [
-              ['today', 'Today'],
-              ['week', 'This Week'],
-              ['month', 'This Month'],
+              ['today', t('doctorFilterModal.today')],
+              ['week', t('doctorFilterModal.thisWeek')],
+              ['month', t('doctorFilterModal.thisMonth')],
             ] as const
           ).map(([key, label]) => {
             const selected = filters.availability === key;
@@ -158,9 +157,7 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
               </TouchableOpacity>
             );
           })}
-
-          {/* Consultation Type */}
-          <Text style={styles.sectionTitle}>Consultation Type</Text>
+          <Text style={styles.sectionTitle}>{t('doctorFilterModal.consultationType')}</Text>
           <View style={styles.row}>
             <RowChip
               label="In-person"
@@ -193,9 +190,7 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
               }
             />
           </View>
-
-          {/* Gender */}
-          <Text style={styles.sectionTitle}>Gender</Text>
+          <Text style={styles.sectionTitle}>{t('doctorFilterModal.gender')}</Text>
           <View style={styles.row}>
             <RowChip
               label="Male"
@@ -212,9 +207,7 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
               }
             />
           </View>
-
-          {/* Language */}
-          <Text style={styles.sectionTitle}>Language</Text>
+          <Text style={styles.sectionTitle}>{t('doctorFilterModal.language')}</Text>
           <View style={styles.wrap}>
             {LANGUAGES_LIST.map(lang => (
               <PillChip
@@ -230,9 +223,7 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
               />
             ))}
           </View>
-
-          {/* Consultation Fee */}
-          <Text style={styles.sectionTitle}>Consultation Fee</Text>
+          <Text style={styles.sectionTitle}>{t('doctorFilterModal.consultationFee')}</Text>
           <View style={styles.row}>
             <RowChip
               label="Under ₹500"
@@ -256,9 +247,7 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
               }
             />
           </View>
-
-          {/* Experience */}
-          <Text style={styles.sectionTitle}>Experience</Text>
+          <Text style={styles.sectionTitle}>{t('doctorFilterModal.experience')}</Text>
           <View style={styles.wrap}>
             {(
               [
@@ -291,14 +280,11 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
             ))}
           </View>
 
-          {/* Reset Bottom Link */}
           <TouchableOpacity onPress={reset} style={styles.resetBottom} activeOpacity={0.7}>
-            <Text style={styles.resetBottomText}>Reset Filters</Text>
+            <Text style={styles.resetBottomText}>{t('doctorFilterModal.resetFilters')}</Text>
           </TouchableOpacity>
-
-          {/* Apply Button */}
           <TouchableOpacity style={styles.applyBtn} activeOpacity={0.85} onPress={handleApply}>
-            <Text style={styles.applyText}>Apply Filters</Text>
+            <Text style={styles.applyText}>{t('doctorFilterModal.applyFilters')}</Text>
           </TouchableOpacity>
         </ScrollView>
       </View>

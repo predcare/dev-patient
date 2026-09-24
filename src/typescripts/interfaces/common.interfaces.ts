@@ -97,3 +97,15 @@ export interface ICommonEMRCats {
   is_active: boolean;
   sort_order: number;
 }
+
+export interface IHealthCareTips {
+  id: string;
+  title: string;
+  short_description: string;
+  icon_path: any;
+  icon_url: any;
+  status: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}

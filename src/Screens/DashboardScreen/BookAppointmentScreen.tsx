@@ -1,6 +1,7 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import dayjs from 'dayjs';
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Image,
@@ -65,6 +66,7 @@ interface IFormStates {
 }
 
 export const BookAppointmentScreen: React.FC = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const router = useRoute();
   const { doctorId, clinicId } = (router.params || {}) as { doctorId: number; clinicId: number };
@@ -140,9 +142,9 @@ export const BookAppointmentScreen: React.FC = () => {
   };
 
   const handleProceed = () => {
-    if (!formStates?.selectedDate) return showErrorToast('Please select a date');
+    if (!formStates?.selectedDate) return showErrorToast(t('bookAppointmentScreen.selectDateError'));
     if (formStates?.selectedSlots.length === 0)
-      return showErrorToast('Please select consultation slots');
+      return showErrorToast(t('bookAppointmentScreen.selectSlotsError'));
 
     const firstSlot = formStates.selectedSlots[0];
     const lastSlot = formStates.selectedSlots[formStates.selectedSlots.length - 1];
@@ -206,7 +208,7 @@ export const BookAppointmentScreen: React.FC = () => {
 
   return (
     <SafeAreaWrapper style={bookAppointmentStyles.container}>
-      <AppHeader title="Book Appointment" showBack={true} />
+      <AppHeader title={t('bookAppointmentScreen.title')} showBack={true} />
 
       <ScrollView
         style={bookAppointmentStyles.scroll}
@@ -247,7 +249,9 @@ export const BookAppointmentScreen: React.FC = () => {
         )}
 
         {/* Patient Information */}
-        <Text style={bookAppointmentStyles.sectionLabel}>PATIENT INFORMATION</Text>
+        <Text style={bookAppointmentStyles.sectionLabel}>
+          {t('bookAppointmentScreen.patientInfoLabel')}
+        </Text>
         <View style={bookAppointmentStyles.patientCard}>
           <View style={bookAppointmentStyles.patientInfo}>
             <View style={bookAppointmentStyles.patientAvatar}>
@@ -265,7 +269,9 @@ export const BookAppointmentScreen: React.FC = () => {
         </View>
 
         {/* Consultation Type */}
-        <Text style={bookAppointmentStyles.sectionLabel}>CONSULTATION TYPE</Text>
+        <Text style={bookAppointmentStyles.sectionLabel}>
+          {t('bookAppointmentScreen.consultationTypeLabel')}
+        </Text>
         <View style={bookAppointmentStyles.consultationRow}>
           <TouchableOpacity
             style={[
@@ -329,7 +335,7 @@ export const BookAppointmentScreen: React.FC = () => {
           Reason for Visit <Text style={bookAppointmentStyles.optionalHint}>(optional)</Text>
         </Text>
         <TextInput
-          placeholder="e.g. Headache and fever"
+          placeholder={t('bookAppointmentScreen.reasonPlaceholder')}
           placeholderTextColor={theme.colors.textMuted}
           style={bookAppointmentStyles.reasonInput}
           multiline
@@ -338,7 +344,9 @@ export const BookAppointmentScreen: React.FC = () => {
           value={formStates.reason}
           onChangeText={text => updateForm('reason', text)}
         />
-        <Text style={bookAppointmentStyles.sectionLabel}>SELECT DATE</Text>
+        <Text style={bookAppointmentStyles.sectionLabel}>
+          {t('bookAppointmentScreen.selectDateLabel')}
+        </Text>
         {isAvailableDatesPending ? (
           <BookingSlotsSkeleton datesOnly />
         ) : !availableDatesRes || availableDatesRes?.length === 0 ? (
@@ -350,12 +358,13 @@ export const BookAppointmentScreen: React.FC = () => {
               marginBottom: 12,
             }}
           >
-            No available dates found for this doctor.
+            {t('bookAppointmentScreen.noDatesFound')}
           </Text>
         ) : (
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
             contentContainerStyle={bookAppointmentStyles.dateRow}
           >
             {availableDatesRes &&
@@ -403,7 +412,9 @@ export const BookAppointmentScreen: React.FC = () => {
 
         {formStates.selectedDate && (
           <>
-            <Text style={bookAppointmentStyles.sectionLabel}>SELECT TIME</Text>
+            <Text style={bookAppointmentStyles.sectionLabel}>
+              {t('bookAppointmentScreen.selectTimeLabel')}
+            </Text>
             <TimeSlotPicker
               availSlots={slotsRes?.slots || []}
               selectedSlots={formStates.selectedSlots}
@@ -420,40 +431,52 @@ export const BookAppointmentScreen: React.FC = () => {
         )}
 
         <View style={bookAppointmentStyles.summaryBox}>
-          <Text style={bookAppointmentStyles.summaryTitle}>APPOINTMENT SUMMARY</Text>
+          <Text style={bookAppointmentStyles.summaryTitle}>
+            {t('bookAppointmentScreen.appointmentSummary')}
+          </Text>
 
           <View style={bookAppointmentStyles.summaryRow}>
-            <Text style={bookAppointmentStyles.summaryLabel}>DOCTOR</Text>
+            <Text style={bookAppointmentStyles.summaryLabel}>
+              {t('bookAppointmentScreen.doctorLabel')}
+            </Text>
             <Text style={bookAppointmentStyles.summaryValue}>
               {docSummary?.doctor?.name || 'N/A'}
             </Text>
           </View>
 
           <View style={bookAppointmentStyles.summaryRow}>
-            <Text style={bookAppointmentStyles.summaryLabel}>CLINIC</Text>
+            <Text style={bookAppointmentStyles.summaryLabel}>
+              {t('bookAppointmentScreen.clinicLabel')}
+            </Text>
             <Text style={bookAppointmentStyles.summaryValue}>
               {docSummary?.clinic?.name || 'N/A'}
             </Text>
           </View>
 
           <View style={bookAppointmentStyles.summaryRow}>
-            <Text style={bookAppointmentStyles.summaryLabel}>CONSULTATION</Text>
+            <Text style={bookAppointmentStyles.summaryLabel}>
+              {t('bookAppointmentScreen.consultationLabel')}
+            </Text>
             <Text style={bookAppointmentStyles.summaryValue}>
               {formStates.consultationType === 'in-person' ? 'In-Person' : 'Video Call'}
             </Text>
           </View>
 
           <View style={bookAppointmentStyles.summaryRow}>
-            <Text style={bookAppointmentStyles.summaryLabel}>DATE</Text>
+            <Text style={bookAppointmentStyles.summaryLabel}>
+              {t('bookAppointmentScreen.dateLabel')}
+            </Text>
             <Text style={bookAppointmentStyles.summaryValue}>
               {formStates.selectedDate
                 ? formatDateChip(formStates.selectedDate).full
-                : 'Not selected'}
+                : t('bookAppointmentScreen.notSelected')}
             </Text>
           </View>
 
           <View style={bookAppointmentStyles.summaryRow}>
-            <Text style={bookAppointmentStyles.summaryLabel}>TIME</Text>
+            <Text style={bookAppointmentStyles.summaryLabel}>
+              {t('bookAppointmentScreen.timeLabel')}
+            </Text>
             <Text style={bookAppointmentStyles.summaryValue}>
               {formStates.selectedSlots.length > 0
                 ? `${formatTime12h(formStates.selectedSlots[0].from)} - ${formatTime12h(
@@ -463,7 +486,7 @@ export const BookAppointmentScreen: React.FC = () => {
                       ? ` (${formStates.selectedSlots.length} slots)`
                       : ''
                   }`
-                : 'Not selected'}
+                : t('bookAppointmentScreen.notSelected')}
             </Text>
           </View>
 
@@ -471,14 +494,18 @@ export const BookAppointmentScreen: React.FC = () => {
 
           {consultationFee > 0 && (
             <View style={bookAppointmentStyles.summaryRow}>
-              <Text style={bookAppointmentStyles.summaryLabel}>Consultation Fee</Text>
+              <Text style={bookAppointmentStyles.summaryLabel}>
+                {t('bookAppointmentScreen.consultationFee')}
+              </Text>
               <Text style={bookAppointmentStyles.summaryValue}>₹{consultationFee}</Text>
             </View>
           )}
 
           {consultationFee > 0 && (
             <View style={bookAppointmentStyles.summaryRow}>
-              <Text style={bookAppointmentStyles.summaryLabel}>Platform Fee</Text>
+              <Text style={bookAppointmentStyles.summaryLabel}>
+                {t('bookAppointmentScreen.platformFee')}
+              </Text>
               {isCommisionSlabsPending ? (
                 <ActivityIndicator size="small" color={theme.colors.primaryDark} />
               ) : (
@@ -491,7 +518,9 @@ export const BookAppointmentScreen: React.FC = () => {
 
           {consultationFee > 0 && (
             <View style={bookAppointmentStyles.summaryRow}>
-              <Text style={bookAppointmentStyles.totalLabel}>Total Amount</Text>
+              <Text style={bookAppointmentStyles.totalLabel}>
+                {t('bookAppointmentScreen.totalAmount')}
+              </Text>
               {isCommisionSlabsPending ? (
                 <ActivityIndicator size="small" color={theme.colors.primaryDark} />
               ) : (
@@ -522,7 +551,8 @@ export const BookAppointmentScreen: React.FC = () => {
             <ActivityIndicator color={theme.colors.surface} />
           ) : (
             <Text style={bookAppointmentStyles.proceedBtnText}>
-              Book Appointment {totalAmount > 0 && `• ₹${totalAmount}`}
+              {t('bookAppointmentScreen.bookAppointmentBtn')}{' '}
+              {totalAmount > 0 && `• ₹${totalAmount}`}
             </Text>
           )}
         </TouchableOpacity>

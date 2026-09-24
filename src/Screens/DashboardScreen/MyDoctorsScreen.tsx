@@ -1,5 +1,6 @@
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import React, { useCallback, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FlatList, RefreshControl, Text, TouchableOpacity, View } from 'react-native';
 import { DoctorCard, FindDoctorCard } from '../../components/Modules/Doctors';
 import { MyDoctorsSkeleton } from '../../components/Skeletons/MyDoctorsSkeleton';
@@ -14,6 +15,7 @@ import { theme } from '../../styled/theme.styled';
 
 export const MyDoctorsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
+  const { t } = useTranslation();
   const rootNav = navigation.getParent() || navigation;
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const {
@@ -37,7 +39,7 @@ export const MyDoctorsScreen: React.FC = () => {
   const handleNavigate = (type: string, options: { doctorId: number; clinicId: number }) => {
     const { clinicId, doctorId } = options;
     if (!clinicId && !doctorId && type === 'book') {
-      return showErrorToast('Invalid doctor information');
+      return showErrorToast(t('myDoctorsScreen.invalidDoctorInfo'));
     }
     if (type === 'profile') {
       rootNav.navigate(AppRoute.DOCTOR_DETAILS, {
@@ -49,15 +51,9 @@ export const MyDoctorsScreen: React.FC = () => {
         clinicId: options?.clinicId,
       });
     } else {
-      showErrorToast("Can't book or view this doctor");
+      showErrorToast(t('myDoctorsScreen.cannotBookOrViewDoctor'));
     }
   };
-
-  useFocusEffect(
-    useCallback(() => {
-      refetchMyDoctors();
-    }, [])
-  );
 
   return (
     <SafeAreaWrapper
@@ -66,7 +62,7 @@ export const MyDoctorsScreen: React.FC = () => {
       activeBottomTab="Doctors"
       isPathClear={true}
     >
-      <Header greeting="My Doctors" />
+      <Header title={t('commons.myDoctors')} subTitle={t('myDoctorsScreen.subTitle')} />
       {isLoadingMyDoctors && !refreshing && !myDoctorsData ? (
         <MyDoctorsSkeleton />
       ) : (
@@ -104,17 +100,18 @@ export const MyDoctorsScreen: React.FC = () => {
               <View style={doctorStyles.emptyIconWrapper}>
                 <StethoscopeIcon size={32} color={theme.colors.primaryDark} />
               </View>
-              <Text style={doctorStyles.emptyTitle}>No Doctors Added Yet</Text>
+              <Text style={doctorStyles.emptyTitle}>{t('dashboard.noDoctorsAddedYet')}</Text>
               <Text style={doctorStyles.emptyDescription}>
-                Doctors you consult with or book appointments with will automatically appear here
-                for easy access and rebooking.
+                {t('myDoctorsScreen.noDoctorsDescription')}
               </Text>
               <TouchableOpacity
                 style={doctorStyles.emptyActionButton}
                 onPress={handleExploreDoctors}
                 activeOpacity={0.8}
               >
-                <Text style={doctorStyles.emptyActionButtonText}>Find & Book a Doctor</Text>
+                <Text style={doctorStyles.emptyActionButtonText}>
+                  {t('myDoctorsScreen.findAndBookDoctor')}
+                </Text>
               </TouchableOpacity>
             </View>
           }

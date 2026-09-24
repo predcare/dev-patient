@@ -32,6 +32,7 @@ export enum CommonQueryKeys {
   Specializations = 'Specializations',
   GET_EMR_CATEGORIES = 'GET_EMR_CATEGORIES',
   GET_COMMISION_SLABS = 'GET_COMMISION_SLABS',
+  GET_HEALTH_CARE_TIPS = 'GET_HEALTH_CARE_TIPS',
 }
 
 export enum DoctorQueryKeys {

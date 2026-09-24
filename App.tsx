@@ -10,6 +10,7 @@ import SocketProvider from './src/components/commons/Sockets/SocketProvider';
 import GlobalToast from './src/components/commons/Toast/GlobalToast';
 import { GlobalMeetingManager } from './src/components/Modules/PatientMeeting';
 import ReactQueryProvider from './src/components/providers/ReactQueryProvider';
+import { LanguageProvider } from './src/contexts/LanguageContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import theme from './src/styled/theme.styled';
 
@@ -18,19 +19,21 @@ function App(): React.JSX.Element {
   return (
     <ReactQueryProvider>
       <SafeAreaProvider>
-        <StatusBar
-          barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-          backgroundColor={theme.colors.background}
-        />
-        <AppNavigator />
-        <GlobalMeetingManager />
-        <GlobalIncomingCallBanner />
-        <GlobalToast />
-        <GlobalPopupAlert />
-        <BackdropLoader />
-        <EventListener />
-        <SocketProvider />
-        <SocketListeners />
+        <LanguageProvider>
+          <StatusBar
+            barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+            backgroundColor={theme.colors.background}
+          />
+          <AppNavigator />
+          <GlobalMeetingManager />
+          <GlobalIncomingCallBanner />
+          <GlobalToast />
+          <GlobalPopupAlert />
+          <BackdropLoader />
+          <EventListener />
+          <SocketProvider />
+          <SocketListeners />
+        </LanguageProvider>
       </SafeAreaProvider>
     </ReactQueryProvider>
   );

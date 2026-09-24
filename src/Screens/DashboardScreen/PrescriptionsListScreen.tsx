@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   FlatList,
@@ -57,6 +58,7 @@ const DefualtFilterState: IRxFilterState = {
 };
 
 export const PrescriptionsListScreen: React.FC = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const flatListRef = React.useRef<FlatList>(null);
   const [filterStates, setFilterStates] = useState<IRxFilterState>(DefualtFilterState);
@@ -163,7 +165,7 @@ export const PrescriptionsListScreen: React.FC = () => {
   );
 
   const handleViewInfo = (rxId: number) => {
-    if (!rxId) return showErrorToast('Something went wrong');
+    if (!rxId) return showErrorToast(t('prescriptionsScreen.somethingWentWrong'));
     navigation.navigate(AppRoute.PRESCRIPTION_DETAIL, {
       prescriptionId: rxId,
     });
@@ -172,7 +174,10 @@ export const PrescriptionsListScreen: React.FC = () => {
   const handleDownloadPDF = useCallback(
     (id: number) => {
       if (!id) {
-        showErrorToast('Prescription ID is missing', 'Download Failed');
+        showErrorToast(
+          t('prescriptionsScreen.rxIdMissing'),
+          t('prescriptionsScreen.downloadFailed')
+        );
         return;
       }
       setDownloadingRxId(id);
@@ -192,7 +197,7 @@ export const PrescriptionsListScreen: React.FC = () => {
                 });
               } catch (error) {
                 console.error(error);
-                showErrorToast('Failed to open PDF viewer');
+                showErrorToast(t('prescriptionsScreen.pdfViewerOpenFailed'));
               }
             }
             setDownloadingRxId(null);
@@ -206,7 +211,7 @@ export const PrescriptionsListScreen: React.FC = () => {
         }
       );
     },
-    [downloadPdfMutation]
+    [downloadPdfMutation, t]
   );
 
   return (
@@ -216,7 +221,10 @@ export const PrescriptionsListScreen: React.FC = () => {
       activeBottomTab="Reports"
       isPathClear={true}
     >
-      <Header greeting="Rx Prescriptions" userName="My Medical Records" />
+      <Header
+        title={t('prescriptionsScreen.title')}
+        subTitle={t('prescriptionsScreen.subTitle')}
+      />
       <FlatList
         ref={flatListRef}
         data={allRxLoading && !refreshing ? [] : allPrescriptions}
@@ -233,7 +241,7 @@ export const PrescriptionsListScreen: React.FC = () => {
               <SearchIcon size={18} color={theme.colors.textMuted} />
               <TextInput
                 style={prescriptionsStyles.searchInput}
-                placeholder="Search prescriptions..."
+                placeholder={t('prescriptionsScreen.searchPlaceholder')}
                 placeholderTextColor={theme.colors.textMuted}
                 value={filterStates.search}
                 onChangeText={text => updateFilterStates({ search: text })}
@@ -291,12 +299,16 @@ export const PrescriptionsListScreen: React.FC = () => {
               <View style={prescriptionsStyles.emptyIcon}>
                 <PrescriptionIcon size={32} color={theme.colors.primary} />
               </View>
-              <Text style={prescriptionsStyles.emptyTitle}>No Matching Prescriptions</Text>
+              <Text style={prescriptionsStyles.emptyTitle}>
+                {t('prescriptionsScreen.noMatchingTitle')}
+              </Text>
               <Text style={prescriptionsStyles.emptySubtitle}>
-                Try another search query or clear active filters.
+                {t('prescriptionsScreen.noMatchingSubtitle')}
               </Text>
               <TouchableOpacity style={prescriptionsStyles.refreshBtn} onPress={handleClearFilters}>
-                <Text style={prescriptionsStyles.refreshText}>Clear Filters</Text>
+                <Text style={prescriptionsStyles.refreshText}>
+                  {t('prescriptionsScreen.clearFilters')}
+                </Text>
               </TouchableOpacity>
             </View>
           )

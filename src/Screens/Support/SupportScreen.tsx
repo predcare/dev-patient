@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBottomBarHeight } from '../../components/commons/CustomBottomBar/CustomBottomBar';
 import { SupportTicketCard } from '../../components/Modules/Support';
@@ -33,6 +34,7 @@ import { useLoadingStore } from '../../zustand/stores/useLoadingStore';
 type TicketTabKey = 'open' | 'closed';
 
 export const SupportScreen: React.FC = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
@@ -95,23 +97,23 @@ export const SupportScreen: React.FC = () => {
   const handleDeleteTicket = useCallback(
     (ticket: ISupportTicket) => {
       if (!ticket?.id) {
-        showErrorToast('Invalid ticket ID');
+        showErrorToast(t('support.invalidTicketId'));
         return;
       }
 
       showConfirm({
-        title: 'Delete Ticket',
-        message: `Are you sure you want to delete ticket #${
-          ticket.ticket_no || ticket.id
-        }? This action cannot be undone.`,
-        buttonText: 'Yes, Delete',
-        cancelText: 'Cancel',
+        title: t('support.deleteTicketTitle'),
+        message: t('support.deleteTicketConfirm', {
+          ticketNo: ticket.ticket_no || ticket.id,
+        }),
+        buttonText: t('support.yesDelete'),
+        cancelText: t('commons.cancel'),
         onConfirm: () => {
-          showLoader('Deleting ticket...');
+          showLoader(t('support.deletingTicket'));
           deleteTicket(ticket.id, {
             onSuccess: async res => {
               if (res?.success) {
-                showSuccessToast(res?.message || 'Support ticket deleted successfully');
+                showSuccessToast(res?.message || t('support.ticketDeletedSuccess'));
                 await queryClient.invalidateQueries({
                   queryKey: [SupportTicketQueryKeys.GET_MY_TICKETS],
                 });
@@ -127,7 +129,7 @@ export const SupportScreen: React.FC = () => {
         },
       });
     },
-    [deleteTicket, hideLoader, queryClient, showConfirm, showLoader]
+    [deleteTicket, hideLoader, queryClient, showConfirm, showLoader, t]
   );
 
   const handleLoadMore = useCallback(() => {
@@ -138,12 +140,12 @@ export const SupportScreen: React.FC = () => {
 
   return (
     <SafeAreaWrapper style={supportStyles.screen} showBottomBar isPathClear>
-      <AppHeader title="Support Tickets" showBack={true} />
+      <AppHeader title={t('support.supportTickets')} showBack={true} />
       <View style={supportStyles.tabsWrap}>
         <CustomTabs<TicketTabKey>
           tabs={[
-            { key: 'open', label: 'Open' },
-            { key: 'closed', label: 'Closed' },
+            { key: 'open', label: t('support.tabOpen') },
+            { key: 'closed', label: t('support.tabClosed') },
           ]}
           activeTab={tab}
           onTabChange={handleTabChange}
@@ -179,16 +181,16 @@ export const SupportScreen: React.FC = () => {
             <SupportTicketsSkeleton />
           ) : isError ? (
             <View style={SupportScreenlocalStyles.errorContainer}>
-              <Text style={SupportScreenlocalStyles.errorTitle}>Unable to load tickets</Text>
+              <Text style={SupportScreenlocalStyles.errorTitle}>{t('support.unableToLoadTickets')}</Text>
               <Text style={SupportScreenlocalStyles.errorSub}>
-                {(error as any)?.message || 'Something went wrong while fetching your tickets.'}
+                {(error as any)?.message || t('support.errorLoadingTickets')}
               </Text>
               <TouchableOpacity
                 style={SupportScreenlocalStyles.retryBtn}
                 onPress={() => refetch()}
                 activeOpacity={0.85}
               >
-                <Text style={SupportScreenlocalStyles.retryBtnTxt}>Try Again</Text>
+                <Text style={SupportScreenlocalStyles.retryBtnTxt}>{t('support.tryAgain')}</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -206,12 +208,12 @@ export const SupportScreen: React.FC = () => {
                 )}
               </View>
               <Text style={SupportScreenlocalStyles.emptyTitle}>
-                {tab === 'open' ? 'No Open Support Tickets' : 'No Resolved Tickets'}
+                {tab === 'open' ? t('support.noOpenTicketsTitle') : t('support.noResolvedTicketsTitle')}
               </Text>
               <Text style={SupportScreenlocalStyles.emptySub}>
                 {tab === 'open'
-                  ? 'Have a query or facing an issue? Raise a support ticket and our team will get back to you shortly.'
-                  : 'All your resolved and closed support requests will be archived here.'}
+                  ? t('support.noOpenTicketsDesc')
+                  : t('support.noResolvedTicketsDesc')}
               </Text>
               {tab === 'open' && (
                 <TouchableOpacity
@@ -220,7 +222,7 @@ export const SupportScreen: React.FC = () => {
                   activeOpacity={0.85}
                 >
                   <PlusIcon size={16} color={theme.colors.surface} />
-                  <Text style={SupportScreenlocalStyles.emptyActionTxt}>Raise a Ticket</Text>
+                  <Text style={SupportScreenlocalStyles.emptyActionTxt}>{t('support.raiseTicket')}</Text>
                 </TouchableOpacity>
               )}
             </View>

@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Animated, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useGetMyDoctors } from '../../../hooks/react-query/doctors/doctor.hooks';
 import { getInitials } from '../../../lib/common/common.utils';
@@ -51,6 +52,7 @@ const SkeletonRows: React.FC = () => {
 
 export const MyDoctorsSection: React.FC = () => {
   const naviagtion = useNavigation<any>();
+  const { t } = useTranslation();
   const {
     data: myDoctorsData,
     isFetching: isPendingMyDoctors,
@@ -72,9 +74,9 @@ export const MyDoctorsSection: React.FC = () => {
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>My Doctors</Text>
+        <Text style={styles.sectionTitle}>{t('commons.myDoctors')}</Text>
         <TouchableOpacity onPress={handleSeeAll} activeOpacity={0.7}>
-          <Text style={styles.seeAllText}>See All</Text>
+          <Text style={styles.seeAllText}>{t('commons.seeAll')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -83,16 +85,16 @@ export const MyDoctorsSection: React.FC = () => {
       ) : isErrorMyDoctors ? (
         <View style={styles.card}>
           <CommonErrorCard
-            title="Failed to Load Doctors"
-            message="We couldn't retrieve your doctors list. Please try again."
+            title={t('dashboard.failedToLoadDoctors')}
+            message={t('dashboard.failedToLoadDoctorsMsg')}
             onRetry={refetchMyDoctors}
-            retryText="Retry"
+            retryText={t('dashboard.retry')}
           />
         </View>
       ) : myDoctorsData?.data?.length == 0 ? (
         <CommonEmptyCard
-          title="No Doctors Added Yet"
-          message="Doctors you consult with will appear here for easy access and rebooking."
+          title={t('dashboard.noDoctorsAddedYet')}
+          message={t('dashboard.noDoctorsAddedMsg')}
           icon={<StethoscopeIcon size={28} color={theme.colors.primaryDark} />}
         />
       ) : (
@@ -133,7 +135,7 @@ export const MyDoctorsSection: React.FC = () => {
                   onPress={() => handleDoctorPress(Number(doc?.user_id), Number(doc?.clinic?.id))}
                   activeOpacity={0.85}
                 >
-                  <Text style={styles.consultBtnText}>Consult</Text>
+                  <Text style={styles.consultBtnText}>{t('commons.consult')}</Text>
                 </TouchableOpacity>
               </TouchableOpacity>
             );

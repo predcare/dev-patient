@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Animated,
@@ -10,9 +11,11 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Path, Rect } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import { logoutOptionsModalStyles as styles } from '../../../styled/LogoutOptionsModal.styled';
 import { theme } from '../../../styled/theme.styled';
+import { PhoneIcon } from '../../ui/icons';
+import { CloseIcon } from '../../ui/icons/CloseIcon';
 
 export interface LogoutOptionsModalProps {
   visible: boolean;
@@ -20,29 +23,6 @@ export interface LogoutOptionsModalProps {
   onConfirmLogout: (allDevices: boolean) => Promise<void> | void;
   isLoading?: boolean;
 }
-
-const PhoneIcon = ({ color }: { color: string }) => (
-  <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-    <Rect
-      x="5"
-      y="2"
-      width="14"
-      height="20"
-      rx="3"
-      stroke={color}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M12 18h.01"
-      stroke={color}
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
 
 const DevicesShieldIcon = ({ color }: { color: string }) => (
   <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
@@ -63,24 +43,13 @@ const DevicesShieldIcon = ({ color }: { color: string }) => (
   </Svg>
 );
 
-const CloseIcon = () => (
-  <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M18 6L6 18M6 6l12 12"
-      stroke={theme.colors.textMuted}
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
 export const LogoutOptionsModal: React.FC<LogoutOptionsModalProps> = ({
   visible,
   onClose,
   onConfirmLogout,
   isLoading = false,
 }) => {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [selectedOption, setSelectedOption] = useState<'current' | 'all'>('current');
   const slideAnim = useRef(new Animated.Value(350)).current;
@@ -158,15 +127,12 @@ export const LogoutOptionsModal: React.FC<LogoutOptionsModalProps> = ({
             },
           ]}
         >
-          {/* Drag Handle Bar */}
           <View style={styles.dragHandleContainer}>
             <View style={styles.dragHandle} />
           </View>
-
-          {/* Header */}
           <View style={styles.header}>
             <View style={styles.headerTitleRow}>
-              <Text style={styles.title}>Sign Out</Text>
+              <Text style={styles.title}>{t('logoutModal.title')}</Text>
               <TouchableOpacity
                 style={styles.closeBtn}
                 onPress={handleDismiss}
@@ -176,12 +142,8 @@ export const LogoutOptionsModal: React.FC<LogoutOptionsModalProps> = ({
                 <CloseIcon />
               </TouchableOpacity>
             </View>
-            <Text style={styles.subtitle}>
-              Choose how you want to log out of your doctor account.
-            </Text>
+            <Text style={styles.subtitle}>{t('logoutModal.subtitle')}</Text>
           </View>
-
-          {/* Option 1: Current Device Only */}
           <View style={styles.optionsContainer}>
             <TouchableOpacity
               style={[styles.optionCard, selectedOption === 'current' && styles.optionCardSelected]}
@@ -193,10 +155,8 @@ export const LogoutOptionsModal: React.FC<LogoutOptionsModalProps> = ({
                 <PhoneIcon color={theme.colors.primary} />
               </View>
               <View style={styles.optionTextContent}>
-                <Text style={styles.optionTitle}>Current Device Only</Text>
-                <Text style={styles.optionSubtitle}>
-                  Log out of this session on your current device only.
-                </Text>
+                <Text style={styles.optionTitle}>{t('logoutModal.currentDeviceTitle')}</Text>
+                <Text style={styles.optionSubtitle}>{t('logoutModal.currentDeviceSubtitle')}</Text>
               </View>
               <View
                 style={[
@@ -207,8 +167,6 @@ export const LogoutOptionsModal: React.FC<LogoutOptionsModalProps> = ({
                 {selectedOption === 'current' && <View style={styles.radioInner} />}
               </View>
             </TouchableOpacity>
-
-            {/* Option 2: All Devices */}
             <TouchableOpacity
               style={[styles.optionCard, selectedOption === 'all' && styles.optionCardDanger]}
               onPress={() => setSelectedOption('all')}
@@ -219,10 +177,10 @@ export const LogoutOptionsModal: React.FC<LogoutOptionsModalProps> = ({
                 <DevicesShieldIcon color={theme.colors.danger} />
               </View>
               <View style={styles.optionTextContent}>
-                <Text style={[styles.optionTitle, styles.optionTitleDanger]}>All Devices</Text>
-                <Text style={styles.optionSubtitle}>
-                  Sign out from all active sessions on phones, tablets & web portals.
+                <Text style={[styles.optionTitle, styles.optionTitleDanger]}>
+                  {t('logoutModal.allDevicesTitle')}
                 </Text>
+                <Text style={styles.optionSubtitle}>{t('logoutModal.allDevicesSubtitle')}</Text>
               </View>
               <View
                 style={[styles.radioCircle, selectedOption === 'all' && styles.radioCircleDanger]}
@@ -231,8 +189,6 @@ export const LogoutOptionsModal: React.FC<LogoutOptionsModalProps> = ({
               </View>
             </TouchableOpacity>
           </View>
-
-          {/* Actions */}
           <TouchableOpacity
             style={styles.confirmButton}
             onPress={handleConfirm}
@@ -243,7 +199,9 @@ export const LogoutOptionsModal: React.FC<LogoutOptionsModalProps> = ({
               <ActivityIndicator color={theme.colors.textInverted} size="small" />
             ) : (
               <Text style={styles.confirmButtonText}>
-                {selectedOption === 'all' ? 'Sign Out of All Devices' : 'Sign Out'}
+                {selectedOption === 'all'
+                  ? t('logoutModal.signOutAllButton')
+                  : t('logoutModal.signOutButton')}
               </Text>
             )}
           </TouchableOpacity>
@@ -254,7 +212,7 @@ export const LogoutOptionsModal: React.FC<LogoutOptionsModalProps> = ({
             activeOpacity={0.7}
             disabled={isLoading}
           >
-            <Text style={styles.cancelButtonText}>Cancel</Text>
+            <Text style={styles.cancelButtonText}>{t('logoutModal.cancel')}</Text>
           </TouchableOpacity>
         </Animated.View>
       </View>

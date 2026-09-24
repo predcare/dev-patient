@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { mediaPaths } from '../../api/endpoints';
 import UploadOptionsModal from '../../components/commons/UploadOptionsModal/UploadOptionsModal';
@@ -34,6 +35,7 @@ import { memberStyles } from '../../styled/MemberScreen.styled';
 import { theme } from '../../styled/theme.styled';
 
 export const ProfileSetupScreen: React.FC = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation<any>();
 
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
@@ -247,7 +249,7 @@ export const ProfileSetupScreen: React.FC = () => {
     updateProfileMutation(formData, {
       onSuccess: res => {
         if (res?.success) {
-          showSuccessToast('Profile updated successfully!', 'Profile Update');
+          showSuccessToast(t('profileSetup.profileUpdatedSuccess'), t('profileSetup.profileUpdateTitle'));
           navigation.goBack();
         }
       },
@@ -282,7 +284,7 @@ export const ProfileSetupScreen: React.FC = () => {
 
   return (
     <SafeAreaWrapper style={memberStyles.screen}>
-      <AppHeader title="Edit Profile" showBack={true} />
+      <AppHeader title={t('profileSetup.editProfileTitle')} showBack={true} />
 
       <ScrollView
         contentContainerStyle={[memberStyles.scrollContent, { paddingHorizontal: 20 }]}
@@ -300,7 +302,7 @@ export const ProfileSetupScreen: React.FC = () => {
             ) : (
               <View style={memberStyles.uploadCircle}>
                 <UploadIcon size={24} color={theme.colors.primaryDark} />
-                <Text style={memberStyles.uploadPhotoTxt}>Upload</Text>
+                <Text style={memberStyles.uploadPhotoTxt}>{t('profileSetup.upload')}</Text>
               </View>
             )}
             <View style={memberStyles.editBadge}>
@@ -316,11 +318,11 @@ export const ProfileSetupScreen: React.FC = () => {
             render={({ field: { onChange, value } }) => (
               <View style={memberStyles.inputWrapper}>
                 <Text style={memberStyles.label}>
-                  FULL NAME <Text style={memberStyles.required}>*</Text>
+                  {t('profileSetup.fullName')} <Text style={memberStyles.required}>*</Text>
                 </Text>
                 <TextInput
                   style={memberStyles.input}
-                  placeholder="Enter full name"
+                  placeholder={t('profileSetup.enterFullName')}
                   placeholderTextColor={theme.colors.textMuted}
                   value={value}
                   onChangeText={onChange}
@@ -339,7 +341,7 @@ export const ProfileSetupScreen: React.FC = () => {
             name="email"
             render={({ field: { value } }) => (
               <View style={memberStyles.inputWrapper}>
-                <Text style={memberStyles.label}>EMAIL ADDRESS</Text>
+                <Text style={memberStyles.label}>{t('profileSetup.emailAddress')}</Text>
                 <TextInput
                   style={[memberStyles.input, memberStyles.inputDisabled]}
                   value={value || ''}
@@ -354,7 +356,7 @@ export const ProfileSetupScreen: React.FC = () => {
             name="phoneNumber"
             render={({ field: { value } }) => (
               <View style={memberStyles.inputWrapper}>
-                <Text style={memberStyles.label}>PHONE NUMBER</Text>
+                <Text style={memberStyles.label}>{t('profileSetup.phoneNumber')}</Text>
                 <TextInput
                   style={[memberStyles.input, memberStyles.inputDisabled]}
                   value={value || ''}
@@ -370,26 +372,30 @@ export const ProfileSetupScreen: React.FC = () => {
             render={({ field: { onChange } }) => (
               <View style={memberStyles.inputWrapper}>
                 <Text style={memberStyles.label}>
-                  GENDER <Text style={memberStyles.required}>*</Text>
+                  {t('profileSetup.gender')} <Text style={memberStyles.required}>*</Text>
                 </Text>
                 <View style={memberStyles.genderContainer}>
-                  {['male', 'female', 'others'].map(g => (
+                  {[
+                    { key: 'male', label: t('profileSetup.male') },
+                    { key: 'female', label: t('profileSetup.female') },
+                    { key: 'others', label: t('profileSetup.others') },
+                  ].map(g => (
                     <TouchableOpacity
-                      key={g}
+                      key={g.key}
                       style={[
                         memberStyles.genderButton,
-                        currentGender === g && memberStyles.genderButtonActive,
+                        currentGender === g.key && memberStyles.genderButtonActive,
                       ]}
-                      onPress={() => onChange(g)}
+                      onPress={() => onChange(g.key)}
                       activeOpacity={0.8}
                     >
                       <Text
                         style={[
                           memberStyles.genderButtonText,
-                          currentGender === g && memberStyles.genderButtonTextActive,
+                          currentGender === g.key && memberStyles.genderButtonTextActive,
                         ]}
                       >
-                        {g.charAt(0).toUpperCase() + g.slice(1)}
+                        {g.label}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -409,7 +415,7 @@ export const ProfileSetupScreen: React.FC = () => {
             render={() => (
               <View style={memberStyles.inputWrapper}>
                 <Text style={memberStyles.label}>
-                  DATE OF BIRTH <Text style={memberStyles.required}>*</Text>
+                  {t('profileSetup.dateOfBirth')} <Text style={memberStyles.required}>*</Text>
                 </Text>
                 <TouchableOpacity
                   style={memberStyles.dropdownTrigger}
@@ -417,7 +423,7 @@ export const ProfileSetupScreen: React.FC = () => {
                   activeOpacity={0.8}
                 >
                   <Text style={memberStyles.dropdownValue}>
-                    {currentDob ? formatDateLabel(currentDob) : 'Select Date of Birth'}
+                    {currentDob ? formatDateLabel(currentDob) : t('profileSetup.selectDateOfBirth')}
                   </Text>
                   <CalendarIcon size={18} color={theme.colors.textMuted} />
                 </TouchableOpacity>
@@ -436,11 +442,11 @@ export const ProfileSetupScreen: React.FC = () => {
             render={({ field: { onChange, value } }) => (
               <View style={memberStyles.inputWrapper}>
                 <Text style={memberStyles.label}>
-                  ADDRESS <Text style={memberStyles.required}>*</Text>
+                  {t('profileSetup.address')} <Text style={memberStyles.required}>*</Text>
                 </Text>
                 <TextInput
                   style={memberStyles.input}
-                  placeholder="Enter street address"
+                  placeholder={t('profileSetup.enterStreetAddress')}
                   placeholderTextColor={theme.colors.textMuted}
                   value={value}
                   onChangeText={onChange}
@@ -461,7 +467,7 @@ export const ProfileSetupScreen: React.FC = () => {
             render={() => (
               <View style={memberStyles.inputWrapper}>
                 <Text style={memberStyles.label}>
-                  COUNTRY <Text style={memberStyles.required}>*</Text>
+                  {t('profileSetup.country')} <Text style={memberStyles.required}>*</Text>
                 </Text>
                 <TouchableOpacity
                   style={memberStyles.dropdownTrigger}
@@ -469,7 +475,7 @@ export const ProfileSetupScreen: React.FC = () => {
                   activeOpacity={0.8}
                 >
                   <Text style={memberStyles.dropdownValue}>
-                    {currentCountry || 'Select Country'}
+                    {currentCountry || t('profileSetup.selectCountry')}
                   </Text>
                   <ChevronDownIcon size={18} color={theme.colors.textMuted} />
                 </TouchableOpacity>
@@ -488,14 +494,14 @@ export const ProfileSetupScreen: React.FC = () => {
             render={() => (
               <View style={memberStyles.inputWrapper}>
                 <Text style={memberStyles.label}>
-                  STATE <Text style={memberStyles.required}>*</Text>
+                  {t('profileSetup.state')} <Text style={memberStyles.required}>*</Text>
                 </Text>
                 <TouchableOpacity
                   style={memberStyles.dropdownTrigger}
                   onPress={() => setShowStatePicker(true)}
                   activeOpacity={0.8}
                 >
-                  <Text style={memberStyles.dropdownValue}>{currentState || 'Select State'}</Text>
+                  <Text style={memberStyles.dropdownValue}>{currentState || t('profileSetup.selectState')}</Text>
                   <ChevronDownIcon size={18} color={theme.colors.textMuted} />
                 </TouchableOpacity>
                 {errors.state && (
@@ -513,14 +519,14 @@ export const ProfileSetupScreen: React.FC = () => {
             render={() => (
               <View style={memberStyles.inputWrapper}>
                 <Text style={memberStyles.label}>
-                  CITY <Text style={memberStyles.required}>*</Text>
+                  {t('profileSetup.city')} <Text style={memberStyles.required}>*</Text>
                 </Text>
                 <TouchableOpacity
                   style={memberStyles.dropdownTrigger}
                   onPress={() => setShowCityPicker(true)}
                   activeOpacity={0.8}
                 >
-                  <Text style={memberStyles.dropdownValue}>{currentCity || 'Select City'}</Text>
+                  <Text style={memberStyles.dropdownValue}>{currentCity || t('profileSetup.selectCity')}</Text>
                   <ChevronDownIcon size={18} color={theme.colors.textMuted} />
                 </TouchableOpacity>
                 {errors.city && (
@@ -538,11 +544,11 @@ export const ProfileSetupScreen: React.FC = () => {
             render={({ field: { onChange, value } }) => (
               <View style={memberStyles.inputWrapper}>
                 <Text style={memberStyles.label}>
-                  POSTAL CODE <Text style={memberStyles.required}>*</Text>
+                  {t('profileSetup.postalCode')} <Text style={memberStyles.required}>*</Text>
                 </Text>
                 <TextInput
                   style={memberStyles.input}
-                  placeholder="Enter postal code"
+                  placeholder={t('profileSetup.enterPostalCode')}
                   placeholderTextColor={theme.colors.textMuted}
                   keyboardType="numeric"
                   value={value}
@@ -563,10 +569,10 @@ export const ProfileSetupScreen: React.FC = () => {
             name="alternatePhone"
             render={({ field: { onChange, value } }) => (
               <View style={memberStyles.inputWrapper}>
-                <Text style={memberStyles.label}>ALTERNATE PHONE</Text>
+                <Text style={memberStyles.label}>{t('profileSetup.alternatePhoneNumber')}</Text>
                 <TextInput
                   style={memberStyles.input}
-                  placeholder="Enter alternate phone"
+                  placeholder={t('profileSetup.enterAlternatePhoneNumber')}
                   placeholderTextColor={theme.colors.textMuted}
                   keyboardType="phone-pad"
                   value={value || ''}
@@ -592,7 +598,7 @@ export const ProfileSetupScreen: React.FC = () => {
           {isPending ? (
             <ActivityIndicator color={theme.colors.surface} size="small" />
           ) : (
-            <Text style={memberStyles.saveButtonText}>Save Changes</Text>
+            <Text style={memberStyles.saveButtonText}>{t('profileSetup.updateProfile')}</Text>
           )}
         </TouchableOpacity>
       </ScrollView>
@@ -600,7 +606,7 @@ export const ProfileSetupScreen: React.FC = () => {
         visible={showDatePicker}
         value={currentDob || new Date(1988, 7, 15)}
         maximumDate={new Date()}
-        title="Date of Birth"
+        title={t('profileSetup.dateOfBirth')}
         onCancel={() => setShowDatePicker(false)}
         onConfirm={date => {
           setValue('dob', date, { shouldValidate: true });
@@ -610,7 +616,7 @@ export const ProfileSetupScreen: React.FC = () => {
 
       <DropdownPickerModal
         visible={showCountryPicker}
-        title="Select Country"
+        title={t('profileSetup.selectCountry')}
         options={countryOptions}
         selectedValue={currentCountry}
         onSelect={val => {
@@ -624,7 +630,7 @@ export const ProfileSetupScreen: React.FC = () => {
 
       <DropdownPickerModal
         visible={showStatePicker}
-        title="Select State"
+        title={t('profileSetup.selectState')}
         options={stateOptions}
         selectedValue={currentState}
         onSelect={val => {
@@ -636,7 +642,7 @@ export const ProfileSetupScreen: React.FC = () => {
       />
       <DropdownPickerModal
         visible={showCityPicker}
-        title="Select City"
+        title={t('profileSetup.selectCity')}
         options={cityOptions}
         selectedValue={currentCity}
         onSelect={val => {
