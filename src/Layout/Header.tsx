@@ -1,14 +1,12 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
-import LanguageSwitcherModal, { LANGUAGES } from '../components/commons/LanguageSwitcherModal';
-import NotificationModal, {
-  NotificationItem,
-} from '../components/commons/NotificationModal/NotificationModal';
-import { BellIcon, GlobeIcon } from '../components/ui/icons';
+import { ActivityIndicator, Image, Text, TouchableOpacity, View } from 'react-native';
 import { mediaPaths } from '../api/endpoints';
+import LanguageSwitcherModal, { LANGUAGES } from '../components/commons/LanguageSwitcherModal';
+import NotificationModal from '../components/commons/NotificationModal/NotificationModal';
+import { BellIcon, GlobeIcon } from '../components/ui/icons';
+import { useNotificationCount } from '../hooks/react-query/notifications/notifications.hooks';
 import { getInitials } from '../lib/common/common.utils';
-import { MOCK_NOTIFICATIONS, MOCK_USER_PROFILE } from '../resources/mockData';
 import { headerStyles } from '../styled/Header.styled';
 import { theme } from '../styled/theme.styled';
 import { useAuthStore } from '../zustand/stores/useAuthStore';
@@ -19,26 +17,17 @@ export interface HeaderProps {
   profileImageUrl?: string | null;
   initials?: string;
   avatarColor?: string;
-  unreadCount?: number;
-  notifications?: NotificationItem[];
   onAvatarPress?: () => void;
   onProfilePress?: () => void;
   onNotificationPress?: () => void;
-  onNotificationItemPress?: (item: NotificationItem) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   greeting = 'Welcome Back 👋',
-  userName = MOCK_USER_PROFILE.name,
-  profileImageUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500',
-  initials = MOCK_USER_PROFILE.initials,
   avatarColor = theme.colors.primary,
-  unreadCount = 1,
-  notifications = MOCK_NOTIFICATIONS,
   onAvatarPress,
   onProfilePress,
   onNotificationPress,
-  onNotificationItemPress,
 }) => {
   const navigation = useNavigation<any>();
 
@@ -49,6 +38,8 @@ export const Header: React.FC<HeaderProps> = ({
   const { userData } = useAuthStore(state => state);
 
   const currentLang = LANGUAGES.find(l => l.code === selectedLangCode) || LANGUAGES[0];
+
+  const { data: notifyCounts, isPending: isLoadingNotifyCounts } = useNotificationCount();
 
   const handleAvatarPress = () => {
     if (onAvatarPress) {
@@ -114,23 +105,28 @@ export const Header: React.FC<HeaderProps> = ({
             activeOpacity={0.8}
             hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
           >
-            <BellIcon size={20} color={theme.colors.textSecondary} />
-            {unreadCount > 0 && <View style={headerStyles.notificationDot} />}
+            {isLoadingNotifyCounts ? (
+              <ActivityIndicator size="small" color={theme.colors.primary} />
+            ) : (
+              <BellIcon size={20} color={theme.colors.textSecondary} />
+            )}
+            {notifyCounts && notifyCounts?.data?.unread_count > 0 && (
+              <View style={headerStyles.notificationDot} />
+            )}
           </TouchableOpacity>
         </View>
       </View>
-      <LanguageSwitcherModal
-        visible={isLangModalOpen}
-        selectedLanguageCode={selectedLangCode}
-        onSelectLanguage={langCode => setSelectedLangCode(langCode)}
-        onClose={() => setIsLangModalOpen(false)}
-      />
-      <NotificationModal
-        visible={isNotifModalOpen}
-        onClose={() => setIsNotifModalOpen(false)}
-        notifications={notifications}
-        onNotificationPress={onNotificationItemPress}
-      />
+      {isLangModalOpen && (
+        <LanguageSwitcherModal
+          visible={isLangModalOpen}
+          selectedLanguageCode={selectedLangCode}
+          onSelectLanguage={langCode => setSelectedLangCode(langCode)}
+          onClose={() => setIsLangModalOpen(false)}
+        />
+      )}
+      {isNotifModalOpen && (
+        <NotificationModal visible={isNotifModalOpen} onClose={() => setIsNotifModalOpen(false)} />
+      )}
     </View>
   );
 };

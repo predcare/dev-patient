@@ -188,3 +188,18 @@ export function getFileType(filePath: string): string {
 
   return extension?.toUpperCase() ?? '';
 }
+
+export const formatActionTitle = (action?: string, category?: string) => {
+  if (action) {
+    return action
+      .replace(/[_-]/g, ' ')
+      .split(' ')
+      .filter(Boolean)
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(' ');
+  }
+  if (category) {
+    return category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+  }
+  return 'Notification';
+};

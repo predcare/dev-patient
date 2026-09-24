@@ -19,6 +19,10 @@ export interface IMetadata {
   new_date?: string;
   medications_count?: number;
   document_type?: string;
+  title?: string;
+  prescription_id?: number | string;
+  prescriptionId?: number | string;
+  [key: string]: any;
 }
 
 export interface INotificationDoc {
@@ -36,10 +40,16 @@ export interface INotificationDoc {
   associate_patient_id?: number;
   created_at: string;
   is_read?: boolean;
+  clinic_id: string;
+  associate_staff_id: any;
+  created_by: string;
+  created_by_type: string;
+  show: boolean;
+  updated_at: string;
 }
 
-export interface INotificationRoot {
+export interface INotificationClearResponse {
   success: boolean;
-  count: number;
-  notifications: INotificationDoc[];
+  message: string;
+  affected_rows: number;
 }

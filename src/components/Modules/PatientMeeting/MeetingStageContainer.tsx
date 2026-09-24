@@ -18,8 +18,8 @@ export const MeetingStageContainer: React.FC<MeetingStageContainerProps> = ({
   callState,
   remoteParticipantId,
   errorMessage,
-  waitingTitle = 'Waiting for patient to join...',
-  waitingSubtitle = 'Patient will join your consultation shortly.',
+  waitingTitle = 'Your doctor will join shortly.',
+  waitingSubtitle = 'Please stay on this screen while you wait.',
   onGoBack,
 }) => {
   if (callState === 'ERROR') {

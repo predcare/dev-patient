@@ -90,6 +90,12 @@ export const endpoints = {
     getCommisionSlabs: '/commission-slabs',
     getEmrCategories: '/common/emr-categories',
   },
+  notifications: {
+    getAll: '/notifications',
+    delete: '/notifications/',
+    counts: `/notifications/count`,
+    clearNotify: `/notifications/clear-all`,
+  },
 };
 
 export const successEndpoints = [

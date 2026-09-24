@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -10,156 +10,223 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { useInfiniteNotifications } from '../../../hooks/react-query/notifications/notifications.hooks';
+import { formatActionTitle, formatTimeAgo } from '../../../lib/common/common.utils';
 import { theme } from '../../../styled/theme.styled';
+import { IMetadata } from '../../../typescripts/interfaces/notification.interfaces';
 import { BellIcon, CircleXIcon } from '../../ui/icons';
-
-export interface NotificationItem {
-  id: number | string;
-  user_id?: number;
-  user_type?: string;
-  title?: string;
-  description: string;
-  event_category?: 'appointment' | 'payment' | 'emr' | 'prescription' | string;
-  event_action?: string;
-  created_at?: string;
-  read?: boolean;
-}
 
 export interface NotificationModalProps {
   visible: boolean;
   onClose: () => void;
-  notifications?: NotificationItem[];
   fetching?: boolean;
   onRefresh?: () => void;
-  onNotificationPress?: (item: any) => void;
 }
 
-const getNotifCategoryIcon = (category?: string, action?: string) => {
-  if (category === 'payment') return '💳';
-  if (category === 'appointment') return '📅';
-  if (category === 'emr') return '📄';
-  if (category === 'prescription') return '💊';
-  if (action?.includes('cancelled')) return '❌';
-  if (action?.includes('confirmed')) return '✅';
-  return '🔔';
-};
-
-const formatTimeAgo = (dateString?: string) => {
-  if (!dateString) return 'Just now';
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMins = Math.floor((now.getTime() - date.getTime()) / 60000);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays === 1) return 'Yesterday';
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+const parseMetadata = (metadata: any): IMetadata => {
+  if (!metadata) return {};
+  if (typeof metadata === 'object') return metadata;
+  try {
+    return JSON.parse(metadata);
+  } catch {
+    return {};
+  }
 };
 
 export const NotificationModal: React.FC<NotificationModalProps> = ({
   visible,
   onClose,
-  notifications = [],
-  fetching = false,
-  onRefresh,
-  onNotificationPress,
+  fetching: propsFetching,
+  onRefresh: propsOnRefresh,
 }) => {
-  const handleItemPress = (item: NotificationItem) => {
-    onClose();
-    if (onNotificationPress) {
-      onNotificationPress(item);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const {
+    data: infiniteData,
+    isLoading: isQueryLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    refetch,
+  } = useInfiniteNotifications(15);
+
+  const notificationsList = useMemo(() => {
+    const pages = infiniteData?.pages || [];
+    return pages.flatMap(page => (Array.isArray(page?.data) ? page.data : []));
+  }, [infiniteData]);
+
+  const isLoading = propsFetching !== undefined ? propsFetching : isQueryLoading;
+
+  const handleRefresh = useCallback(() => {
+    setIsRefreshing(true);
+    if (propsOnRefresh) {
+      propsOnRefresh();
+    } else {
+      refetch();
     }
-  };
+    setIsRefreshing(false);
+  }, [propsOnRefresh, refetch]);
+
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.overlay}>
+        <View style={NotifificationModalStyles.overlay}>
           <TouchableWithoutFeedback onPress={e => e.stopPropagation()}>
-            <View style={styles.container}>
-              <View style={styles.handle} />
-
-              {/* Header */}
-              <View style={styles.header}>
-                <View style={styles.headerTitleRow}>
+            <View style={NotifificationModalStyles.container}>
+              <View style={NotifificationModalStyles.handle} />
+              <View style={NotifificationModalStyles.header}>
+                <View style={NotifificationModalStyles.headerTitleRow}>
                   <BellIcon size={20} color={theme.colors.primary} style={{ marginRight: 8 }} />
-                  <Text style={styles.headerTitle}>Notifications</Text>
-                  {notifications.length > 0 && (
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>{notifications.length}</Text>
+                  <Text style={NotifificationModalStyles.headerTitle}>Notifications</Text>
+                  {notificationsList.length > 0 && (
+                    <View style={NotifificationModalStyles.badge}>
+                      <Text style={NotifificationModalStyles.badgeText}>
+                        {notificationsList.length}
+                      </Text>
                     </View>
                   )}
                 </View>
-                <TouchableOpacity onPress={onClose} activeOpacity={0.7} style={styles.closeBtn}>
+                <TouchableOpacity
+                  onPress={onClose}
+                  activeOpacity={0.7}
+                  style={NotifificationModalStyles.closeBtn}
+                >
                   <CircleXIcon size={22} color={theme.colors.textMuted} />
                 </TouchableOpacity>
               </View>
-
-              {/* Notifications Content */}
-              {fetching ? (
-                <View style={styles.loadingState}>
+              {isLoading && notificationsList.length === 0 ? (
+                <View style={NotifificationModalStyles.loadingState}>
                   <ActivityIndicator size="small" color={theme.colors.primary} />
-                  <Text style={styles.loadingText}>Loading notifications...</Text>
+                  <Text style={NotifificationModalStyles.loadingText}>
+                    Loading notifications...
+                  </Text>
                 </View>
-              ) : notifications.length === 0 ? (
-                <View style={styles.emptyState}>
-                  <View style={styles.emptyIconCircle}>
-                    <Text style={{ fontSize: 32 }}>🔔</Text>
+              ) : notificationsList.length === 0 ? (
+                <View style={NotifificationModalStyles.emptyState}>
+                  <View style={NotifificationModalStyles.emptyIconCircle}>
+                    <BellIcon size={32} color={theme.colors.primary} />
                   </View>
-                  <Text style={styles.emptyTitle}>No New Notifications</Text>
-                  <Text style={styles.emptySubtitle}>
-                    You're all caught up! Updates about your consultations, prescriptions, and payments will appear here.
+                  <Text style={NotifificationModalStyles.emptyTitle}>No New Notifications</Text>
+                  <Text style={NotifificationModalStyles.emptySubtitle}>
+                    You're all caught up! Updates about your consultations, prescriptions, and
+                    appointments will appear here.
                   </Text>
                 </View>
               ) : (
                 <FlatList
-                  data={notifications}
-                  keyExtractor={item => String(item.id)}
+                  data={notificationsList}
+                  keyExtractor={(item, index) => String(item.id || index)}
+                  keyboardShouldPersistTaps="handled"
                   refreshControl={
-                    onRefresh ? (
-                      <RefreshControl
-                        refreshing={fetching}
-                        onRefresh={onRefresh}
-                        tintColor={theme.colors.primary}
-                        colors={[theme.colors.primary]}
-                      />
-                    ) : undefined
+                    <RefreshControl
+                      refreshing={isRefreshing}
+                      onRefresh={handleRefresh}
+                      tintColor={theme.colors.primary}
+                      colors={[theme.colors.primary]}
+                    />
                   }
-                  contentContainerStyle={styles.listContent}
+                  onEndReached={handleLoadMore}
+                  onEndReachedThreshold={0.5}
+                  ListFooterComponent={
+                    isFetchingNextPage ? (
+                      <View style={NotifificationModalStyles.footerLoader}>
+                        <ActivityIndicator size="small" color={theme.colors.primary} />
+                      </View>
+                    ) : (
+                      <View style={{ height: 20 }} />
+                    )
+                  }
+                  contentContainerStyle={NotifificationModalStyles.listContent}
                   showsVerticalScrollIndicator={false}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      style={styles.notifCard}
-                      activeOpacity={0.8}
-                      onPress={() => handleItemPress(item)}
-                    >
-                      <View style={styles.iconCircle}>
-                        <Text style={{ fontSize: 18 }}>
-                          {getNotifCategoryIcon(item.event_category, item.event_action)}
-                        </Text>
-                      </View>
+                  renderItem={({ item }) => {
+                    const meta = parseMetadata(item.metadata);
+                    const title = formatActionTitle(item.event_action, item.event_category);
+                    const appointmentRef = meta.appointment_id;
+                    const changedBy = meta.changed_by || meta.doctor_name;
+                    const newStatus = meta.new_status;
+                    return (
+                      <TouchableOpacity
+                        style={[NotifificationModalStyles.notifCard]}
+                        activeOpacity={0.7}
+                      >
+                        <View
+                          style={[
+                            NotifificationModalStyles.iconCircle,
+                            { backgroundColor: theme.colors.primary },
+                          ]}
+                        >
+                          {<BellIcon size={18} color="white" />}
+                        </View>
 
-                      <View style={styles.notifBody}>
-                        <Text style={styles.notifTitle} numberOfLines={1}>
-                          {item.title ||
-                            (item.event_action ? item.event_action.replace(/_/g, ' ') : 'Notification')}
-                        </Text>
-                        <Text style={styles.notifDesc} numberOfLines={2}>
-                          {item.description}
-                        </Text>
-                        <Text style={styles.notifTime}>
-                          {formatTimeAgo(item.created_at)}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  )}
+                        <View style={NotifificationModalStyles.notifBody}>
+                          <View style={NotifificationModalStyles.notifHeaderRow}>
+                            <Text style={NotifificationModalStyles.notifTitle} numberOfLines={1}>
+                              {title}
+                            </Text>
+                          </View>
+
+                          <Text style={NotifificationModalStyles.notifDesc} numberOfLines={3}>
+                            {item.description}
+                          </Text>
+                          {(appointmentRef || changedBy || newStatus) && (
+                            <View style={NotifificationModalStyles.chipsContainer}>
+                              {appointmentRef && (
+                                <View style={NotifificationModalStyles.chipPill}>
+                                  <Text style={NotifificationModalStyles.chipText}>
+                                    #{appointmentRef}
+                                  </Text>
+                                </View>
+                              )}
+                              {newStatus && (
+                                <View
+                                  style={[
+                                    NotifificationModalStyles.chipPill,
+                                    newStatus === 'completed'
+                                      ? NotifificationModalStyles.successChip
+                                      : newStatus === 'cancelled'
+                                      ? NotifificationModalStyles.dangerChip
+                                      : NotifificationModalStyles.accentChip,
+                                  ]}
+                                >
+                                  <Text
+                                    style={[
+                                      NotifificationModalStyles.chipText,
+                                      newStatus === 'completed'
+                                        ? NotifificationModalStyles.successChipText
+                                        : newStatus === 'cancelled'
+                                        ? NotifificationModalStyles.dangerChipText
+                                        : NotifificationModalStyles.accentChipText,
+                                    ]}
+                                  >
+                                    {newStatus.replace('_', ' ')}
+                                  </Text>
+                                </View>
+                              )}
+                              {changedBy && (
+                                <View style={NotifificationModalStyles.chipPill}>
+                                  <Text
+                                    style={NotifificationModalStyles.chipText}
+                                    numberOfLines={1}
+                                  >
+                                    By {changedBy}
+                                  </Text>
+                                </View>
+                              )}
+                            </View>
+                          )}
+
+                          <Text style={NotifificationModalStyles.notifTime}>
+                            {formatTimeAgo(item.created_at)}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  }}
                 />
               )}
             </View>
@@ -170,7 +237,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+export const NotifificationModalStyles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(15, 23, 42, 0.5)',
@@ -182,7 +249,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     paddingTop: 12,
     maxHeight: '85%',
-    minHeight: '45%',
+    minHeight: '50%',
   },
   handle: {
     width: 36,
@@ -276,37 +343,90 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.surfaceBorder,
   },
-  iconCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
+  unreadCard: {
+    borderColor: theme.colors.primary + '35',
     backgroundColor: theme.colors.surface,
+  },
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
-    borderWidth: 1,
-    borderColor: theme.colors.surfaceBorder,
   },
   notifBody: {
     flex: 1,
+  },
+  notifHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 3,
   },
   notifTitle: {
     fontSize: 14,
     fontWeight: '600',
     color: theme.colors.textPrimary,
-    marginBottom: 2,
-    textTransform: 'capitalize',
+    flex: 1,
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: theme.colors.primary,
+    marginLeft: 6,
   },
   notifDesc: {
     fontSize: 12,
     color: theme.colors.textSlate,
-    lineHeight: 16,
-    marginBottom: 4,
+    lineHeight: 17,
+    marginBottom: 6,
+  },
+  chipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 6,
+  },
+  chipPill: {
+    backgroundColor: theme.colors.surfaceBorder + '50',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  chipText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: theme.colors.textSecondary,
+    textTransform: 'capitalize',
+  },
+  successChip: {
+    backgroundColor: '#ECFDF5',
+  },
+  successChipText: {
+    color: '#059669',
+  },
+  dangerChip: {
+    backgroundColor: '#FEF2F2',
+  },
+  dangerChipText: {
+    color: '#DC2626',
+  },
+  accentChip: {
+    backgroundColor: theme.colors.primarySoft,
+  },
+  accentChipText: {
+    color: theme.colors.primary,
   },
   notifTime: {
     fontSize: 11,
     color: theme.colors.textMuted,
     fontWeight: '500',
+  },
+  footerLoader: {
+    paddingVertical: 12,
+    alignItems: 'center',
   },
 });
 

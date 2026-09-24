@@ -67,3 +67,8 @@ export enum SupportTicketQueryKeys {
   CREATE_TICKET = 'CREATE_TICKET',
   DELETE_TICKET = 'DELETE_TICKET',
 }
+
+export enum NotificationQueryKeys {
+  Notifications = 'Notifications',
+  NotificationCount = 'NotificationCount',
+}
