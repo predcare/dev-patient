@@ -22,8 +22,6 @@ function App(): React.JSX.Element {
           barStyle={isDarkMode ? 'light-content' : 'dark-content'}
           backgroundColor={theme.colors.background}
         />
-        <SocketProvider />
-        <SocketListeners />
         <AppNavigator />
         <GlobalMeetingManager />
         <GlobalIncomingCallBanner />
@@ -31,6 +29,8 @@ function App(): React.JSX.Element {
         <GlobalPopupAlert />
         <BackdropLoader />
         <EventListener />
+        <SocketProvider />
+        <SocketListeners />
       </SafeAreaProvider>
     </ReactQueryProvider>
   );
