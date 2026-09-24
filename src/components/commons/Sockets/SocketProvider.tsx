@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import io, { Socket } from 'socket.io-client';
-import { localBaseUrl } from '../../../api/endpoints';
+import { baseUrl, localBaseUrl } from '../../../api/endpoints';
 import { getItem, STORAGE_KEYS } from '../../../lib/common/asyncStorage';
 import { useAuthStore } from '../../../zustand/stores/useAuthStore';
 import { useSocketStore } from '../../../zustand/stores/useSocketStore';
@@ -25,7 +25,8 @@ const SocketProvider = () => {
       }
 
       const token = await getItem(STORAGE_KEYS.AUTH_TOKEN);
-      const socketUrl = localBaseUrl ?? '';
+      // const socketUrl = localBaseUrl ?? '';
+      const socketUrl = baseUrl ?? '';
 
       if (!token || !socketUrl || !isMounted) return;
       if (socketRef.current?.connected) return;
