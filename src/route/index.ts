@@ -89,7 +89,7 @@ export type RootStackParamList = {
   Schedule: { refresh?: boolean } | undefined;
   Reports: undefined;
   Account: undefined;
-  AppointmentDetails: { appointmentId?: number } | undefined;
+  AppointmentDetails: { appointmentId?: number, isComingFromNotification?: boolean } | undefined;
 };
 
 /**

@@ -107,32 +107,30 @@ export const BookingSuccessScreen: React.FC = () => {
             </View>
           </View>
         </View>
-        <View style={bookingSuccessStyles.card}>
-          <View style={bookingSuccessStyles.billingHeader}>
-            <Text style={bookingSuccessStyles.cardSectionTitle}>BILLING SUMMARY</Text>
-            <View style={bookingSuccessStyles.paidBadge}>
-              <CheckIcon size={12} color={theme.colors.success} />
-              <Text style={bookingSuccessStyles.paidBadgeText}>PAID ONLINE</Text>
+        {Number(totalAmount) > 0 && (
+          <View style={bookingSuccessStyles.card}>
+            <View style={bookingSuccessStyles.billingHeader}>
+              <Text style={bookingSuccessStyles.cardSectionTitle}>BILLING SUMMARY</Text>
+            </View>
+
+            <View style={bookingSuccessStyles.billRow}>
+              <Text style={bookingSuccessStyles.billLabel}>Consultation Fee</Text>
+              <Text style={bookingSuccessStyles.billValue}>₹{consultationFee}</Text>
+            </View>
+
+            <View style={bookingSuccessStyles.billRow}>
+              <Text style={bookingSuccessStyles.billLabel}>Platform Service Fee</Text>
+              <Text style={bookingSuccessStyles.billValue}>₹{platformFee}</Text>
+            </View>
+
+            <View style={bookingSuccessStyles.billDivider} />
+
+            <View style={bookingSuccessStyles.billRow}>
+              <Text style={bookingSuccessStyles.totalLabel}>TOTAL</Text>
+              <Text style={bookingSuccessStyles.totalValue}>₹{totalAmount}</Text>
             </View>
           </View>
-
-          <View style={bookingSuccessStyles.billRow}>
-            <Text style={bookingSuccessStyles.billLabel}>Consultation Fee</Text>
-            <Text style={bookingSuccessStyles.billValue}>₹{consultationFee}</Text>
-          </View>
-
-          <View style={bookingSuccessStyles.billRow}>
-            <Text style={bookingSuccessStyles.billLabel}>Platform Service Fee</Text>
-            <Text style={bookingSuccessStyles.billValue}>₹{platformFee}</Text>
-          </View>
-
-          <View style={bookingSuccessStyles.billDivider} />
-
-          <View style={bookingSuccessStyles.billRow}>
-            <Text style={bookingSuccessStyles.totalLabel}>TOTAL</Text>
-            <Text style={bookingSuccessStyles.totalValue}>₹{totalAmount}</Text>
-          </View>
-        </View>
+        )}
       </ScrollView>
 
       {/* Return to Dashboard Footer */}

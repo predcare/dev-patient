@@ -13,8 +13,8 @@ export function handleNotificationClick(source: string, rawData?: any): void {
   const data = rawData?.data || rawData?.notification?.data || rawData;
   const appointmentId = data?.appointment_id || data?.appointmentId;
   const routeParams = {
-    refresh: true,
     appointmentId: appointmentId ? String(appointmentId) : undefined,
+    isComingFromNotification: true,
   };
 
   console.log('====================================================');
@@ -31,7 +31,7 @@ export function handleNotificationClick(source: string, rawData?: any): void {
       `[NotificationRouter] App is active on route "${currentRouteName}". Navigating immediately to Schedule`
     );
     // @ts-ignore
-    navigationRef.navigate(AppRoute.SCHEDULE, routeParams);
+    navigationRef.navigate(AppRoute.APPOINTMENT_DETAILS, routeParams);
   } else {
     console.info(
       `[NotificationRouter] App is cold-starting (Current route: "${currentRouteName}"). Setting pending target for SplashScreen:`,

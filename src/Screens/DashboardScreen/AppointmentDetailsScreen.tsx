@@ -1,5 +1,5 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Image, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import CommonErrorCard from '../../components/commons/CommonErrorCard/CommonErrorCard';
 import AppointmentDetailsSkeleton from '../../components/Skeletons/AppointmentDetailsSkeleton';
@@ -29,13 +29,16 @@ import {
 import { AppRoute } from '../../route';
 import { appointmentDetailsStyles as styles } from '../../styled/AppointmentDetailsScreen.styled';
 import { theme } from '../../styled/theme.styled';
+import useIncomingCallStore from '../../zustand/stores/useIncomingCallStore';
 
 export const AppointmentDetailsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const apptId = route.params?.appointmentId;
+  const isComingFromNotification = route.params?.isComingFromNotification;
   const [refreshing, setRefreshing] = useState(false);
-
+  const { hideCallBanner } = useIncomingCallStore(state => state);
+  console.log('isComingFromNotification', isComingFromNotification);
   const {
     data: apptInfo,
     isFetching: apptInfoIsPending,
@@ -137,6 +140,12 @@ export const AppointmentDetailsScreen: React.FC = () => {
       });
     }
   };
+
+  useEffect(() => {
+    if (isComingFromNotification) {
+      hideCallBanner();
+    }
+  }, [isComingFromNotification]);
 
   return (
     <SafeAreaWrapper style={styles.container} showBottomBar isPathClear>
