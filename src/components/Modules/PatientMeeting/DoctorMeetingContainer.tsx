@@ -4,7 +4,8 @@ import { useMeetingTimer } from '../../../hooks/commons/useMeetingTimer';
 import { useVideoCallControls } from '../../../hooks/commons/useVideoCallControls';
 import { SafeAreaWrapper } from '../../../Layout/SafeAreaWrapper';
 import { showErrorToast, showInfoToast } from '../../../lib/common/toast.utils';
-import { type MeetingScreenProps } from '../../../route';
+import { canGoBack, goBack, replace } from '../../../navigation/navigationRef';
+import { AppRoute, type MeetingScreenProps } from '../../../route';
 import PatientMeetingScreenStyles from '../../../styled/PatientMeetingScreen.styled';
 import { useMeetingStore } from '../../../zustand/stores/useMeetingStore';
 import { DoctorMeetingHeader } from './DoctorMeetingHeader';
@@ -12,7 +13,7 @@ import { LocalParticipantView } from './LocalParticipantView';
 import { MeetingControlBar } from './MeetingControlBar';
 import { MeetingStageContainer } from './MeetingStageContainer';
 
-export const DoctorMeetingContainer: React.FC<MeetingScreenProps> = ({ navigation }) => {
+export const DoctorMeetingContainer: React.FC<MeetingScreenProps> = () => {
   const {
     callState,
     errorMessage,
@@ -44,37 +45,39 @@ export const DoctorMeetingContainer: React.FC<MeetingScreenProps> = ({ navigatio
 
   const { toggleAudio, toggleVideo, switchCamera, endCall, localParticipant } =
     useVideoCallControls(() => {
-      navigation?.replace('Schedule');
+      replace('Schedule');
     });
 
   const handleEnterPip = React.useCallback(() => {
     if (callState === 'CONNECTED' || callState === 'CONNECTING') {
       setIsInAppPip(true);
-      if (navigation?.canGoBack?.()) {
-        navigation.goBack();
+      if (canGoBack()) {
+        goBack();
       } else {
-        navigation?.replace('Schedule');
+        replace(AppRoute.SCHEDULE);
       }
     } else {
       endCall();
     }
-  }, [callState, setIsInAppPip, navigation, endCall]);
+  }, [callState, setIsInAppPip, endCall]);
 
   const handleRxPress = useCallback(() => {
     if (callState === 'CONNECTED' || callState === 'CONNECTING') {
-      // setIsInAppPip(true);
+      setIsInAppPip(true);
+      replace(AppRoute.PRESCRIPTIONS_LIST);
     } else {
       showInfoToast('Please wait for the call to be connected.');
     }
-  }, [callState, setIsInAppPip, navigation, patientUserId, patientName, appointmentId]);
+  }, [callState, setIsInAppPip]);
 
   const handleUploadPress = useCallback(() => {
     if (callState === 'CONNECTED' || callState === 'CONNECTING') {
-      // setIsInAppPip(true);
+      setIsInAppPip(true);
+      replace(AppRoute.UPLOAD_HEALTH_RECORD);
     } else {
       showInfoToast('Please wait for the call to be connected.');
     }
-  }, [callState, setIsInAppPip, navigation, patientUserId, patientName]);
+  }, [callState, setIsInAppPip]);
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -89,19 +92,19 @@ export const DoctorMeetingContainer: React.FC<MeetingScreenProps> = ({ navigatio
       showErrorToast(errorMessage || "'token' is empty or invalid or might have expired.");
       const timer = setTimeout(() => {
         resetMeetingStore();
-        navigation?.replace('Schedule');
+        replace('Schedule');
       }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [callState, errorMessage, navigation, resetMeetingStore]);
+  }, [callState, errorMessage, resetMeetingStore]);
 
-  // 3-minute warning toast
+  // 2-minute warning toast
   useEffect(() => {
-    if (remainingSeconds > 0 && remainingSeconds <= 180 && !hasShownThreeMinWarningRef.current) {
+    if (remainingSeconds > 0 && remainingSeconds <= 120 && !hasShownThreeMinWarningRef.current) {
       hasShownThreeMinWarningRef.current = true;
       showInfoToast(
         'Your consultation time is almost up. Please wrap up.',
-        '⏱ 3 Minutes Remaining'
+        '⏱ 2 Minutes Remaining'
       );
     }
   }, [remainingSeconds]);

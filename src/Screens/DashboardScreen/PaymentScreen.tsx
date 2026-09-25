@@ -34,10 +34,14 @@ export const PaymentScreen: React.FC = () => {
   const { showLoader, hideLoader } = useLoadingStore(state => state);
 
   const bookingData = route.params?.bookingData || {};
-  const totalAmount =
-    route.params?.totalAmount ||
-    bookingData.totalAmount ||
-    (bookingData.consultationFee ?? 0) + (bookingData.platformFee ?? 0);
+  const isFeeHidden = Boolean(
+    bookingData.isFeeHidden || bookingData.hideFee || bookingData.hide_fee
+  );
+  const totalAmount = isFeeHidden
+    ? 0
+    : route.params?.totalAmount ||
+      bookingData.totalAmount ||
+      (bookingData.consultationFee ?? 0) + (bookingData.platformFee ?? 0);
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [verificationStatus, setVerificationStatus] = useState<

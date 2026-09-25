@@ -18,10 +18,6 @@ initializeI18n();
 const messagingInstance = getMessaging();
 setBackgroundMessageHandler(messagingInstance, async remoteMessage => {
   console.log('[FCM] Background Message Handler Received:', remoteMessage);
-
-  // If remoteMessage.notification exists, the OS/Firebase SDK has ALREADY displayed
-  // a system notification in the status bar. Displaying another local notification causes duplicates.
-  // We only manually display a local notification for pure data-only messages (remoteMessage.data).
   const isDataOnlyMessage = !remoteMessage.notification;
   const title = remoteMessage.data?.title;
   const body = remoteMessage.data?.body;

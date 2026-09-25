@@ -12,28 +12,23 @@ import {
   View,
 } from 'react-native';
 import {
-  CitySelectModal,
   ClinicCard,
   DoctorFilterModal,
   DoctorFilterValues,
   DoctorSearchCard,
-  SpecialtySelectModal,
 } from '../../components/Modules/Doctors';
 import DoctorSearchSkeleton from '../../components/Skeletons/DoctorSearchSkeleton';
 import AppHeader from '../../components/ui/AppHeader';
 import {
   CalendarIcon,
-  ChevronDownIcon,
   FilterIcon,
   SearchIcon,
   StethoscopeIcon,
   VideoIcon,
 } from '../../components/ui/icons';
 import { useDebounce } from '../../hooks/commons/useDebounce';
-import { useSpecializations } from '../../hooks/react-query/common/common.hooks';
 import { useGetAllDoctorsInfinite } from '../../hooks/react-query/doctors/doctor.hooks';
 import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
-import { MOCK_CITIES_LIST } from '../../resources/mockData';
 import { AppRoute } from '../../route';
 import { doctorSearchStyles } from '../../styled/DoctorSearchScreen.styled';
 import { theme } from '../../styled/theme.styled';
@@ -83,17 +78,6 @@ export const DoctorSearchScreen: React.FC = () => {
 
   const debouncedSearch = useDebounce(filterStates.searchQuery, 500);
 
-  const specializationsQuery = useSpecializations();
-
-  const specialtiesList = useMemo(() => {
-    if (Array.isArray(specializationsQuery.data) && specializationsQuery.data.length > 0) {
-      return specializationsQuery.data
-        .map((item: any) => item.specialization || item.name)
-        .filter(Boolean);
-    }
-    return [];
-  }, [specializationsQuery.data]);
-
   const queryParams = useMemo(() => {
     const params: Record<string, any> = {
       limit: 20,
@@ -134,8 +118,6 @@ export const DoctorSearchScreen: React.FC = () => {
   } = useGetAllDoctorsInfinite(queryParams);
 
   const [showFilterModal, setShowFilterModal] = useState<boolean>(false);
-  const [showSpecialtyModal, setShowSpecialtyModal] = useState<boolean>(false);
-  const [showCityModal, setShowCityModal] = useState<boolean>(false);
 
   const hasActiveFilters = useMemo(() => {
     return (
@@ -188,44 +170,48 @@ export const DoctorSearchScreen: React.FC = () => {
   };
 
   const handleApplyFilters = (filters: DoctorFilterValues) => {
-    const updates: Partial<IDoctorFilterStates> = {};
+    const updates: Partial<IDoctorFilterStates> = {
+      selectedCity: filters.selectedCity,
+      selectedSpecialty: filters.selectedSpecialty,
+    };
 
-    if (filters.specialtyQuery) {
+    if (filters.specialtyQuery !== undefined) {
       updates.searchQuery = filters.specialtyQuery;
     }
-    if (filters.gender) {
+    if (filters.gender !== undefined) {
       updates.gender = filters.gender;
     }
-    if (filters.experience) {
+    if (filters.experience !== undefined) {
       updates.experience = filters.experience;
     }
-    if (filters.consultationType) {
+    if (filters.consultationType !== undefined) {
       const mapped =
         filters.consultationType === 'in-person' ? 'in_person' : filters.consultationType;
       updates.consultationType = mapped as any;
-      if (filters.consultationType === 'video') {
-        updates.videoOnly = true;
-      }
+      updates.videoOnly = filters.consultationType === 'video';
     }
-    if (filters.availability) {
+    if (filters.availability !== undefined) {
       const availMap: Record<string, any> = {
         today: 'today',
         week: 'this_week',
         month: 'this_month',
       };
-      updates.availability = availMap[filters.availability] || null;
-      if (filters.availability === 'today') {
-        updates.todayOnly = true;
-      }
+      updates.availability = filters.availability ? availMap[filters.availability] || null : null;
+      updates.todayOnly = filters.availability === 'today';
     }
-    if (filters.fee) {
+    if (filters.fee !== undefined) {
       if (filters.fee === 'under500') {
+        updates.minFee = null;
         updates.maxFee = 500;
       } else if (filters.fee === '500to1000') {
         updates.minFee = 500;
         updates.maxFee = 1000;
       } else if (filters.fee === '1000plus') {
         updates.minFee = 1000;
+        updates.maxFee = null;
+      } else {
+        updates.minFee = null;
+        updates.maxFee = null;
       }
     }
 
@@ -252,58 +238,6 @@ export const DoctorSearchScreen: React.FC = () => {
             style={{ paddingLeft: 8 }}
           >
             <FilterIcon size={20} color={theme.colors.primaryDark} />
-          </TouchableOpacity>
-        </View>
-
-        <View style={doctorSearchStyles.pillRow}>
-          <TouchableOpacity
-            style={[
-              doctorSearchStyles.pill,
-              !!filterStates.selectedSpecialty && doctorSearchStyles.pillActive,
-            ]}
-            onPress={() => setShowSpecialtyModal(true)}
-            activeOpacity={0.8}
-          >
-            <Text
-              style={[
-                doctorSearchStyles.pillText,
-                !!filterStates.selectedSpecialty && doctorSearchStyles.pillTextActive,
-              ]}
-              numberOfLines={1}
-            >
-              {filterStates.selectedSpecialty || t('commons.specialty')}
-            </Text>
-            <ChevronDownIcon
-              size={14}
-              color={
-                filterStates.selectedSpecialty ? theme.colors.primaryDark : theme.colors.textMuted
-              }
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              doctorSearchStyles.pill,
-              !!filterStates.selectedCity && doctorSearchStyles.pillActive,
-            ]}
-            onPress={() => setShowCityModal(true)}
-            activeOpacity={0.8}
-          >
-            <Text
-              style={[
-                doctorSearchStyles.pillText,
-                !!filterStates.selectedCity && doctorSearchStyles.pillTextActive,
-              ]}
-              numberOfLines={1}
-            >
-              {filterStates.selectedCity || t('commons.city')}
-            </Text>
-            <ChevronDownIcon
-              size={16}
-              color={
-                filterStates.selectedCity ? theme.colors.primaryDark : theme.colors.textSecondary
-              }
-            />
           </TouchableOpacity>
         </View>
 
@@ -455,38 +389,38 @@ export const DoctorSearchScreen: React.FC = () => {
         />
       )}
 
-      <DoctorFilterModal
-        visible={showFilterModal}
-        initialValues={{
-          specialtyQuery: filterStates.searchQuery,
-          gender: filterStates.gender as any,
-          experience: filterStates.experience as any,
-        }}
-        onClose={() => setShowFilterModal(false)}
-        onApply={handleApplyFilters}
-      />
-
-      <SpecialtySelectModal
-        visible={showSpecialtyModal}
-        specialties={specialtiesList}
-        selectedSpecialty={filterStates.selectedSpecialty}
-        onSelect={selectedSpecialty => {
-          updateFilterState({ selectedSpecialty });
-          setShowSpecialtyModal(false);
-        }}
-        onClose={() => setShowSpecialtyModal(false)}
-      />
-
-      <CitySelectModal
-        visible={showCityModal}
-        cities={MOCK_CITIES_LIST}
-        selectedCity={filterStates.selectedCity}
-        onSelect={selectedCity => {
-          updateFilterState({ selectedCity });
-          setShowCityModal(false);
-        }}
-        onClose={() => setShowCityModal(false)}
-      />
+      {showFilterModal && (
+        <DoctorFilterModal
+          visible={showFilterModal}
+          initialValues={{
+            specialtyQuery: filterStates.searchQuery,
+            selectedSpecialty: filterStates.selectedSpecialty,
+            selectedCity: filterStates.selectedCity,
+            gender: filterStates.gender as any,
+            experience: filterStates.experience as any,
+            consultationType:
+              filterStates.consultationType === 'in_person'
+                ? 'in-person'
+                : filterStates.consultationType,
+            availability:
+              filterStates.availability === 'this_week'
+                ? 'week'
+                : filterStates.availability === 'this_month'
+                ? 'month'
+                : filterStates.availability,
+            fee:
+              filterStates.maxFee === 500 && !filterStates.minFee
+                ? 'under500'
+                : filterStates.minFee === 500 && filterStates.maxFee === 1000
+                ? '500to1000'
+                : filterStates.minFee === 1000 && !filterStates.maxFee
+                ? '1000plus'
+                : null,
+          }}
+          onClose={() => setShowFilterModal(false)}
+          onApply={handleApplyFilters}
+        />
+      )}
     </SafeAreaWrapper>
   );
 };

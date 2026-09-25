@@ -58,7 +58,7 @@ export const getHealthCareTips = async () => {
 
 export const getAllCities = async (params?: { search?: string }) => {
   const res = await axiosInstance.get<IRootResponse<ILocationDoc[]>>(
-    `${endpoints.commons.cities(0)}`,
+    `${endpoints.commons.allcities}`,
     {
       params,
     }

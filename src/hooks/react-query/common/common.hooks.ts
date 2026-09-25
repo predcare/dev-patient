@@ -94,7 +94,7 @@ export const useAllCities = (params?: { search?: string }) =>
   useQuery({
     queryKey: [CommonQueryKeys.Cities, params],
     queryFn: () => getAllCities(params),
-    enabled: !!params?.search,
+    enabled: (params?.search?.trim()?.length ?? 0) >= 3,
     select: (v: any) => {
       if (Array.isArray(v)) return v;
       if (Array.isArray(v?.data)) return v.data;

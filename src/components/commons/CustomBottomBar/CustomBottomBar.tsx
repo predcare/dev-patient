@@ -173,7 +173,7 @@ export const CustomBottomBar: React.FC<CustomBottomBarProps> = ({
         return (
           <TouchableOpacity
             key={tab.key}
-            activeOpacity={0.75}
+            activeOpacity={1}
             onPress={() => handleTabPress(tab.key)}
             style={customBottomBarStyles.item}
             accessibilityRole="tab"

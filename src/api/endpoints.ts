@@ -1,6 +1,6 @@
 export const baseUrl = 'https://api-dev.predcare.in';
 export const localBaseUrl = 'https://chant-abrasion-sustainer.ngrok-free.dev';
-export const baseUrlApi = `${baseUrl}/api/v1`;
+export const baseUrlApi = `${localBaseUrl}/api/v1`;
 
 export const mediaPaths = (fileName?: string) => {
   if (!fileName) return '';
@@ -9,12 +9,12 @@ export const mediaPaths = (fileName?: string) => {
     return rawImg;
   }
   if (rawImg.startsWith('/')) {
-    return `${baseUrl}${rawImg}`;
+    return `${localBaseUrl}${rawImg}`;
   }
   if (rawImg.startsWith('storage/')) {
-    return `${baseUrl}/${rawImg}`;
+    return `${localBaseUrl}/${rawImg}`;
   }
-  return `${baseUrl}/storage/${rawImg}`;
+  return `${localBaseUrl}/storage/${rawImg}`;
 };
 
 export const endpoints = {
@@ -84,6 +84,7 @@ export const endpoints = {
     country: '/common/countries',
     states: (countryId: string | number) => `/common/countries/${countryId}/states`,
     cities: (stateId: string | number) => `/common/states/${stateId}/cities`,
+    allcities: '/common/cities',
     users: '/doctor/auth/users',
     policies: '/cms/policies',
     policyAccept: '/users/user-policy-acceptances',

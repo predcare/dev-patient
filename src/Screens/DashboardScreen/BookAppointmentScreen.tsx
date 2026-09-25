@@ -99,7 +99,22 @@ export const BookAppointmentScreen: React.FC = () => {
     clinicId,
     consultation_type: formStates.consultationType,
   });
+
   const { data: commisionSlabsData, isFetching: isCommisionSlabsPending } = useCommisionSlabs();
+
+  const isFeeHidden = useMemo(() => {
+    if (
+      formStates.selectedSlot &&
+      (formStates.selectedSlot.hide_fee === true ||
+        String(formStates.selectedSlot.hide_fee) === 'true')
+    ) {
+      return true;
+    }
+    return formStates.selectedSlots?.some(
+      slot => slot.hide_fee === true || String(slot.hide_fee) === 'true'
+    );
+  }, [formStates.selectedSlots, formStates.selectedSlot]);
+
   const consultationFee = useMemo(() => {
     if (!formStates.selectedSlots || formStates.selectedSlots.length === 0) return 0;
     return formStates.selectedSlots.reduce((sum, slot) => {
@@ -142,7 +157,8 @@ export const BookAppointmentScreen: React.FC = () => {
   };
 
   const handleProceed = () => {
-    if (!formStates?.selectedDate) return showErrorToast(t('bookAppointmentScreen.selectDateError'));
+    if (!formStates?.selectedDate)
+      return showErrorToast(t('bookAppointmentScreen.selectDateError'));
     if (formStates?.selectedSlots.length === 0)
       return showErrorToast(t('bookAppointmentScreen.selectSlotsError'));
 
@@ -196,12 +212,13 @@ export const BookAppointmentScreen: React.FC = () => {
       patientName: userData?.name || 'Patient',
       patientId: userData?.id,
       slot: slotLabel,
-      consultationFee,
-      platformFee,
+      consultationFee: isFeeHidden ? 0 : consultationFee,
+      platformFee: isFeeHidden ? 0 : platformFee,
+      isFeeHidden,
       consultation_type: formStates.consultationType,
       appointment_type: formStates.appointmentType,
       reason: formStates.reason,
-      totalAmount,
+      totalAmount: isFeeHidden ? 0 : totalAmount,
     };
     navigation.navigate('Payment', { bookingData });
   };
@@ -214,6 +231,7 @@ export const BookAppointmentScreen: React.FC = () => {
         style={bookAppointmentStyles.scroll}
         contentContainerStyle={bookAppointmentStyles.scrollContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         {isSummaryPending ? (
           <DoctorClinicCardSkeleton />
@@ -247,8 +265,6 @@ export const BookAppointmentScreen: React.FC = () => {
             </View>
           </View>
         )}
-
-        {/* Patient Information */}
         <Text style={bookAppointmentStyles.sectionLabel}>
           {t('bookAppointmentScreen.patientInfoLabel')}
         </Text>
@@ -267,8 +283,6 @@ export const BookAppointmentScreen: React.FC = () => {
             </View>
           </View>
         </View>
-
-        {/* Consultation Type */}
         <Text style={bookAppointmentStyles.sectionLabel}>
           {t('bookAppointmentScreen.consultationTypeLabel')}
         </Text>
@@ -368,7 +382,7 @@ export const BookAppointmentScreen: React.FC = () => {
             contentContainerStyle={bookAppointmentStyles.dateRow}
           >
             {availableDatesRes &&
-              availableDatesRes?.map((dateStr, idx) => {
+              availableDatesRes?.slice(0, 3)?.map((dateStr, idx) => {
                 const active = dateStr === formStates.selectedDate;
                 const formatted = formatDateChip(dateStr as string);
                 return (
@@ -490,9 +504,7 @@ export const BookAppointmentScreen: React.FC = () => {
             </Text>
           </View>
 
-          <View style={bookAppointmentStyles.divider} />
-
-          {consultationFee > 0 && (
+          {!isFeeHidden && consultationFee > 0 && (
             <View style={bookAppointmentStyles.summaryRow}>
               <Text style={bookAppointmentStyles.summaryLabel}>
                 {t('bookAppointmentScreen.consultationFee')}
@@ -501,7 +513,7 @@ export const BookAppointmentScreen: React.FC = () => {
             </View>
           )}
 
-          {consultationFee > 0 && (
+          {!isFeeHidden && consultationFee > 0 && (
             <View style={bookAppointmentStyles.summaryRow}>
               <Text style={bookAppointmentStyles.summaryLabel}>
                 {t('bookAppointmentScreen.platformFee')}
@@ -514,9 +526,9 @@ export const BookAppointmentScreen: React.FC = () => {
             </View>
           )}
 
-          <View style={bookAppointmentStyles.divider} />
+          {!isFeeHidden && consultationFee > 0 && <View style={bookAppointmentStyles.divider} />}
 
-          {consultationFee > 0 && (
+          {!isFeeHidden && consultationFee > 0 && (
             <View style={bookAppointmentStyles.summaryRow}>
               <Text style={bookAppointmentStyles.totalLabel}>
                 {t('bookAppointmentScreen.totalAmount')}
@@ -552,7 +564,7 @@ export const BookAppointmentScreen: React.FC = () => {
           ) : (
             <Text style={bookAppointmentStyles.proceedBtnText}>
               {t('bookAppointmentScreen.bookAppointmentBtn')}{' '}
-              {totalAmount > 0 && `• ₹${totalAmount}`}
+              {!isFeeHidden && totalAmount > 0 && `• ₹${totalAmount}`}
             </Text>
           )}
         </TouchableOpacity>

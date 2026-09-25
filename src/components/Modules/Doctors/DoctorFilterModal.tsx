@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  ActivityIndicator,
   Modal,
   ScrollView,
   StyleSheet,
@@ -9,11 +10,22 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useDebounce } from '../../../hooks/commons/useDebounce';
+import { useAllCities, useSpecializations } from '../../../hooks/react-query/common/common.hooks';
 import { theme } from '../../../styled/theme.styled';
-import { CircleXIcon, SearchIcon } from '../../ui/icons';
+import {
+  CheckIcon,
+  ChevronDownIcon,
+  CircleXIcon,
+  MapPinIcon,
+  StethoscopeIcon,
+} from '../../ui/icons';
+import { SpecialtySelectModal } from './SpecialtySelectModal';
 
 export interface DoctorFilterValues {
   specialtyQuery: string;
+  selectedSpecialty: string | null;
+  selectedCity: string | null;
   availability: 'today' | 'week' | 'month' | null;
   consultationType: 'in-person' | 'video' | 'both' | null;
   gender: 'male' | 'female' | null;
@@ -24,6 +36,8 @@ export interface DoctorFilterValues {
 
 export const defaultDoctorFilters: DoctorFilterValues = {
   specialtyQuery: '',
+  selectedSpecialty: null,
+  selectedCity: null,
   availability: null,
   consultationType: null,
   gender: null,
@@ -53,11 +67,45 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
     ...initialValues,
   });
 
-  const reset = () => setFilters({ ...defaultDoctorFilters });
+  const [cityInput, setCityInput] = useState<string>(initialValues?.selectedCity || '');
+  const [showCitySuggestions, setShowCitySuggestions] = useState<boolean>(false);
+  const [showSpecialtyModal, setShowSpecialtyModal] = useState<boolean>(false);
+
+  const { data: specializationsQuery } = useSpecializations();
+
+  const specialtiesList = useMemo(() => {
+    if (Array.isArray(specializationsQuery) && specializationsQuery.length > 0) {
+      return specializationsQuery
+        .map((item: any) => item.specialization || item.name)
+        .filter(Boolean);
+    }
+    return [];
+  }, [specializationsQuery]);
+
+  const debouncedCity = useDebounce(cityInput, 350);
+  const { data: citiesQuery, isFetching: isCityFetching } = useAllCities({ search: debouncedCity });
+
+  const reset = () => {
+    setFilters({ ...defaultDoctorFilters });
+    setCityInput('');
+    setShowCitySuggestions(false);
+  };
 
   const handleApply = () => {
     onApply(filters);
     onClose();
+  };
+
+  const handleSelectCity = (cityName: string) => {
+    setCityInput(cityName);
+    setFilters(f => ({ ...f, selectedCity: cityName }));
+    setShowCitySuggestions(false);
+  };
+
+  const handleClearCity = () => {
+    setCityInput('');
+    setFilters(f => ({ ...f, selectedCity: null }));
+    setShowCitySuggestions(false);
   };
 
   const RowChip = ({
@@ -96,6 +144,17 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
     </TouchableOpacity>
   );
 
+  useEffect(() => {
+    if (visible) {
+      setFilters({
+        ...defaultDoctorFilters,
+        ...initialValues,
+      });
+      setCityInput(initialValues?.selectedCity || '');
+      setShowCitySuggestions(false);
+    }
+  }, [visible, initialValues]);
+
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={styles.container}>
@@ -113,19 +172,138 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.sectionTitle}>
-            {t('doctorFilterModal.specialityAndSubSpecialty')}
-          </Text>
+          {/* City Section with Autocomplete */}
+          <Text style={styles.sectionTitle}>{t('commons.city') || 'City'}</Text>
           <View style={styles.searchBox}>
-            <SearchIcon size={18} color={theme.colors.textMuted} />
+            <MapPinIcon size={18} color={theme.colors.primaryDark} />
             <TextInput
               style={styles.searchInput}
-              placeholder={t('doctorFilterModal.searchBySpeciality')}
+              placeholder={t('commons.searchCity') || 'Search city (min 3 chars)...'}
               placeholderTextColor={theme.colors.textMuted}
-              value={filters.specialtyQuery}
-              onChangeText={specialtyQuery => setFilters(f => ({ ...f, specialtyQuery }))}
+              value={cityInput}
+              onChangeText={text => {
+                setCityInput(text);
+                setShowCitySuggestions(true);
+                if (!text) {
+                  setFilters(f => ({ ...f, selectedCity: null }));
+                }
+              }}
+              onFocus={() => {
+                if (cityInput.trim().length >= 3) {
+                  setShowCitySuggestions(true);
+                }
+              }}
+              autoCapitalize="words"
             />
+            {isCityFetching ? (
+              <ActivityIndicator size="small" color={theme.colors.primary} />
+            ) : cityInput.length > 0 ? (
+              <TouchableOpacity
+                onPress={handleClearCity}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <CircleXIcon size={16} color={theme.colors.textMuted} />
+              </TouchableOpacity>
+            ) : null}
           </View>
+          {showCitySuggestions && debouncedCity.trim().length >= 3 && (
+            <View style={styles.suggestionsContainer}>
+              {isCityFetching && (!citiesQuery || citiesQuery?.length === 0) ? (
+                <View style={styles.suggestionStateBox}>
+                  <Text style={styles.suggestionStateText}>Searching cities...</Text>
+                </View>
+              ) : citiesQuery && citiesQuery?.length > 0 ? (
+                citiesQuery?.map((city: { id: number | string; name: string }) => {
+                  const isSelected =
+                    filters.selectedCity?.toLowerCase() === city.name.toLowerCase();
+                  return (
+                    <TouchableOpacity
+                      key={city.id}
+                      style={[styles.suggestionItem, isSelected && styles.suggestionItemSelected]}
+                      onPress={() => handleSelectCity(city.name)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                        <MapPinIcon
+                          size={14}
+                          color={isSelected ? theme.colors.primary : theme.colors.textMuted}
+                        />
+                        <Text
+                          style={[
+                            styles.suggestionText,
+                            isSelected && styles.suggestionTextSelected,
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {city.name}
+                        </Text>
+                      </View>
+                      {isSelected && <CheckIcon size={14} color={theme.colors.primary} />}
+                    </TouchableOpacity>
+                  );
+                })
+              ) : (
+                <View style={styles.suggestionStateBox}>
+                  <Text style={styles.suggestionStateText}>No cities found</Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          {!!filters.selectedCity && (
+            <View style={styles.selectedBadgeRow}>
+              <View style={styles.selectedBadge}>
+                <MapPinIcon size={12} color={theme.colors.primaryDark} />
+                <Text style={styles.selectedBadgeText}>{filters.selectedCity}</Text>
+                <TouchableOpacity
+                  onPress={handleClearCity}
+                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                >
+                  <CircleXIcon size={14} color={theme.colors.primaryDark} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* Specialty Section */}
+          <Text style={styles.sectionTitle}>{t('commons.specialty') || 'Specialty'}</Text>
+          <TouchableOpacity
+            style={[
+              styles.selectPickerBtn,
+              !!filters.selectedSpecialty && styles.selectPickerBtnActive,
+            ]}
+            onPress={() => setShowSpecialtyModal(true)}
+            activeOpacity={0.8}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+              <StethoscopeIcon
+                size={18}
+                color={
+                  filters.selectedSpecialty ? theme.colors.primaryDark : theme.colors.textMuted
+                }
+              />
+              <Text
+                style={[
+                  styles.selectPickerText,
+                  !!filters.selectedSpecialty && styles.selectPickerTextActive,
+                ]}
+                numberOfLines={1}
+              >
+                {filters.selectedSpecialty || t('commons.selectSpecialty') || 'Select Specialty'}
+              </Text>
+            </View>
+            {filters.selectedSpecialty ? (
+              <TouchableOpacity
+                onPress={() => setFilters(f => ({ ...f, selectedSpecialty: null }))}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <CircleXIcon size={16} color={theme.colors.textMuted} />
+              </TouchableOpacity>
+            ) : (
+              <ChevronDownIcon size={16} color={theme.colors.textMuted} />
+            )}
+          </TouchableOpacity>
+
           <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionTitle}>{t('doctorFilterModal.availability')}</Text>
             <Text style={styles.selectOne}>{t('doctorFilterModal.selectOne')}</Text>
@@ -288,6 +466,17 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
           </TouchableOpacity>
         </ScrollView>
       </View>
+
+      <SpecialtySelectModal
+        visible={showSpecialtyModal}
+        specialties={specialtiesList}
+        selectedSpecialty={filters.selectedSpecialty}
+        onSelect={selectedSpecialty => {
+          setFilters(f => ({ ...f, selectedSpecialty }));
+          setShowSpecialtyModal(false);
+        }}
+        onClose={() => setShowSpecialtyModal(false)}
+      />
     </Modal>
   );
 };
@@ -496,6 +685,87 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: theme.colors.surface,
+  },
+  suggestionsContainer: {
+    marginTop: 6,
+    borderWidth: 1,
+    borderColor: theme.colors.surfaceBorder,
+    borderRadius: 12,
+    backgroundColor: theme.colors.surface,
+    maxHeight: 200,
+    overflow: 'hidden',
+  },
+  suggestionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: theme.colors.surfaceBorder,
+  },
+  suggestionItemSelected: {
+    backgroundColor: theme.colors.primarySoft,
+  },
+  suggestionText: {
+    fontSize: 14,
+    color: theme.colors.textPrimary,
+  },
+  suggestionTextSelected: {
+    fontWeight: '600',
+    color: theme.colors.primaryDark,
+  },
+  suggestionStateBox: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+  },
+  suggestionStateText: {
+    fontSize: 13,
+    color: theme.colors.textMuted,
+  },
+  selectedBadgeRow: {
+    flexDirection: 'row',
+    marginTop: 8,
+  },
+  selectedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: theme.colors.primarySoft,
+    borderColor: theme.colors.primary,
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  selectedBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: theme.colors.primaryDark,
+  },
+  selectPickerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: theme.colors.surfaceBorder,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    height: 48,
+    backgroundColor: theme.colors.surface,
+  },
+  selectPickerBtnActive: {
+    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.primarySoft,
+  },
+  selectPickerText: {
+    fontSize: 14,
+    color: theme.colors.textMuted,
+  },
+  selectPickerTextActive: {
+    color: theme.colors.primaryDark,
+    fontWeight: '600',
   },
 });
 

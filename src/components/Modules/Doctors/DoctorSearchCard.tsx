@@ -122,6 +122,7 @@ export const DoctorSearchCard: React.FC<DoctorSearchCardProps> = ({
           style={doctorSearchStyles.bookBtn}
           onPress={handleBook}
           activeOpacity={0.85}
+          disabled={!nextAvailableDate}
         >
           <Text style={doctorSearchStyles.bookBtnText}>{t('commons.bookAppointment')}</Text>
         </TouchableOpacity>

@@ -24,11 +24,13 @@ import { AppRoute } from '../../route';
 import { theme } from '../../styled/theme.styled';
 import { uploadRecordStyles } from '../../styled/UploadHealthRecordScreen.styled';
 import { useLoadingStore } from '../../zustand/stores/useLoadingStore';
+import { useMeetingStore } from '../../zustand/stores/useMeetingStore';
 
 export const UploadHealthRecordScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const { hideLoader, showLoader } = useLoadingStore();
+  const { appointmentId } = useMeetingStore(state => state);
   const { mutate: uploadEmrMutation, isPending: isUploading } = useUploadEMR();
 
   const {
@@ -100,6 +102,9 @@ export const UploadHealthRecordScreen: React.FC = () => {
     formData.append('visible_to_patient', `${true}`);
     formData.append('uploaded_during_call', `${false}`);
     formData.append('created_from', 'patient-app');
+    if (Boolean(appointmentId)) {
+      formData.append('appointment_id', appointmentId?.toString());
+    }
     if (data.shareDoctorIds && data.shareDoctorIds.length > 0) {
       formData.append('shareIds', JSON.stringify(data.shareDoctorIds));
     }

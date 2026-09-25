@@ -25,8 +25,8 @@ const SocketProvider = () => {
       }
 
       const token = await getItem(STORAGE_KEYS.AUTH_TOKEN);
-      // const socketUrl = localBaseUrl ?? '';
-      const socketUrl = baseUrl ?? '';
+      const socketUrl = localBaseUrl ?? '';
+      // const socketUrl = baseUrl ?? '';
 
       if (!token || !socketUrl || !isMounted) return;
       if (socketRef.current?.connected) return;

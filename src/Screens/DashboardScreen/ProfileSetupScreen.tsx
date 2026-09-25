@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import dayjs from 'dayjs';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Image,
@@ -14,11 +15,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useTranslation } from 'react-i18next';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { mediaPaths } from '../../api/endpoints';
 import UploadOptionsModal from '../../components/commons/UploadOptionsModal/UploadOptionsModal';
 import { DropdownPickerModal } from '../../components/Modules/MemberManagement';
+import { queryClient } from '../../components/providers/ReactQueryProvider';
 import AppHeader from '../../components/ui/AppHeader';
 import { CalendarIcon, ChevronDownIcon, EditIcon, UploadIcon } from '../../components/ui/icons';
 import WheelDatePickerModal from '../../components/ui/WheelDatePickerModal';
@@ -28,11 +29,13 @@ import {
   useStatesByCId,
 } from '../../hooks/react-query/common/common.hooks';
 import { useProfile, useUpdateProfile } from '../../hooks/react-query/profile/profile.hooks';
+import { ProfileQueryKeys } from '../../hooks/react-query/query.keys';
 import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import { showInfoToast, showSuccessToast } from '../../lib/common/toast.utils';
 import { ProfileSetupSchema, TProfileSetupSchemaType } from '../../lib/schemas/profile.schemas';
 import { memberStyles } from '../../styled/MemberScreen.styled';
 import { theme } from '../../styled/theme.styled';
+import { useLoadingStore } from '../../zustand/stores/useLoadingStore';
 
 export const ProfileSetupScreen: React.FC = () => {
   const { t } = useTranslation();
@@ -46,6 +49,7 @@ export const ProfileSetupScreen: React.FC = () => {
 
   const { data: profileData } = useProfile();
   const { mutate: updateProfileMutation, isPending } = useUpdateProfile();
+  const { showLoader, hideLoader } = useLoadingStore(state => state);
 
   const {
     control,
@@ -245,13 +249,24 @@ export const ProfileSetupScreen: React.FC = () => {
         type: picObj.type || 'image/jpeg',
       } as any);
     }
+    showLoader('Please Wait...');
 
     updateProfileMutation(formData, {
-      onSuccess: res => {
+      onSuccess: async res => {
         if (res?.success) {
-          showSuccessToast(t('profileSetup.profileUpdatedSuccess'), t('profileSetup.profileUpdateTitle'));
+          await queryClient.invalidateQueries({ queryKey: [ProfileQueryKeys.Profile] });
+          showSuccessToast(
+            t('profileSetup.profileUpdatedSuccess'),
+            t('profileSetup.profileUpdateTitle')
+          );
           navigation.goBack();
         }
+      },
+      onSettled: () => {
+        hideLoader();
+      },
+      onError: () => {
+        hideLoader();
       },
     });
   };
@@ -501,7 +516,9 @@ export const ProfileSetupScreen: React.FC = () => {
                   onPress={() => setShowStatePicker(true)}
                   activeOpacity={0.8}
                 >
-                  <Text style={memberStyles.dropdownValue}>{currentState || t('profileSetup.selectState')}</Text>
+                  <Text style={memberStyles.dropdownValue}>
+                    {currentState || t('profileSetup.selectState')}
+                  </Text>
                   <ChevronDownIcon size={18} color={theme.colors.textMuted} />
                 </TouchableOpacity>
                 {errors.state && (
@@ -526,7 +543,9 @@ export const ProfileSetupScreen: React.FC = () => {
                   onPress={() => setShowCityPicker(true)}
                   activeOpacity={0.8}
                 >
-                  <Text style={memberStyles.dropdownValue}>{currentCity || t('profileSetup.selectCity')}</Text>
+                  <Text style={memberStyles.dropdownValue}>
+                    {currentCity || t('profileSetup.selectCity')}
+                  </Text>
                   <ChevronDownIcon size={18} color={theme.colors.textMuted} />
                 </TouchableOpacity>
                 {errors.city && (
