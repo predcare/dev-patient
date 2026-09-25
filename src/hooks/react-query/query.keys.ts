@@ -46,6 +46,7 @@ export enum DoctorQueryKeys {
 export enum AppointmemntQueryKey {
   CHECK_PAYMENT_STATUS = 'CHECK_PAYMENT_STATUS',
   ALL_APPOINTMENTS = 'ALL_APPOINTMENTS',
+  INFO = 'INFO',
 }
 
 export enum PrescriptionQueryKeys {

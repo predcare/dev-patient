@@ -252,13 +252,13 @@ export const AppointmentsScreen: React.FC = () => {
           keyboardShouldPersistTaps="handled"
           renderItem={({ item: apt }) => (
             <AppointmentCard
-              apptId={apt?.appointment_id}
-              apptStatus={apt?.appointment_status}
-              clinicAddress={apt.clinicInfo?.fulladdress}
-              clinicName={apt.clinicInfo?.name}
+              apptId={apt?.appointment_id || ''}
+              apptStatus={apt?.appointment_status || ''}
+              clinicAddress={apt.clinicInfo?.fulladdress || ''}
+              clinicName={apt.clinicInfo?.name || ''}
               date={formatDate(apt.appointment_date)}
               docImage={apt.doctorInfo?.profileImage}
-              doctorName={apt.doctorInfo?.name}
+              doctorName={apt.doctorInfo?.name || ''}
               duration={getDuration(apt?.start_time, apt?.end_time) || ''}
               mode={apt?.consultation_type || ''}
               time={_formatTime(apt?.start_time) || ''}
@@ -275,6 +275,11 @@ export const AppointmentsScreen: React.FC = () => {
                   address: apt.clinicInfo?.fulladdress,
                   lat: apt.clinicInfo?.location?.lat,
                   long: apt.clinicInfo?.location?.lng,
+                })
+              }
+              onView={() =>
+                navigation.navigate(AppRoute.APPOINTMENT_DETAILS, {
+                  appointmentId: apt.id,
                 })
               }
             />

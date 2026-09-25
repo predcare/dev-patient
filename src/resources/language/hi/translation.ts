@@ -296,6 +296,7 @@ export const hindiTranslations = {
     inPerson: 'व्यक्तिगत',
     getDirections: 'दिशा-निर्देश प्राप्त करें',
     joinVideoCall: 'वीडियो कॉल में शामिल हों',
+    viewDetails: 'विवरण देखें',
     reschedule: 'रीशेड्यूल करें',
     cancel: 'रद्द करें',
     statusOnline: 'ऑनलाइन',
@@ -395,6 +396,3 @@ export const hindiTranslations = {
     errorText: 'स्वास्थ्य टिप्स लोड करने में असमर्थ। पुनः प्रयास करने के लिए टैप करें।',
   },
 };
-
-
-

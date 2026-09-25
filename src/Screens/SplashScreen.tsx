@@ -3,10 +3,12 @@ import { Animated, Image, StyleSheet, Text, View } from 'react-native';
 import { fetchProfileQuery } from '../hooks/react-query/profile/profile.hooks';
 import { SafeAreaWrapper } from '../Layout/SafeAreaWrapper';
 import { getItem, STORAGE_KEYS } from '../lib/common/asyncStorage';
-import { resetAndNavigate, resetToHome, resetToLogin } from '../lib/common/navigation.utils';
+import { resetAndNavigate, resetToLogin } from '../lib/common/navigation.utils';
 import type { SplashScreenNavigationProp, SplashScreenRouteProp } from '../route';
 import { AppRoute } from '../route';
 import { theme } from '../styled/theme.styled';
+import { checkInitialNotification } from '../utils/firebaseMessaging';
+import { consumeTargetRoute } from '../utils/notificationRouter';
 import { useAuthStore } from '../zustand/stores/useAuthStore';
 
 export interface SplashScreenProps {
@@ -59,6 +61,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
 
     const authenticateAndLoad = async () => {
       try {
+        await checkInitialNotification();
         const token = await getItem(STORAGE_KEYS.AUTH_TOKEN);
 
         if (!token) {
@@ -82,7 +85,8 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
           } else if (userData.email_verified_at && !userData.has_accepted_policies) {
             resetAndNavigate(navigation, AppRoute.POLICY_ACCEPTANCE);
           } else {
-            resetToHome(navigation);
+            const target = consumeTargetRoute();
+            navigation?.reset({ index: 0, routes: [target as any] });
           }
         } else {
           await logout();

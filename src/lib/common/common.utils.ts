@@ -12,19 +12,23 @@ export const formatDate = (
   return dayjs(date).format(format);
 };
 
-export const dateOnly = (dateTimeStr: string, format = 'DD MMM YYYY'): string => {
-  if (!dateTimeStr?.includes('T')) return '';
+export const dateOnly = (dateTimeStr?: string | null, format = 'DD MMM YYYY'): string => {
+  if (!dateTimeStr || typeof dateTimeStr !== 'string' || !dateTimeStr.includes('T')) return '';
   const datePart = dateTimeStr.split('T')[0];
   return dayjs(datePart).format(format);
 };
 
-export function getInitials(name: string): string {
-  if (!name) return 'D';
-  const parts = name.trim().split(/\s+/);
+export function getInitials(name?: string | null): string {
+  if (!name || typeof name !== 'string') return 'D';
+  const trimmed = name.trim();
+  if (!trimmed) return 'D';
+  const parts = trimmed.split(/\s+/);
   if (parts.length === 1) {
-    return parts[0][0].toUpperCase();
+    return parts[0][0]?.toUpperCase() || 'D';
   }
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  const first = parts[0][0] || '';
+  const last = parts[parts.length - 1][0] || '';
+  return (first + last).toUpperCase() || 'D';
 }
 
 export const getAvatarColor = (name = '', colors: string[] = ['#00897B', '#00796B']): string => {
@@ -87,14 +91,19 @@ export const capitalize = (value: string): string => {
   return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
 };
 
-export const getDuration = (startTime: string, endTime: string): string => {
+export const getDuration = (startTime?: string | null, endTime?: string | null): string => {
+  if (!startTime || !endTime || typeof startTime !== 'string' || typeof endTime !== 'string') {
+    return '';
+  }
+
   const toMinutes = (time: string) => {
+    if (!time || !time.includes(':')) return 0;
     const [hours, minutes] = time.split(':').map(Number);
-    return hours * 60 + minutes;
+    return (hours || 0) * 60 + (minutes || 0);
   };
 
   let duration = toMinutes(endTime) - toMinutes(startTime);
-  if (duration < 0) duration += 1440;
+  if (duration <= 0) duration += 1440;
 
   const hours = Math.floor(duration / 60);
   const minutes = duration % 60;
@@ -102,7 +111,10 @@ export const getDuration = (startTime: string, endTime: string): string => {
   return hours ? `${hours}h ${minutes}m` : `${minutes} minutes`;
 };
 
-export const _formatTime = (time: string): string => dayjs(`2000-01-01 ${time}`).format('hh:mm A');
+export const _formatTime = (time?: string | null): string => {
+  if (!time || typeof time !== 'string') return '';
+  return dayjs(`2000-01-01 ${time}`).format('hh:mm A');
+};
 
 export const openLocationOnMap = (params: {
   address?: string;

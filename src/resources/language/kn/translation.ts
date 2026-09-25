@@ -297,6 +297,7 @@ export const kannadaTranslations = {
     inPerson: 'ಖುದ್ದಾಗಿ',
     getDirections: 'ದಿಕ್ಕುಗಳನ್ನು ಪಡೆಯಿರಿ',
     joinVideoCall: 'ವೀಡಿಯೊ ಕರೆಗೆ ಸೇರಿ',
+    viewDetails: 'ವಿವರಗಳನ್ನು ವೀಕ್ಷಿಸಿ',
     reschedule: 'ಮರುಹೊಂದಿಸಿ',
     cancel: 'ರದ್ದುಮಾಡಿ',
     statusOnline: 'ಆನ್‌ಲೈನ್',
@@ -396,6 +397,3 @@ export const kannadaTranslations = {
     errorText: 'ಆರೋಗ್ಯ ಸಲಹೆಗಳನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ. ಮರುಪ್ರಯತ್ನಿಸಲು ಟ್ಯಾಪ್ ಮಾಡಿ.',
   },
 };
-
-
-

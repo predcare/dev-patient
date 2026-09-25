@@ -300,6 +300,7 @@ export const teluguTranslations = {
     inPerson: 'ప్రత్యక్షంగా',
     getDirections: 'దిశలను పొందండి',
     joinVideoCall: 'వీడియో కాల్‌లో చేరండి',
+    viewDetails: "వివరాలను చూడండి",
     reschedule: 'రీషెడ్యూల్ చేయండి',
     cancel: 'రద్దు చేయి',
     statusOnline: 'ఆన్‌లైన్',

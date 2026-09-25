@@ -4,7 +4,14 @@ import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { getInitials } from '../../../lib/common/common.utils';
 import { appointmentsStyles } from '../../../styled/AppointmentsScreen.styled';
 import { theme } from '../../../styled/theme.styled';
-import { CalendarIcon, ClockIcon, MapPinIcon, VideoIcon } from '../../ui/icons';
+import {
+  CalendarIcon,
+  ChevronRightIcon,
+  ClockIcon,
+  FileTextIcon,
+  MapPinIcon,
+  VideoIcon,
+} from '../../ui/icons';
 
 export interface AppointmentCardProps {
   apptId: string;
@@ -21,6 +28,7 @@ export interface AppointmentCardProps {
   onReschedule: () => void;
   onCancelPress: () => void;
   onOpenDirections?: () => void;
+  onView?: () => void;
 }
 
 export const AppointmentCard: React.FC<AppointmentCardProps> = ({
@@ -38,6 +46,7 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
   onJoinVideo,
   onReschedule,
   onOpenDirections,
+  onView,
 }) => {
   const { t } = useTranslation();
 
@@ -243,6 +252,23 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
               </TouchableOpacity>
             </View>
           )}
+        {onView && (
+          <TouchableOpacity
+            style={appointmentsStyles.btnViewDetails}
+            activeOpacity={0.7}
+            onPress={onView}
+          >
+            <View style={appointmentsStyles.btnViewDetailsLeft}>
+              <View style={appointmentsStyles.viewDetailsIconCircle}>
+                <FileTextIcon size={14} color={theme.colors.primary} />
+              </View>
+              <Text style={appointmentsStyles.btnViewDetailsTxt}>
+                {t('appointments.viewDetails')}
+              </Text>
+            </View>
+            <ChevronRightIcon size={16} color={theme.colors.primary} />
+          </TouchableOpacity>
+        )}
         {mode === 'video' && ['in_progress', 'in-progress', 'confirmed'].includes(apptStatus) && (
           <TouchableOpacity
             style={[appointmentsStyles.btnJoin, appointmentsStyles.btnRejoin]}

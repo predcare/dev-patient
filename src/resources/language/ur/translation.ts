@@ -159,7 +159,8 @@ export const urduTranslations = {
     closed: 'بند ہے',
     invalidTicketId: 'غلط ٹکٹ ID',
     deleteTicketTitle: 'ٹکٹ حذف کریں',
-    deleteTicketConfirm: 'کیا آپ واقعی ٹکٹ #{{ticketNo}} کو حذف کرنا چاہتے ہیں؟ اس عمل کو واپس نہیں لایا جا سکتا۔',
+    deleteTicketConfirm:
+      'کیا آپ واقعی ٹکٹ #{{ticketNo}} کو حذف کرنا چاہتے ہیں؟ اس عمل کو واپس نہیں لایا جا سکتا۔',
     yesDelete: 'ہاں، حذف کریں',
     deletingTicket: 'ٹکٹ حذف ہو رہا ہے...',
     ticketDeletedSuccess: 'سپورٹ ٹکٹ کامیابی کے ساتھ حذف ہو گیا',
@@ -170,13 +171,16 @@ export const urduTranslations = {
     tryAgain: 'دوبارہ کوشش کریں',
     goBack: 'واپس جائیں',
     noOpenTicketsTitle: 'کوئی کھلا ٹکٹ نہیں ہے',
-    noOpenTicketsDesc: 'کیا آپ کا کوئی سوال ہے یا کوئی مسئلہ درپیش ہے؟ سپورٹ ٹکٹ بنائیں اور ہماری ٹیم جلد آپ سے رابطہ کرے گی۔',
+    noOpenTicketsDesc:
+      'کیا آپ کا کوئی سوال ہے یا کوئی مسئلہ درپیش ہے؟ سپورٹ ٹکٹ بنائیں اور ہماری ٹیم جلد آپ سے رابطہ کرے گی۔',
     noResolvedTicketsTitle: 'کوئی حل شدہ ٹکٹ نہیں ہے',
     noResolvedTicketsDesc: 'آپ کی تمام حل شدہ اور بند درخواستیں یہاں محفوظ کی جائیں گی۔',
     raiseTicket: 'ٹکٹ بنائیں',
     unableToLoadTicketDetails: 'ٹکٹ کی تفصیلات لوڈ کرنے میں ناکامی',
-    errorLoadingTicketDetails: 'اس ٹکٹ کو لانے میں دشواری ہوئی۔ براہ کرم اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔',
-    introText: 'آج ہم آپ کی کیا مدد کر سکتے ہیں؟ ہماری سپورٹ ٹیم عام طور پر کاروباری اوقات کے دوران 2 گھنٹے کے اندر جواب دیتی ہے۔',
+    errorLoadingTicketDetails:
+      'اس ٹکٹ کو لانے میں دشواری ہوئی۔ براہ کرم اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔',
+    introText:
+      'آج ہم آپ کی کیا مدد کر سکتے ہیں؟ ہماری سپورٹ ٹیم عام طور پر کاروباری اوقات کے دوران 2 گھنٹے کے اندر جواب دیتی ہے۔',
     categoryLabel: 'زمرہ',
     loadingCategories: 'زمرہ جات لوڈ ہو رہے ہیں...',
     selectCategory: 'ایک زمرہ منتخب کریں',
@@ -185,7 +189,8 @@ export const urduTranslations = {
     attachScreenshotsTitle: 'اسکرین شاٹس یا دستاویزات منسلک کریں (اختیاری)',
     attachmentsCounter: 'زیادہ سے زیادہ {{max}} تصاویر • {{count}}/{{max}} منتخب',
     maxAttachmentsWarning: 'آپ صرف {{count}} تصاویر اپ لوڈ کر سکتے ہیں',
-    privacyNotice: 'براہ کرم یقینی بنائیں کہ آپ حساس طبی معلومات جیسے نسخے کی مکمل تفصیلات یا پاس ورڈ شامل نہیں کر رہے ہیں۔',
+    privacyNotice:
+      'براہ کرم یقینی بنائیں کہ آپ حساس طبی معلومات جیسے نسخے کی مکمل تفصیلات یا پاس ورڈ شامل نہیں کر رہے ہیں۔',
     submitTicket: 'ٹکٹ جمع کروائیں',
     pleaseSelectCategory: 'براہ کرم ایک زمرہ منتخب کریں',
     categoryRequired: 'زمرہ لازمی ہے',
@@ -206,7 +211,8 @@ export const urduTranslations = {
   addNewMember: {
     addFamilyMemberTitle: 'خاندان کا رکن شامل کریں',
     editFamilyMemberTitle: 'خاندان کے رکن میں ترمیم کریں',
-    inheritedInfoBanner: 'منتقل شدہ رابطے کی معلومات: فون، ای میل اور پتہ آپ کے بنیادی اکاؤنٹ سے خود بخود منسلک ہو جائے گا۔',
+    inheritedInfoBanner:
+      'منتقل شدہ رابطے کی معلومات: فون، ای میل اور پتہ آپ کے بنیادی اکاؤنٹ سے خود بخود منسلک ہو جائے گا۔',
     memberDetailsHeader: 'رکن کی تفصیلات',
     memberDetailsSub: 'رکن کی ذاتی تفصیلات درج کریں',
     fullName: 'پورا نام',
@@ -273,7 +279,8 @@ export const urduTranslations = {
     doctorDefault: 'ڈاکٹر',
     scheduledDate: 'مقررہ تاریخ',
     cancelAppointmentTitle: 'اپوائنٹمنٹ منسوخ کریں',
-    cancelAppointmentConfirm: 'کیا آپ واقعی {{date}}{{time}} کو {{doctorName}} کے ساتھ اپنی اپوائنٹمنٹ منسوخ کرنا چاہتے ہیں؟',
+    cancelAppointmentConfirm:
+      'کیا آپ واقعی {{date}}{{time}} کو {{doctorName}} کے ساتھ اپنی اپوائنٹمنٹ منسوخ کرنا چاہتے ہیں؟',
     yesCancel: 'ہاں، منسوخ کریں',
     noKeep: 'نہیں، برقرار رکھیں',
     cancellingAppointment: 'اپوائنٹمنٹ منسوخ کی جا رہی ہے...',
@@ -298,6 +305,7 @@ export const urduTranslations = {
     inPerson: 'روبرو',
     getDirections: 'راستہ حاصل کریں',
     joinVideoCall: 'ویڈیو کال میں شامل ہوں',
+    viewDetails: 'تفصیل دیکھیں',
     reschedule: 'دوبارہ شیڈول کریں',
     cancel: 'منسوخ کریں',
     statusOnline: 'آن لائن',

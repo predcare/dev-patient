@@ -35,6 +35,7 @@ export const AppRoute = {
   DOCTORS: 'Doctors',
   SCHEDULE: 'Schedule',
   REPORTS: 'Reports',
+  APPOINTMENT_DETAILS: 'AppointmentDetails',
   ACCOUNT: 'Account',
 } as const;
 
@@ -88,6 +89,7 @@ export type RootStackParamList = {
   Schedule: { refresh?: boolean } | undefined;
   Reports: undefined;
   Account: undefined;
+  AppointmentDetails: { appointmentId?: number } | undefined;
 };
 
 /**

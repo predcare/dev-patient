@@ -11,7 +11,6 @@ import {
   requestPermission,
 } from '@react-native-firebase/messaging';
 import { PermissionsAndroid, Platform } from 'react-native';
-import { showInfoToast } from '../lib/common/toast.utils';
 import { getItem, setItem, STORAGE_KEYS } from '../lib/common/asyncStorage';
 
 export interface DeviceSessionFields {
@@ -76,7 +75,10 @@ export async function requestNotificationPermission(): Promise<{
  * Fetches the current FCM token for this device with automatic retry for transient errors (e.g. SERVICE_NOT_AVAILABLE)
  * and persists it in AsyncStorage
  */
-export async function getFirebaseToken(retries: number = 2, delayMs: number = 1500): Promise<string | null> {
+export async function getFirebaseToken(
+  retries: number = 2,
+  delayMs: number = 1500
+): Promise<string | null> {
   const messagingInstance = getMessaging();
 
   for (let attempt = 1; attempt <= retries + 1; attempt++) {
@@ -99,7 +101,9 @@ export async function getFirebaseToken(retries: number = 2, delayMs: number = 15
 
       if (isServiceUnavailable && attempt <= retries) {
         console.warn(
-          `[FCM] Google Play Services / FCM initializing or unavailable (attempt ${attempt}/${retries + 1}). Retrying in ${delayMs * attempt}ms...`
+          `[FCM] Google Play Services / FCM initializing or unavailable (attempt ${attempt}/${
+            retries + 1
+          }). Retrying in ${delayMs * attempt}ms...`
         );
         await new Promise(resolve => setTimeout(resolve, delayMs * attempt));
         continue;
@@ -171,7 +175,7 @@ export function onForegroundNotification(
         data: remoteMessage.data,
       };
 
-      showInfoToast(notificationData.body, notificationData.title);
+      // showInfoToast(notificationData.body, notificationData.title);
 
       // Display system notification in mobile notification bar
       await displayLocalSystemNotification(
@@ -227,6 +231,9 @@ export async function displayLocalSystemNotification(
       android: {
         channelId,
         importance: AndroidImportance.HIGH,
+        color: '#007AFF',
+        smallIcon: 'ic_notification',
+        largeIcon: 'ic_notification_large',
         pressAction: {
           id: 'default',
         },
@@ -250,7 +257,7 @@ export async function displayLocalSystemNotification(
  * Subscribes to notification click events when the app was running in the background
  */
 export function onBackgroundNotificationTap(
-  customNavRef?: any,
+  _customNavRef?: any,
   onTapCallback?: (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => void
 ): () => void {
   console.log('[FCM] Registered background notification tap listener');
@@ -259,25 +266,10 @@ export function onBackgroundNotificationTap(
     messagingInstance,
     (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
       console.log('[FCM] Notification opened app from background state:', remoteMessage);
+      const { handleNotificationClick } = require('./notificationRouter');
+      handleNotificationClick('Firebase onNotificationOpenedApp (Background)', remoteMessage);
       if (onTapCallback) {
         onTapCallback(remoteMessage);
-      } else if (remoteMessage?.data?.screen) {
-        const screenName = String(remoteMessage.data.screen);
-        let params = undefined;
-        if (remoteMessage.data.params) {
-          try {
-            params =
-              typeof remoteMessage.data.params === 'string'
-                ? JSON.parse(remoteMessage.data.params)
-                : remoteMessage.data.params;
-          } catch (e) {
-            params = remoteMessage.data.params;
-          }
-        }
-        if (customNavRef && customNavRef.isReady && customNavRef.isReady()) {
-          // @ts-ignore
-          customNavRef.navigate(screenName, params);
-        }
       }
     }
   );
@@ -287,41 +279,40 @@ export function onBackgroundNotificationTap(
 
 /**
  * 7. checkInitialNotification
- * Checks if the app was launched from a quit/killed state via a push notification tap
+ * Checks if the app was launched from a quit/killed state via a push notification tap (FCM or Notifee)
  */
 export async function checkInitialNotification(
-  customNavRef?: any,
+  _customNavRef?: any,
   onTapCallback?: (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => void
 ): Promise<FirebaseMessagingTypes.RemoteMessage | null> {
   try {
     const messagingInstance = getMessaging();
     const remoteMessage = await getInitialNotification(messagingInstance);
     if (remoteMessage) {
-      console.log('[FCM] App launched from quit state via notification:', remoteMessage);
+      console.log(
+        '[FCM] App launched from quit state via notification (Cold Start):',
+        remoteMessage
+      );
+      const { handleNotificationClick } = require('./notificationRouter');
+      handleNotificationClick('Firebase getInitialNotification (Cold Start)', remoteMessage);
       if (onTapCallback) {
         onTapCallback(remoteMessage);
-      } else if (remoteMessage?.data?.screen) {
-        const screenName = String(remoteMessage.data.screen);
-        let params = undefined;
-        if (remoteMessage.data.params) {
-          try {
-            params =
-              typeof remoteMessage.data.params === 'string'
-                ? JSON.parse(remoteMessage.data.params)
-                : remoteMessage.data.params;
-          } catch (e) {
-            params = remoteMessage.data.params;
-          }
-        }
-        if (customNavRef && customNavRef.isReady && customNavRef.isReady()) {
-          // @ts-ignore
-          customNavRef.navigate(screenName, params);
-        }
       }
+      return remoteMessage;
+    }
+
+    const notifeeInitial = await notifee.getInitialNotification();
+    if (notifeeInitial?.notification) {
+      console.log(
+        '[Notifee] App launched from quit state via Notifee notification:',
+        notifeeInitial
+      );
+      const { handleNotificationClick } = require('./notificationRouter');
+      handleNotificationClick('Notifee getInitialNotification (Cold Start)', notifeeInitial);
     } else {
       console.log('[FCM] No initial notification found on cold launch');
     }
-    return remoteMessage;
+    return null;
   } catch (error) {
     console.error('[FCM] Error checking initial notification:', error);
     return null;
@@ -393,4 +384,3 @@ export async function getDeviceSessionFields(): Promise<DeviceSessionFields> {
     fcm_token: token,
   };
 }
-

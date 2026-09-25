@@ -2,6 +2,7 @@ import axiosInstance from '../../../api/apiClient';
 import { endpoints } from '../../../api/endpoints';
 import {
   MyAppointmentListRoot,
+  TApptInfoRoot,
   TGetApptTokenRoot,
 } from '../../../typescripts/interfaces/appointments.interfaces';
 import { ICommonRoot } from '../../../typescripts/interfaces/common.interfaces';
@@ -54,6 +55,14 @@ export const cancelMyAppt = async (body: {
     {
       call_end_reason: body.call_end_reason,
     }
+  );
+  return res.data;
+};
+
+// Get Info
+export const getApptInfo = async (appointmentId: number | string) => {
+  const res = await axiosInstance.get<TApptInfoRoot>(
+    `${endpoints.appointments.getInfo(appointmentId)}`
   );
   return res.data;
 };

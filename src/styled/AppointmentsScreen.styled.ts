@@ -255,6 +255,37 @@ export const appointmentsStyles = StyleSheet.create({
   },
 
   // Buttons
+  btnViewDetails: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: theme.colors.primarySoft,
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: theme.colors.mintBdr,
+  },
+  btnViewDetailsLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  viewDetailsIconCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: theme.colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.mintBdr,
+  },
+  btnViewDetailsTxt: {
+    color: theme.colors.primaryDark,
+    fontSize: 13,
+    fontWeight: '700',
+  },
   btnJoin: {
     flexDirection: 'row',
     alignItems: 'center',

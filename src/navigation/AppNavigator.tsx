@@ -8,6 +8,7 @@ import LoginScreen from '../Screens/Auth/LoginScreen';
 import PolicyAcceptanceScreen from '../Screens/Auth/PolicyAcceptanceScreen';
 import RegisterScreen from '../Screens/Auth/RegisterScreen';
 import AddNewMemberScreen from '../Screens/DashboardScreen/AddNewMemberScreen';
+import AppointmentDetailsScreen from '../Screens/DashboardScreen/AppointmentDetailsScreen';
 import AppointmentsScreen from '../Screens/DashboardScreen/AppointmentsScreen';
 import BookAppointmentScreen from '../Screens/DashboardScreen/BookAppointmentScreen';
 import BookingSuccessScreen from '../Screens/DashboardScreen/BookingSuccessScreen';
@@ -75,6 +76,7 @@ export const AppNavigator: React.FC = () => {
         <Stack.Screen name="PrescriptionsList" component={PrescriptionsListScreen} />
         <Stack.Screen name="PrescriptionDetail" component={PrescriptionDetailScreen} />
         <Stack.Screen name="RescheduleAppointment" component={RescheduleAppointmentScreen} />
+        <Stack.Screen name="AppointmentDetails" component={AppointmentDetailsScreen} />
         <Stack.Screen name="Meeting" component={MeetingScreen} />
         <Stack.Screen name="ConsultationCompleted" component={ConsultationCompletedScreen} />
         <Stack.Screen name="HealthRecords" component={HealthRecordsScreen} />

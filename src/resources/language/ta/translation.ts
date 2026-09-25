@@ -298,6 +298,7 @@ export const tamilTranslations = {
     inPerson: 'நேரடியாக',
     getDirections: 'வழிகளைப் பெறுங்கள்',
     joinVideoCall: 'வீடியோ அழைப்பில் சேரவும்',
+    viewDetails:"முழு விவரத்தையும் பார்க்க",
     reschedule: 'மறுஅட்டவணைப்படுத்து',
     cancel: 'ரத்துசெய்',
     statusOnline: 'ஆன்லைன்',
@@ -397,6 +398,3 @@ export const tamilTranslations = {
     errorText: 'சுகாதார குறிப்புகளை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்க தட்டவும்.',
   },
 };
-
-
-

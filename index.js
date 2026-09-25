@@ -18,9 +18,15 @@ initializeI18n();
 const messagingInstance = getMessaging();
 setBackgroundMessageHandler(messagingInstance, async remoteMessage => {
   console.log('[FCM] Background Message Handler Received:', remoteMessage);
-  const title = remoteMessage.notification?.title || remoteMessage.data?.title;
-  const body = remoteMessage.notification?.body || remoteMessage.data?.body;
-  if (title || body) {
+
+  // If remoteMessage.notification exists, the OS/Firebase SDK has ALREADY displayed
+  // a system notification in the status bar. Displaying another local notification causes duplicates.
+  // We only manually display a local notification for pure data-only messages (remoteMessage.data).
+  const isDataOnlyMessage = !remoteMessage.notification;
+  const title = remoteMessage.data?.title;
+  const body = remoteMessage.data?.body;
+
+  if (isDataOnlyMessage && (title || body)) {
     await displayLocalSystemNotification(
       String(title || 'New Notification'),
       String(body || ''),

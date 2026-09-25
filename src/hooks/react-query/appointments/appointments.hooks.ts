@@ -3,6 +3,7 @@ import { AppointmemntQueryKey } from '../query.keys';
 import {
   cancelMyAppt,
   createAppointment,
+  getApptInfo,
   getBookingPaymentStatus,
   getMyAppointments,
 } from './appointments.funcs';
@@ -43,3 +44,12 @@ export const useCancelMyAppt = () => {
     mutationFn: cancelMyAppt,
   });
 };
+
+// Get Info
+export const useGetApptInfo = (appointmentId: number | string, enabled?: boolean) =>
+  useQuery({
+    queryKey: [AppointmemntQueryKey.INFO, appointmentId],
+    queryFn: () => getApptInfo(appointmentId),
+    enabled: !!appointmentId,
+    select: v => v.data,
+  });
