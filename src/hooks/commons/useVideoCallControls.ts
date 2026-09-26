@@ -1,6 +1,12 @@
 import { useMeeting } from '@videosdk.live/react-native-sdk';
 import { useCallback, useEffect, useRef } from 'react';
-import { AppState, AppStateStatus, NativeModules, Platform } from 'react-native';
+import {
+  AppState,
+  AppStateStatus,
+  DeviceEventEmitter,
+  NativeModules,
+  Platform,
+} from 'react-native';
 import { queryClient } from '../../components/providers/ReactQueryProvider';
 import { showErrorToast, showInfoToast } from '../../lib/common/toast.utils';
 import { useLoadingStore } from '../../zustand/stores/useLoadingStore';
@@ -17,6 +23,8 @@ export const useVideoCallControls = (onLeaveCallback?: () => void) => {
   const callStartTimeRef = useRef<string | null>(null);
   const maxParticipantsRef = useRef<number>(1);
   const wasCameraOnBeforeCaptureRef = useRef<boolean>(false);
+  const wasCameraOnBeforeInterruptionRef = useRef<boolean>(false);
+  const recoveryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const {
     setCallState,
@@ -342,17 +350,129 @@ export const useVideoCallControls = (onLeaveCallback?: () => void) => {
     }
   }, [isCameraPausedForCapture, disableWebcam, enableWebcam, setCameraState]);
 
+  const recoverCameraStream = useCallback(() => {
+    const store = useMeetingStore.getState();
+    const shouldRecover =
+      wasCameraOnBeforeInterruptionRef.current ||
+      store.isCameraOn ||
+      store.isExternalCameraInterrupted;
+
+    if (!shouldRecover) return;
+
+    if (recoveryTimeoutRef.current) {
+      clearTimeout(recoveryTimeoutRef.current);
+    }
+
+    recoveryTimeoutRef.current = setTimeout(async () => {
+      if (!isMountedRef.current) return;
+      const currentStore = useMeetingStore.getState();
+      const isCallActive =
+        currentStore.callState === 'CONNECTED' ||
+        currentStore.callState === 'CONNECTING' ||
+        hasJoinedRef.current;
+
+      if (!isCallActive) return;
+
+      try {
+        if (disableWebcam) {
+          disableWebcam();
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      setTimeout(async () => {
+        if (!isMountedRef.current) return;
+        try {
+          if (enableWebcam) {
+            enableWebcam();
+          }
+          if (getWebcams && changeWebcam) {
+            const webcams = await getWebcams();
+            const currentMode = useMeetingStore.getState().facingMode;
+            const targetCam = webcams?.find(w =>
+              currentMode === 'front'
+                ? w.facingMode === 'user' || w.label?.toLowerCase().includes('front')
+                : w.facingMode === 'environment' || w.label?.toLowerCase().includes('back')
+            );
+            if (targetCam) {
+              await changeWebcam(targetCam.deviceId);
+            }
+          }
+          setCameraState(true);
+          wasCameraOnBeforeInterruptionRef.current = false;
+          useMeetingStore.getState().setIsExternalCameraInterrupted(false);
+          console.log('[VideoSDK]: Camera capturer auto-recovered successfully');
+        } catch (err) {
+          console.warn('[VideoSDK]: Camera auto-recovery error:', err);
+        }
+      }, 350);
+    }, 400);
+  }, [disableWebcam, enableWebcam, getWebcams, changeWebcam, setCameraState]);
+
+  // Listen to native hardware availability & focus events for camera auto-recovery
+  useEffect(() => {
+    const subInterrupted = DeviceEventEmitter.addListener('onCameraInterrupted', () => {
+      const storeState = useMeetingStore.getState();
+      if (storeState.isCameraOn) {
+        wasCameraOnBeforeInterruptionRef.current = true;
+      }
+      storeState.setIsExternalCameraInterrupted(true);
+      console.log('[VideoSDK]: Native camera interrupted by external app');
+    });
+
+    const subRestored = DeviceEventEmitter.addListener('onCameraAccessRestored', () => {
+      console.log('[VideoSDK]: Native camera access restored, initiating stream recovery');
+      recoverCameraStream();
+    });
+
+    const subFocus = DeviceEventEmitter.addListener('onActivityFocusRestored', () => {
+      const storeState = useMeetingStore.getState();
+      if (storeState.isExternalCameraInterrupted || wasCameraOnBeforeInterruptionRef.current) {
+        console.log('[VideoSDK]: App/PiP regained top focus after external app, recovering camera');
+        recoverCameraStream();
+      }
+    });
+
+    const subPiP = DeviceEventEmitter.addListener('onPiPModeChanged', (isInPiP: boolean) => {
+      if (!isInPiP) {
+        const storeState = useMeetingStore.getState();
+        if (storeState.isExternalCameraInterrupted || wasCameraOnBeforeInterruptionRef.current) {
+          recoverCameraStream();
+        }
+      }
+    });
+
+    return () => {
+      subInterrupted.remove();
+      subRestored.remove();
+      subFocus.remove();
+      subPiP.remove();
+      if (recoveryTimeoutRef.current) {
+        clearTimeout(recoveryTimeoutRef.current);
+      }
+    };
+  }, [recoverCameraStream]);
+
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
-      if (nextAppState === 'active' && wasCameraOnBeforeCaptureRef.current) {
-        resumeCameraAfterCapture();
+      if (nextAppState === 'active') {
+        if (wasCameraOnBeforeCaptureRef.current) {
+          resumeCameraAfterCapture();
+        }
+        if (
+          useMeetingStore.getState().isExternalCameraInterrupted ||
+          wasCameraOnBeforeInterruptionRef.current
+        ) {
+          recoverCameraStream();
+        }
       }
     });
 
     return () => {
       subscription.remove();
     };
-  }, [resumeCameraAfterCapture]);
+  }, [resumeCameraAfterCapture, recoverCameraStream]);
 
   const endCall = useCallback(
     async (

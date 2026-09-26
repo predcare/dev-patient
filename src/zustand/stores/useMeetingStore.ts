@@ -28,6 +28,7 @@ interface IMeetingStoreState {
   isInAppPip: boolean;
   isNativePip: boolean;
   isCameraPausedForCapture: boolean;
+  isExternalCameraInterrupted: boolean;
 
   // in Person consulatation
   apptIdforInPerson?: string | null;
@@ -61,6 +62,7 @@ interface IMeetingStoreState {
   setIsInAppPip: (isInAppPip: boolean) => void;
   setIsNativePip: (isNativePip: boolean) => void;
   setIsCameraPausedForCapture: (paused: boolean) => void;
+  setIsExternalCameraInterrupted: (interrupted: boolean) => void;
   resetMeetingStore: () => void;
   clearInPersonAppointment: () => void;
   setInPersonAppointment: (params: {
@@ -93,6 +95,7 @@ const initialState = {
   isInAppPip: false,
   isNativePip: false,
   isCameraPausedForCapture: false,
+  isExternalCameraInterrupted: false,
   apptIdforInPerson: null,
   patientIdforInPerson: null,
   patientNameforInPerson: null,
@@ -213,6 +216,8 @@ export const useMeetingStore = create<IMeetingStoreState>(set => ({
   setIsNativePip: isNativePip => set({ isNativePip }),
 
   setIsCameraPausedForCapture: isCameraPausedForCapture => set({ isCameraPausedForCapture }),
+
+  setIsExternalCameraInterrupted: isExternalCameraInterrupted => set({ isExternalCameraInterrupted }),
 
   resetMeetingStore: () => set({ ...initialState }),
 

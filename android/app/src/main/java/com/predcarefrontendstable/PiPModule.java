@@ -1,6 +1,11 @@
 package com.predcarefrontendstable;
 
+import android.content.Context;
+import android.hardware.camera2.CameraManager;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
+import androidx.annotation.NonNull;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
@@ -14,6 +19,12 @@ public class PiPModule extends ReactContextBaseJavaModule {
 
     // Set to true while opening camera/gallery to prevent onUserLeaveHint from triggering PiP
     public static volatile boolean isCameraCaptureActive = false;
+
+    // Tracks if another app (e.g. WhatsApp/system Camera) seized the camera hardware
+    public static volatile boolean wasCameraInterrupted = false;
+
+    private static CameraManager.AvailabilityCallback cameraAvailabilityCallback = null;
+    private static ReactApplicationContext sReactContext;
 
     public PiPModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -33,6 +44,13 @@ public class PiPModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void setCallActive(boolean active, Promise promise) {
         isCallActive = active;
+        if (!active) {
+            wasCameraInterrupted = false;
+            unregisterCameraAvailabilityListener();
+        } else {
+            registerCameraAvailabilityListener();
+        }
+
         android.app.Activity activity = getCurrentActivity();
         if (activity instanceof MainActivity) {
             activity.runOnUiThread(() -> {
@@ -93,6 +111,96 @@ public class PiPModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void removeListeners(double count) {}
 
+    private synchronized void registerCameraAvailabilityListener() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return;
+        if (cameraAvailabilityCallback != null) return;
+
+        try {
+            CameraManager cameraManager = (CameraManager) getReactApplicationContext().getSystemService(Context.CAMERA_SERVICE);
+            if (cameraManager == null) return;
+
+            cameraAvailabilityCallback = new CameraManager.AvailabilityCallback() {
+                @Override
+                public void onCameraAvailable(@NonNull String cameraId) {
+                    super.onCameraAvailable(cameraId);
+                    if (isCallActive && wasCameraInterrupted) {
+                        wasCameraInterrupted = false;
+                        notifyCameraAccessRestored(cameraId);
+                    }
+                }
+
+                @Override
+                public void onCameraUnavailable(@NonNull String cameraId) {
+                    super.onCameraUnavailable(cameraId);
+                    if (isCallActive) {
+                        wasCameraInterrupted = true;
+                        notifyCameraInterrupted(cameraId);
+                    }
+                }
+
+                @Override
+                public void onCameraAccessPrioritiesChanged() {
+                    super.onCameraAccessPrioritiesChanged();
+                    if (isCallActive && wasCameraInterrupted) {
+                        wasCameraInterrupted = false;
+                        notifyCameraAccessRestored(null);
+                    }
+                }
+            };
+
+            Handler handler = new Handler(Looper.getMainLooper());
+            cameraManager.registerAvailabilityCallback(cameraAvailabilityCallback, handler);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private synchronized void unregisterCameraAvailabilityListener() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return;
+        if (cameraAvailabilityCallback == null) return;
+
+        try {
+            CameraManager cameraManager = (CameraManager) getReactApplicationContext().getSystemService(Context.CAMERA_SERVICE);
+            if (cameraManager != null) {
+                cameraManager.unregisterAvailabilityCallback(cameraAvailabilityCallback);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            cameraAvailabilityCallback = null;
+        }
+    }
+
+    public static void notifyCameraInterrupted(String cameraId) {
+        if (sReactContext != null) {
+            try {
+                sReactContext
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit("onCameraInterrupted", cameraId != null ? cameraId : "");
+            } catch (Exception e) { /* ignore */ }
+        }
+    }
+
+    public static void notifyCameraAccessRestored(String cameraId) {
+        if (sReactContext != null) {
+            try {
+                sReactContext
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit("onCameraAccessRestored", cameraId != null ? cameraId : "");
+            } catch (Exception e) { /* ignore */ }
+        }
+    }
+
+    public static void notifyActivityFocusRestored() {
+        if (sReactContext != null) {
+            try {
+                sReactContext
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit("onActivityFocusRestored", true);
+            } catch (Exception e) { /* ignore */ }
+        }
+    }
+
     public static void notifyPiPEntering() {
         if (sReactContext != null) {
             try {
@@ -123,11 +231,16 @@ public class PiPModule extends ReactContextBaseJavaModule {
         }
     }
 
-    private static ReactApplicationContext sReactContext;
-
     @Override
     public void initialize() {
         super.initialize();
         sReactContext = getReactApplicationContext();
+    }
+
+    @Override
+    public void onCatalystInstanceDestroy() {
+        super.onCatalystInstanceDestroy();
+        unregisterCameraAvailabilityListener();
+        sReactContext = null;
     }
 }

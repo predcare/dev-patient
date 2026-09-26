@@ -107,4 +107,12 @@ class MainActivity : ReactActivity() {
         // Notify JS so MeetingScreen can switch to video-only render mode
         PiPModule.notifyPiPStateChanged(isInPiPMode)
     }
+
+    override fun onTopResumedActivityChanged(isTopResumedActivity: Boolean) {
+        super.onTopResumedActivityChanged(isTopResumedActivity)
+        if (isTopResumedActivity && PiPModule.isCallActive) {
+            // When app or PiP window regains top resume status after external app closes
+            PiPModule.notifyActivityFocusRestored()
+        }
+    }
 }
