@@ -316,7 +316,7 @@ export const AppointmentDetailsScreen: React.FC = () => {
                 <View style={styles.statDividerVertical} />
                 <View style={styles.statItem}>
                   <Text style={styles.statValue}>Verified</Text>
-                  <Text style={styles.statLabel}>Practitioner</Text>
+                  <Text style={styles.statLabel}>Doctor</Text>
                 </View>
               </View>
               {Array.isArray(apptInfo.doctor.languages_spoken) &&
