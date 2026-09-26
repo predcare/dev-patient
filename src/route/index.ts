@@ -36,6 +36,7 @@ export const AppRoute = {
   SCHEDULE: 'Schedule',
   REPORTS: 'Reports',
   APPOINTMENT_DETAILS: 'AppointmentDetails',
+  INVOICES_LIST: 'InvoicesList',
   ACCOUNT: 'Account',
 } as const;
 
@@ -90,6 +91,7 @@ export type RootStackParamList = {
   Reports: undefined;
   Account: undefined;
   AppointmentDetails: { appointmentId?: number, isComingFromNotification?: boolean } | undefined;
+  InvoicesList: undefined;
 };
 
 /**
@@ -307,7 +309,17 @@ export type UploadHealthRecordScreenNavigationProp = NativeStackNavigationProp<
   'UploadHealthRecord'
 >;
 export type UploadHealthRecordScreenRouteProp = RouteProp<RootStackParamList, 'UploadHealthRecord'>;
-export interface UploadHealthRecordScreenProps {
+export type UploadHealthRecordScreenProps = {
   navigation?: UploadHealthRecordScreenNavigationProp;
   route?: UploadHealthRecordScreenRouteProp;
+};
+
+export type InvoicesListScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'InvoicesList'
+>;
+export type InvoicesListScreenRouteProp = RouteProp<RootStackParamList, 'InvoicesList'>;
+export interface InvoicesListScreenProps {
+  navigation?: InvoicesListScreenNavigationProp;
+  route?: InvoicesListScreenRouteProp;
 }

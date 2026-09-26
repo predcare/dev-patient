@@ -221,3 +221,11 @@ export const formatCurrency = (amount?: number, currency?: string) => {
   const symbol = !currency || currency.toUpperCase() === 'INR' ? '₹' : `${currency} `;
   return `${symbol}${numericAmount.toLocaleString('en-IN')}`;
 };
+
+export const _toTitleCase = (value: string): string => {
+  if (!value?.trim()) return '';
+  return value
+    .replace(/[_-]+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, char => char.toUpperCase());
+};

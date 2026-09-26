@@ -102,6 +102,11 @@ export const endpoints = {
   stats: {
     get: '/stats/patient',
   },
+  invoices: {
+    getAll: '/invoices/my-invoices',
+    getInfo: (id: number) => `/invoices/${id}`,
+    downloadPdf: (id: number | string) => `/invoices/${id}/pdf`,
+  },
 };
 
 export const successEndpoints = [

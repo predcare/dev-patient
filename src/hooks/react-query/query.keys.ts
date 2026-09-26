@@ -79,3 +79,9 @@ export enum NotificationQueryKeys {
 export enum StatsQueryKey {
   Stats = 'Stats',
 }
+
+export enum InvoiceQueryKey {
+  MyInvoices = 'MyInvoices',
+  MyInvoicesInfo = 'MyInvoicesInfo',
+  DownloadPdf = 'DownloadPdf',
+}

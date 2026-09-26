@@ -19,6 +19,7 @@ import DoctorDetailsScreen from '../Screens/DashboardScreen/DoctorDetailsScreen'
 import DoctorSearchScreen from '../Screens/DashboardScreen/DoctorSearchScreen';
 import HealthRecordFolderScreen from '../Screens/DashboardScreen/HealthRecordFolderScreen';
 import HealthRecordsScreen from '../Screens/DashboardScreen/HealthRecordsScreen';
+import InvoicesListScreen from '../Screens/DashboardScreen/InvoicesListScreen';
 import MeetingScreen from '../Screens/DashboardScreen/MeetingScreen';
 import MyDoctorsScreen from '../Screens/DashboardScreen/MyDoctorsScreen';
 import PaymentScreen from '../Screens/DashboardScreen/PaymentScreen';
@@ -83,6 +84,7 @@ export const AppNavigator: React.FC = () => {
         <Stack.Screen name="HealthRecords" component={HealthRecordsScreen} />
         <Stack.Screen name="HealthRecordFolder" component={HealthRecordFolderScreen} />
         <Stack.Screen name="UploadHealthRecord" component={UploadHealthRecordScreen} />
+        <Stack.Screen name="InvoicesList" component={InvoicesListScreen} />
 
         {/* Primary Stack Screens with SafeAreaWrapper Bottom Bar */}
         <Stack.Screen name="Home" component={DashboardScreen} />

@@ -415,4 +415,15 @@ export const englishTranslations = {
     upcoming: 'Upcoming',
     cancelled: 'Cancelled',
   },
+  invoicesScreen: {
+    title: 'Invoices & Billing',
+    searchPlaceholder: 'Search invoice #, doctor, clinic...',
+    downloadPdf: 'Download PDF',
+    viewDetails: 'View Details',
+    totalInvoices: 'Total Invoices',
+    totalPaid: 'Total Paid',
+    pending: 'Pending',
+    noInvoicesFound: 'No Invoices Found',
+  },
 };
+

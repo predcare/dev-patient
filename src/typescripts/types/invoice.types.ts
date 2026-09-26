@@ -33,10 +33,15 @@ export interface Invoice {
   grandTotal: number;
   paymentMode: PaymentMode;
   status: InvoiceStatus;
+  doctorName?: string;
+  doctorSpecialty?: string;
+  currency?: string;
+  pdfUrl?: string;
   notes?: string;
   clinicName?: string;
   clinicAddress?: string;
 }
+
 
 export interface PatientInvoiceTabProps {
   patientId: string;

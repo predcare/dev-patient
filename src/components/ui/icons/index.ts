@@ -82,3 +82,6 @@ export * from './CheckCircleIcon';
 export * from './XCircleIcon';
 export * from './AlertTriangleIcon';
 export * from './HelpCircleIcon';
+export * from './DownloadIcon';
+export * from './EyeIcon';
+
