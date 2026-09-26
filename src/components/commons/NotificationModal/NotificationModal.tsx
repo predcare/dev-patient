@@ -72,6 +72,8 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  console.log('notificationsList', notificationsList)
+
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
