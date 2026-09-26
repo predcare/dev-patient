@@ -88,7 +88,7 @@ const SocketListeners = () => {
         const targetApptId = Number(incomingApptId) || incomingApptId;
         const currentRoute = navigationRef.isReady() ? navigationRef.getCurrentRoute()?.name : null;
 
-        if (currentRoute === AppRoute.MEETING) {
+        if (currentRoute === AppRoute.APPOINTMENT_DETAILS) {
           replace(AppRoute.APPOINTMENT_DETAILS, {
             appointmentId: targetApptId as any,
             isComingFromNotification: false,
