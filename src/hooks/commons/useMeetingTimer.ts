@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { TCallState } from '../../zustand/stores/useMeetingStore';
+import { useMeetingStore, type TCallState } from '../../zustand/stores/useMeetingStore';
 
 const parseTimeToSeconds = (time: string): number => {
   const parts = time.split(':').map(Number);
@@ -29,7 +29,12 @@ export const useMeetingTimer = (
   endTime: string | null,
   callDurationSeconds: number = 0
 ): UseMeetingTimerResult => {
-  const [sessionElapsed, setSessionElapsed] = useState(0);
+  const lastConnectedAt = useMeetingStore(state => state.lastConnectedAt);
+  const cumulativeActiveElapsedSeconds = useMeetingStore(
+    state => state.cumulativeActiveElapsedSeconds
+  );
+
+  const [, setTick] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const totalDuration = useMemo(
@@ -40,15 +45,10 @@ export const useMeetingTimer = (
     [startTime, endTime]
   );
 
-  const remainingAtStart = useMemo(
-    () => Math.max(0, totalDuration - callDurationSeconds),
-    [totalDuration, callDurationSeconds]
-  );
-
   useEffect(() => {
     if (callState === 'CONNECTED') {
       intervalRef.current = setInterval(() => {
-        setSessionElapsed(prev => prev + 1);
+        setTick(t => t + 1);
       }, 1000);
     } else {
       if (intervalRef.current) {
@@ -65,13 +65,20 @@ export const useMeetingTimer = (
     };
   }, [callState]);
 
-  const totalElapsed = callDurationSeconds + sessionElapsed;
-  const remaining = remainingAtStart - sessionElapsed;
+  const currentIntervalElapsed =
+    callState === 'CONNECTED' && lastConnectedAt
+      ? Math.max(0, Math.floor((Date.now() - lastConnectedAt) / 1000))
+      : 0;
+
+  const totalElapsed =
+    callDurationSeconds + cumulativeActiveElapsedSeconds + currentIntervalElapsed;
+
+  const remaining = Math.max(0, totalDuration - totalElapsed);
 
   return {
     elapsedText: formatMMSS(totalElapsed),
     remainingText: totalDuration > 0 ? formatMMSS(remaining) : '--:--',
-    remainingSeconds: totalDuration > 0 ? Math.max(0, remaining) : -1,
-    isTimeUp: totalDuration > 0 && remaining <= 0,
+    remainingSeconds: totalDuration > 0 ? remaining : -1,
+    isTimeUp: totalDuration > 0 && remaining <= 0 && callState === 'CONNECTED',
   };
 };

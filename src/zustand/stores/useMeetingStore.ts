@@ -35,6 +35,10 @@ interface IMeetingStoreState {
   patientNameforInPerson?: string | null;
   statusforInPerson?: string | null;
 
+  // Timer tracking (Wall-clock active connected duration with pause/resume support)
+  cumulativeActiveElapsedSeconds: number;
+  lastConnectedAt: number | null;
+
   // Actions
   setMeetingSession: (params: {
     token: string;
@@ -78,6 +82,8 @@ const initialState = {
   startTime: null,
   endTime: null,
   callDurationSeconds: 0,
+  cumulativeActiveElapsedSeconds: 0,
+  lastConnectedAt: null as number | null,
   callState: 'IDLE' as TCallState,
   errorMessage: null as string | null,
   isMicOn: true,
@@ -119,6 +125,8 @@ export const useMeetingStore = create<IMeetingStoreState>(set => ({
       startTime: startTime ?? null,
       endTime: endTime ?? null,
       callDurationSeconds: callDurationSeconds ?? 0,
+      cumulativeActiveElapsedSeconds: 0,
+      lastConnectedAt: null,
       callState: 'CONNECTING',
       errorMessage: null,
       isInAppPip: false,
@@ -126,12 +134,41 @@ export const useMeetingStore = create<IMeetingStoreState>(set => ({
       isCameraPausedForCapture: false,
     }),
 
-  setCallState: callState => set({ callState }),
+  setCallState: callState =>
+    set(state => {
+      let nextLastConnectedAt = state.lastConnectedAt;
+      let nextCumulative = state.cumulativeActiveElapsedSeconds;
+
+      if (callState === 'CONNECTED') {
+        if (nextLastConnectedAt === null) {
+          nextLastConnectedAt = Date.now();
+        }
+      } else {
+        if (nextLastConnectedAt !== null) {
+          nextCumulative += Math.max(0, Math.floor((Date.now() - nextLastConnectedAt) / 1000));
+          nextLastConnectedAt = null;
+        }
+      }
+
+      return {
+        callState,
+        lastConnectedAt: nextLastConnectedAt,
+        cumulativeActiveElapsedSeconds: nextCumulative,
+      };
+    }),
 
   setErrorState: message =>
-    set({
-      callState: 'ERROR',
-      errorMessage: message || "'token' is empty or invalid or might have expired.",
+    set(state => {
+      let nextCumulative = state.cumulativeActiveElapsedSeconds;
+      if (state.lastConnectedAt !== null) {
+        nextCumulative += Math.max(0, Math.floor((Date.now() - state.lastConnectedAt) / 1000));
+      }
+      return {
+        callState: 'ERROR',
+        errorMessage: message || "'token' is empty or invalid or might have expired.",
+        lastConnectedAt: null,
+        cumulativeActiveElapsedSeconds: nextCumulative,
+      };
     }),
 
   setMicState: isMicOn => set({ isMicOn }),
@@ -141,17 +178,35 @@ export const useMeetingStore = create<IMeetingStoreState>(set => ({
   setFacingMode: facingMode => set({ facingMode }),
 
   setRemoteParticipantId: remoteParticipantId =>
-    set(state => ({
-      remoteParticipantId,
-      // Don't overwrite terminal states (ERROR/ENDED) — a participant leaving
-      // during an error flow shouldn't flip us back to CONNECTING.
-      callState:
-        state.callState === 'ERROR' || state.callState === 'ENDED'
-          ? state.callState
-          : remoteParticipantId
-          ? 'CONNECTED'
-          : 'CONNECTING',
-    })),
+    set(state => {
+      const isTerminal = state.callState === 'ERROR' || state.callState === 'ENDED';
+      const nextCallState: TCallState = isTerminal
+        ? state.callState
+        : remoteParticipantId
+        ? 'CONNECTED'
+        : 'CONNECTING';
+
+      let nextLastConnectedAt = state.lastConnectedAt;
+      let nextCumulative = state.cumulativeActiveElapsedSeconds;
+
+      if (nextCallState === 'CONNECTED') {
+        if (nextLastConnectedAt === null) {
+          nextLastConnectedAt = Date.now();
+        }
+      } else {
+        if (nextLastConnectedAt !== null) {
+          nextCumulative += Math.max(0, Math.floor((Date.now() - nextLastConnectedAt) / 1000));
+          nextLastConnectedAt = null;
+        }
+      }
+
+      return {
+        remoteParticipantId,
+        callState: nextCallState,
+        lastConnectedAt: nextLastConnectedAt,
+        cumulativeActiveElapsedSeconds: nextCumulative,
+      };
+    }),
 
   setIsInAppPip: isInAppPip => set({ isInAppPip }),
 

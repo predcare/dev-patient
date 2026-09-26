@@ -33,22 +33,19 @@ export const DoctorMeetingContainer: React.FC<MeetingScreenProps> = () => {
     resetMeetingStore,
   } = useMeetingStore();
 
-  const { elapsedText, remainingText, remainingSeconds, isTimeUp } = useMeetingTimer(
+  const { elapsedText, remainingText } = useMeetingTimer(
     callState,
     startTime,
     endTime,
     callDurationSeconds
   );
 
-  const hasShownThreeMinWarningRef = useRef(false);
-  const hasAutoEndedRef = useRef(false);
-
   const { toggleAudio, toggleVideo, switchCamera, endCall, localParticipant } =
     useVideoCallControls(() => {
       replace('Schedule');
     });
 
-  const handleEnterPip = React.useCallback(() => {
+  const handleEnterPip = useCallback(() => {
     if (callState === 'CONNECTED' || callState === 'CONNECTING') {
       setIsInAppPip(true);
       if (canGoBack()) {
@@ -57,7 +54,7 @@ export const DoctorMeetingContainer: React.FC<MeetingScreenProps> = () => {
         replace(AppRoute.SCHEDULE);
       }
     } else {
-      endCall();
+      endCall('patient_left');
     }
   }, [callState, setIsInAppPip, endCall]);
 
@@ -97,28 +94,6 @@ export const DoctorMeetingContainer: React.FC<MeetingScreenProps> = () => {
       return () => clearTimeout(timer);
     }
   }, [callState, errorMessage, resetMeetingStore]);
-
-  // 2-minute warning toast
-  useEffect(() => {
-    if (remainingSeconds > 0 && remainingSeconds <= 120 && !hasShownThreeMinWarningRef.current) {
-      hasShownThreeMinWarningRef.current = true;
-      showInfoToast(
-        'Your consultation time is almost up. Please wrap up.',
-        '⏱ 2 Minutes Remaining'
-      );
-    }
-  }, [remainingSeconds]);
-
-  useEffect(() => {
-    if (isTimeUp && !hasAutoEndedRef.current) {
-      hasAutoEndedRef.current = true;
-      showInfoToast('Consultation time has ended. The call will disconnect now.', '⏱ Time Up');
-      const timer = setTimeout(() => {
-        endCall('time_up');
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [isTimeUp, endCall]);
 
   // If in Native Android PiP mode, show full-screen pure video stream
   if (isNativePip) {

@@ -48,7 +48,6 @@ export const PatientMeetingScreenStyles = StyleSheet.create({
   headerTopRightRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
   },
   connectingPill: {
     flexDirection: 'row',

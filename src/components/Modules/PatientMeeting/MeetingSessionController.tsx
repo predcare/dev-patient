@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { DeviceEventEmitter, Platform, StyleSheet, View } from 'react-native';
 import { useDevicePermissions } from '../../../hooks/commons/useDevicePermissions';
 import { useMeetingHeartbeat } from '../../../hooks/commons/useMeetingHeartbeat';
+import { useMeetingTimer } from '../../../hooks/commons/useMeetingTimer';
 import { useVideoCallControls } from '../../../hooks/commons/useVideoCallControls';
-import { showErrorToast } from '../../../lib/common/toast.utils';
+import { showErrorToast, showInfoToast } from '../../../lib/common/toast.utils';
 import { navigationRef, replace } from '../../../navigation/navigationRef';
 import { AppRoute } from '../../../route';
 import { useMeetingStore } from '../../../zustand/stores/useMeetingStore';
@@ -19,14 +20,55 @@ const MeetingSessionController: React.FC = () => {
     callState,
     remoteParticipantId,
     errorMessage,
+    startTime,
+    endTime,
+    callDurationSeconds,
     resetMeetingStore,
   } = useMeetingStore();
+
+  const { remainingSeconds, isTimeUp } = useMeetingTimer(
+    callState,
+    startTime,
+    endTime,
+    callDurationSeconds
+  );
+
+  const hasShownWarningRef = useRef(false);
+  const hasAutoEndedRef = useRef(false);
 
   const { joinCall, endCall } = useVideoCallControls(() => {
     if (navigationRef.isReady()) {
       replace('Schedule');
     }
   });
+
+  // 2-minute consultation wrap-up warning
+  useEffect(() => {
+    if (
+      callState === 'CONNECTED' &&
+      remainingSeconds > 0 &&
+      remainingSeconds <= 120 &&
+      !hasShownWarningRef.current
+    ) {
+      hasShownWarningRef.current = true;
+      showInfoToast(
+        'Your consultation time is almost up. Please wrap up.',
+        '⏱ 2 Minutes Remaining'
+      );
+    }
+  }, [callState, remainingSeconds]);
+
+  // Automatic call termination when consultation time expires
+  useEffect(() => {
+    if (isTimeUp && !hasAutoEndedRef.current) {
+      hasAutoEndedRef.current = true;
+      showInfoToast('Consultation time has ended. The call will disconnect now.', '⏱ Time Up');
+      const timer = setTimeout(() => {
+        endCall('time_up');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isTimeUp, endCall]);
 
   const { requestAudioVideoPermissions } = useDevicePermissions();
 

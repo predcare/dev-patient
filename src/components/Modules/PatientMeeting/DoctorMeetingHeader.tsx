@@ -43,13 +43,7 @@ export const DoctorMeetingHeader: React.FC<DoctorMeetingHeaderProps> = React.mem
                 {isConnected ? 'CONNECTED' : 'CONNECTING...'}
               </Text>
             </View>
-            <Text style={PatientMeetingScreenStyles.timerText}>{elapsedText}</Text>
-          </View>
-          <View style={PatientMeetingScreenStyles.headerBottomRightRow}>
-            <View style={PatientMeetingScreenStyles.leftPill}>
-              <Text style={PatientMeetingScreenStyles.leftPillText}>LEFT</Text>
-            </View>
-            <Text style={PatientMeetingScreenStyles.leftTimeText}>{remainingText}</Text>
+            <Text style={PatientMeetingScreenStyles.timerText}>{remainingText}</Text>
           </View>
         </View>
       </View>
