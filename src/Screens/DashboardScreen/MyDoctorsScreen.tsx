@@ -24,9 +24,6 @@ export const MyDoctorsScreen: React.FC = () => {
     refetch: refetchMyDoctors,
   } = useGetMyDoctors();
 
-  const doctorsList = myDoctorsData?.data || [];
-  const hasDoctors = doctorsList.length > 0;
-
   const onRefresh = async () => {
     setRefreshing(true);
     await refetchMyDoctors();
@@ -67,7 +64,7 @@ export const MyDoctorsScreen: React.FC = () => {
         <MyDoctorsSkeleton />
       ) : (
         <FlatList
-          data={doctorsList}
+          data={myDoctorsData?.data || []}
           keyExtractor={item => String(item.doctor_id)}
           showsVerticalScrollIndicator={true}
           keyboardShouldPersistTaps="handled"
@@ -117,7 +114,9 @@ export const MyDoctorsScreen: React.FC = () => {
           }
           ListFooterComponent={
             <>
-              {hasDoctors && <FindDoctorCard onExplorePress={handleExploreDoctors} />}
+              {myDoctorsData?.data && myDoctorsData?.data?.length > 0 && (
+                <FindDoctorCard onExplorePress={handleExploreDoctors} />
+              )}
               <View style={doctorStyles.bottomPadding} />
             </>
           }
