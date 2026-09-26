@@ -399,4 +399,14 @@ export const tamilTranslations = {
     title: 'தினசரி சுகாதார குறிப்புகள்',
     errorText: 'சுகாதார குறிப்புகளை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்க தட்டவும்.',
   },
+  reportsScreen: {
+    title: 'அறிக்கைகள்',
+    unableToLoadReports: 'அறிக்கைகளை ஏற்ற முடியவில்லை',
+    unableToLoadReportsMessage: 'உங்கள் அறிக்கைகள் மற்றும் புள்ளிவிவரங்களை ஏற்ற முடியவில்லை. தயவுசெய்து மீண்டும் முயற்சிக்கவும்.',
+    appointmentBreakdown: 'முன்பதிவு விவரங்கள்',
+    completed: 'முடிந்தவை',
+    inPerson: 'நேரில்',
+    upcoming: 'வரவிருக்கும்',
+    cancelled: 'ரத்து செய்யப்பட்டது',
+  },
 };

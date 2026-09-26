@@ -406,4 +406,14 @@ export const urduTranslations = {
     title: 'روزانہ کی صحت کے نکات',
     errorText: 'صحت کے نکات لوڈ کرنے میں ناکام۔ دوبارہ کوشش کرنے کے لیے تھپتھپائیں۔',
   },
+  reportsScreen: {
+    title: 'رپورٹس',
+    unableToLoadReports: 'رپورٹس لوڈ کرنے میں ناکام',
+    unableToLoadReportsMessage: 'آپ کی رپورٹس اور اعداد و شمار لوڈ کرنے میں ناکام۔ براہ کرم دوبارہ کوشش کریں۔',
+    appointmentBreakdown: 'ملاقاتوں کی تفصیل',
+    completed: 'مکمل',
+    inPerson: 'روبرو',
+    upcoming: 'آنے والی',
+    cancelled: 'منسوخ',
+  },
 };

@@ -2,6 +2,7 @@ export * from '../../../typescripts/types/types';
 export * from './AssociationIcon';
 export * from './BellIcon';
 export * from './BioIcon';
+export * from './BriefcaseIcon';
 export * from './BuildingIcon';
 export * from './CalendarIcon';
 export * from './CheckBadgeIcon';

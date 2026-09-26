@@ -99,6 +99,9 @@ export const endpoints = {
     counts: `/notifications/count`,
     clearNotify: `/notifications/clear-all`,
   },
+  stats: {
+    get: '/stats/patient',
+  },
 };
 
 export const successEndpoints = [

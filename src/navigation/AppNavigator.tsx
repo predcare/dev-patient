@@ -25,6 +25,7 @@ import PaymentScreen from '../Screens/DashboardScreen/PaymentScreen';
 import PrescriptionDetailScreen from '../Screens/DashboardScreen/PrescriptionDetailScreen';
 import PrescriptionsListScreen from '../Screens/DashboardScreen/PrescriptionsListScreen';
 import ProfileSetupScreen from '../Screens/DashboardScreen/ProfileSetupScreen';
+import ReportsScreen from '../Screens/DashboardScreen/ReportsScreen';
 import RescheduleAppointmentScreen from '../Screens/DashboardScreen/RescheduleAppointmentScreen';
 import SettingScreen from '../Screens/DashboardScreen/SettingScreen';
 import UploadHealthRecordScreen from '../Screens/DashboardScreen/UploadHealthRecordScreen';
@@ -87,7 +88,7 @@ export const AppNavigator: React.FC = () => {
         <Stack.Screen name="Home" component={DashboardScreen} />
         <Stack.Screen name="Doctors" component={MyDoctorsScreen} />
         <Stack.Screen name="Schedule" component={AppointmentsScreen} />
-        <Stack.Screen name="Reports" component={PrescriptionsListScreen} />
+        <Stack.Screen name="Reports" component={ReportsScreen} />
         <Stack.Screen name="Account" component={SettingScreen} />
         <Stack.Screen name="MainTabs" component={DashboardScreen} />
       </Stack.Navigator>

@@ -398,4 +398,14 @@ export const kannadaTranslations = {
     title: 'ದೈನಂದಿನ ಆರೋಗ್ಯ ಸಲಹೆಗಳು',
     errorText: 'ಆರೋಗ್ಯ ಸಲಹೆಗಳನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ. ಮರುಪ್ರಯತ್ನಿಸಲು ಟ್ಯಾಪ್ ಮಾಡಿ.',
   },
+  reportsScreen: {
+    title: 'ವರದಿಗಳು',
+    unableToLoadReports: 'ವರದಿಗಳನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ',
+    unableToLoadReportsMessage: 'ನಿಮ್ಮ ವರದಿಗಳು ಮತ್ತು ಅಂಕಿಅಂಶಗಳನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.',
+    appointmentBreakdown: 'ಅಪಾಯಿಂಟ್‌ಮೆಂಟ್‌ಗಳ ವಿವರಣೆ',
+    completed: 'ಪೂರ್ಣಗೊಂಡಿದೆ',
+    inPerson: 'ಖುದ್ದಾಗಿ',
+    upcoming: 'ಮುಂಬರುವ',
+    cancelled: 'ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ',
+  },
 };

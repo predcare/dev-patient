@@ -75,3 +75,7 @@ export enum NotificationQueryKeys {
   Notifications = 'Notifications',
   NotificationCount = 'NotificationCount',
 }
+
+export enum StatsQueryKey {
+  Stats = 'Stats',
+}

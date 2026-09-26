@@ -75,11 +75,7 @@ export const QuickAccessGrid: React.FC = () => {
       key: 'reports',
       label: t('quickAccess.reports'),
       icon: 'reports' as const,
-      onPress: () =>
-        showInfoToast(
-          t('quickAccess.reports'),
-          t('quickAccess.featureComingSoon', { feature: t('quickAccess.reports') })
-        ),
+      onPress: () => rootNav.navigate(AppRoute.REPORTS),
     },
     {
       key: 'invoices',

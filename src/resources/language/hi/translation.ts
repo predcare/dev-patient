@@ -397,4 +397,14 @@ export const hindiTranslations = {
     title: 'दैनिक स्वास्थ्य टिप्स',
     errorText: 'स्वास्थ्य टिप्स लोड करने में असमर्थ। पुनः प्रयास करने के लिए टैप करें।',
   },
+  reportsScreen: {
+    title: 'रिपोर्ट्स',
+    unableToLoadReports: 'रिपोर्ट लोड करने में असमर्थ',
+    unableToLoadReportsMessage: 'आपकी रिपोर्ट और आंकड़े लोड करने में असमर्थ। कृपया पुनः प्रयास करें।',
+    appointmentBreakdown: 'अपॉइंटमेंट विवरण',
+    completed: 'पूर्ण',
+    inPerson: 'व्यक्तिगत',
+    upcoming: 'आगामी',
+    cancelled: 'रद्द',
+  },
 };

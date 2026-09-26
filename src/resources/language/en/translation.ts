@@ -405,4 +405,14 @@ export const englishTranslations = {
     title: 'Daily Health Tips',
     errorText: 'Unable to load health tips. Tap to retry.',
   },
+  reportsScreen: {
+    title: 'Reports',
+    unableToLoadReports: 'Unable to Load Reports',
+    unableToLoadReportsMessage: 'Unable to load your reports & statistics. Please try again.',
+    appointmentBreakdown: 'Appointment Breakdown',
+    completed: 'Completed',
+    inPerson: 'In-Person',
+    upcoming: 'Upcoming',
+    cancelled: 'Cancelled',
+  },
 };

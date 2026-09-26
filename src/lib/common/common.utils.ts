@@ -215,3 +215,9 @@ export const formatActionTitle = (action?: string, category?: string) => {
   }
   return 'Notification';
 };
+
+export const formatCurrency = (amount?: number, currency?: string) => {
+  const numericAmount = amount ?? 0;
+  const symbol = !currency || currency.toUpperCase() === 'INR' ? '₹' : `${currency} `;
+  return `${symbol}${numericAmount.toLocaleString('en-IN')}`;
+};

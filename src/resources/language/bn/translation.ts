@@ -399,4 +399,14 @@ export const banglaTranslations = {
     title: 'দৈনিক স্বাস্থ্য পরামর্শ',
     errorText: 'স্বাস্থ্য টিপস লোড করতে অক্ষম। পুনরায় চেষ্টা করতে আলতো চাপুন।',
   },
+  reportsScreen: {
+    title: 'রিপোর্ট',
+    unableToLoadReports: 'রিপোর্ট লোড করতে অক্ষম',
+    unableToLoadReportsMessage: 'আপনার রিপোর্ট এবং পরিসংখ্যান লোড করতে অক্ষম। অনুগ্রহ করে আবার চেষ্টা করুন।',
+    appointmentBreakdown: 'অ্যাপয়েন্টমেন্টের বিবরণ',
+    completed: 'সম্পন্ন',
+    inPerson: 'সরাসরি',
+    upcoming: 'আসন্ন',
+    cancelled: 'বাতিল',
+  },
 };

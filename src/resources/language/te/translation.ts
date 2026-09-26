@@ -401,4 +401,14 @@ export const teluguTranslations = {
     title: 'రోజువారీ ఆరోగ్య చిట్కాలు',
     errorText: 'ఆరోగ్య చిట్కాలను లోడ్ చేయడం సాధ్యపడలేదు. మళ్లీ ప్రయత్నించడానికి నొక్కండి.',
   },
+  reportsScreen: {
+    title: 'నివేదికలు',
+    unableToLoadReports: 'నివేదికలను లోడ్ చేయడం సాధ్యపడలేదు',
+    unableToLoadReportsMessage: 'మీ నివేదికలు మరియు గణాంకాలను లోడ్ చేయడం సాధ్యపడలేదు. దయచేసి మళ్లీ ప్రయత్నించండి.',
+    appointmentBreakdown: 'అపాయింట్‌మెంట్ వివరాలు',
+    completed: 'పూర్తయినవి',
+    inPerson: 'నేరుగా',
+    upcoming: 'రాబోయేవి',
+    cancelled: 'రద్దు చేయబడింది',
+  },
 };
