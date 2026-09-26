@@ -4,16 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { FlatList, RefreshControl, Text, TouchableOpacity, View } from 'react-native';
 import CommonErrorCard from '../../components/commons/CommonErrorCard/CommonErrorCard';
 import { AppointmentCard, BookNewSessionCard } from '../../components/Modules/Appointments';
-import { queryClient } from '../../components/providers/ReactQueryProvider';
 import AppointmentsSkeleton from '../../components/Skeletons/AppointmentsSkeleton';
 import { CalendarIcon } from '../../components/ui/icons';
-import useDevicePermissions from '../../hooks/commons/useDevicePermissions';
-import { getApptToken } from '../../hooks/react-query/appointments/appointments.funcs';
+import useJoinVideoCall from '../../hooks/commons/useJoinVideoCall';
 import {
   useCancelMyAppt,
   useMyAppointments,
 } from '../../hooks/react-query/appointments/appointments.hooks';
-import { AppointmemntQueryKey } from '../../hooks/react-query/query.keys';
 import { Header } from '../../Layout/Header';
 import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import {
@@ -29,7 +26,6 @@ import { theme } from '../../styled/theme.styled';
 import { IMyAppointmentDoc } from '../../typescripts/interfaces/appointments.interfaces';
 import { useAlertStore } from '../../zustand/stores/useAlertStore';
 import { useLoadingStore } from '../../zustand/stores/useLoadingStore';
-import { useMeetingStore } from '../../zustand/stores/useMeetingStore';
 
 export const AppointmentsScreen: React.FC = () => {
   const { t } = useTranslation();
@@ -38,10 +34,9 @@ export const AppointmentsScreen: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'upcoming' | 'completed'>('upcoming');
   const [refreshing, setRefreshing] = useState(false);
-  const { setMeetingSession } = useMeetingStore(state => state);
   const { showLoader, hideLoader } = useLoadingStore(state => state);
   const showConfirm = useAlertStore(state => state.showConfirm);
-  const { requestAudioVideoPermissions } = useDevicePermissions();
+  const { handleJoinVideoCall } = useJoinVideoCall();
   const { mutate: cancelAppt } = useCancelMyAppt();
 
   const statusParam = useMemo(() => {
@@ -68,94 +63,8 @@ export const AppointmentsScreen: React.FC = () => {
     setRefreshing(false);
   }, [appointmentRefetch]);
 
-  const handleJoinVideoCall = useCallback(
-    async (appointment: IMyAppointmentDoc) => {
-      if (!appointment) return;
-
-      const storeState = useMeetingStore.getState();
-      const isCallActive =
-        (storeState.callState === 'CONNECTED' || storeState.callState === 'CONNECTING') &&
-        Boolean(storeState.token && storeState.meetingId);
-
-      const isCurrentAppt =
-        isCallActive &&
-        (String(storeState.appointmentId) === String(appointment.id) ||
-          (Boolean(appointment.appointment_id) &&
-            storeState.appointmentGeneratedId === appointment.appointment_id));
-
-      if (isCurrentAppt) {
-        storeState.setIsInAppPip(false);
-        navigation.navigate(AppRoute.MEETING);
-        return;
-      }
-
-      if (isCallActive) {
-        showInfoToast(t('appointments.activeCallToast'), t('appointments.activeCallOngoing'));
-        return;
-      }
-
-      const hasPermissions = await requestAudioVideoPermissions();
-      if (!hasPermissions) {
-        showErrorToast(t('appointments.permissionsRequired'));
-        return;
-      }
-
-      const apptId = appointment.id;
-      let token: string | undefined;
-      let meetingId: string | undefined = appointment.meeting_id;
-      let call_duration_seconds: number | undefined = appointment.call_duration_seconds;
-      if (!apptId) {
-        showErrorToast(t('appointments.noApptId'));
-        return;
-      }
-      if (!appointment?.patient_id) return showErrorToast(t('appointments.noPatientId'));
-
-      try {
-        const tokenResponse = await queryClient.fetchQuery({
-          queryKey: [AppointmemntQueryKey.ALL_APPOINTMENTS, 'token', apptId],
-          queryFn: () => getApptToken(apptId),
-        });
-        token = tokenResponse?.data?.token || '';
-        meetingId = tokenResponse?.data?.meeting_id || '';
-      } catch (error) {
-        console.error('Failed to fetch fresh appointment token:', error);
-      }
-
-      if (!token || !meetingId) {
-        return showErrorToast(t('appointments.failedMeetingCredentials'));
-      }
-
-      const cleanedToken = token?.trim().replace(/^["']|["']$/g, '');
-      const cleanedMeetingId = meetingId?.trim().replace(/^["']|["']$/g, '');
-
-      if (!cleanedToken || !cleanedMeetingId) {
-        showErrorToast(t('appointments.invalidMeetingCredentials'));
-        return;
-      }
-
-      const docName = appointment.doctorInfo?.name || t('appointments.doctorDefault');
-      const docDisplayName = docName.startsWith('Dr.') ? docName : `Dr. ${docName}`;
-
-      setMeetingSession({
-        token: cleanedToken,
-        meetingId: cleanedMeetingId,
-        appointmentId: apptId,
-        patientName: docDisplayName,
-        patientAlphanumericId: appointment.patientInfo?.patientId,
-        appointmentGeneratedId: appointment.appointment_id,
-        startTime: appointment.start_time,
-        endTime: appointment.end_time,
-        callDurationSeconds: call_duration_seconds ?? 0,
-        patientUserId: String(appointment?.patient_id),
-      });
-
-      navigation.navigate(AppRoute.MEETING);
-    },
-    [navigation, queryClient, setMeetingSession, requestAudioVideoPermissions, t]
-  );
-
   const handleCancelAppt = (apt: IMyAppointmentDoc) => {
-    if (!apt?.id) return;
+    if (!apt?.id) return showErrorToast(t('appointments.noApptId'));
     const docName = apt.doctorInfo?.name || t('appointments.doctorDefault');
     const formattedDocName = docName.startsWith('Dr.') ? docName : `Dr. ${docName}`;
     const formattedDate = formatDate(apt.appointment_date) || t('appointments.scheduledDate');
@@ -186,9 +95,6 @@ export const AppointmentsScreen: React.FC = () => {
             } else {
               hideLoader();
             }
-          },
-          onError: () => {
-            hideLoader();
           },
           onSettled: () => {
             hideLoader();
@@ -263,7 +169,19 @@ export const AppointmentsScreen: React.FC = () => {
               mode={apt?.consultation_type || ''}
               time={_formatTime(apt?.start_time) || ''}
               onCancelPress={() => handleCancelAppt(apt)}
-              onJoinVideo={() => handleJoinVideoCall(apt)}
+              onJoinVideo={() =>
+                handleJoinVideoCall({
+                  id: apt.id,
+                  appointment_id: apt.appointment_id,
+                  patient_id: apt.patient_id,
+                  meeting_id: apt.meeting_id,
+                  call_duration_seconds: apt.call_duration_seconds,
+                  start_time: apt.start_time,
+                  end_time: apt.end_time,
+                  doctorName: apt.doctorInfo?.name,
+                  patientAlphanumericId: apt.patientInfo?.patientId,
+                })
+              }
               onReschedule={() =>
                 showInfoToast(
                   t('appointments.rescheduleUnavailable'),

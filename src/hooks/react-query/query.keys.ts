@@ -47,6 +47,7 @@ export enum AppointmemntQueryKey {
   CHECK_PAYMENT_STATUS = 'CHECK_PAYMENT_STATUS',
   ALL_APPOINTMENTS = 'ALL_APPOINTMENTS',
   INFO = 'INFO',
+  GET_TOKEN = 'GET_TOKEN',
 }
 
 export enum PrescriptionQueryKeys {

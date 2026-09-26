@@ -14,13 +14,18 @@ const SocketListeners = () => {
       console.log('💓 [Socket] HEARTBEAT received:', payload);
     };
 
-    const handleIncomingCall = (payload: { appointmentId: string }) => {
+    const handleIncomingCall = (payload: {
+      appointmentId: string;
+      name: string;
+      meetingId: string;
+      callType: string;
+    }) => {
       if (payload?.appointmentId) {
         showCallBanner({
           appointmentId: payload.appointmentId,
-          callType: 'video',
-          doctorName: 'Sahil Mallick',
-          meetingId: '',
+          callType: payload?.callType,
+          doctorName: payload?.name,
+          meetingId: payload?.meetingId,
         });
       }
     };

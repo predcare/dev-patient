@@ -1,7 +1,9 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import CommonErrorCard from '../../components/commons/CommonErrorCard/CommonErrorCard';
+
 import AppointmentDetailsSkeleton from '../../components/Skeletons/AppointmentDetailsSkeleton';
 import AppHeader from '../../components/ui/AppHeader';
 import {
@@ -16,6 +18,7 @@ import {
   StethoscopeIcon,
   VideoIcon,
 } from '../../components/ui/icons';
+import useJoinVideoCall from '../../hooks/commons/useJoinVideoCall';
 import { useGetApptInfo } from '../../hooks/react-query/appointments/appointments.hooks';
 import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import {
@@ -26,19 +29,22 @@ import {
   getInitials,
   openLocationOnMap,
 } from '../../lib/common/common.utils';
+
 import { AppRoute } from '../../route';
 import { appointmentDetailsStyles as styles } from '../../styled/AppointmentDetailsScreen.styled';
 import { theme } from '../../styled/theme.styled';
 import useIncomingCallStore from '../../zustand/stores/useIncomingCallStore';
 
 export const AppointmentDetailsScreen: React.FC = () => {
-  const navigation = useNavigation<any>();
+  const { t } = useTranslation();
+  const navigation = useNavigation();
   const route = useRoute<any>();
   const apptId = route.params?.appointmentId;
   const isComingFromNotification = route.params?.isComingFromNotification;
   const [refreshing, setRefreshing] = useState(false);
   const { hideCallBanner } = useIncomingCallStore(state => state);
-  console.log('isComingFromNotification', isComingFromNotification);
+  const { handleJoinVideoCall } = useJoinVideoCall();
+
   const {
     data: apptInfo,
     isFetching: apptInfoIsPending,
@@ -124,6 +130,19 @@ export const AppointmentDetailsScreen: React.FC = () => {
     };
   }, [apptInfo?.payment_status]);
 
+  const isVideoBtnShow = useMemo(() => {
+    const status = apptInfo?.appointment_status?.toLowerCase();
+    const consultationType = apptInfo?.consultation_type?.toLowerCase();
+    if (
+      status === 'in_progress' ||
+      status === 'confirmed' ||
+      (status === 'in-progress' && consultationType === 'video')
+    ) {
+      return true;
+    }
+    return false;
+  }, [apptInfo?.appointment_status]);
+
   const handleOpenClinicMap = () => {
     if (!apptInfo?.clinic) return;
     openLocationOnMap({
@@ -140,12 +159,6 @@ export const AppointmentDetailsScreen: React.FC = () => {
       });
     }
   };
-
-  useEffect(() => {
-    if (isComingFromNotification) {
-      hideCallBanner();
-    }
-  }, [isComingFromNotification]);
 
   return (
     <SafeAreaWrapper style={styles.container} showBottomBar isPathClear>
@@ -187,7 +200,6 @@ export const AppointmentDetailsScreen: React.FC = () => {
             />
           }
         >
-          {/* 1. Status & Reference Card */}
           <View style={styles.statusBanner}>
             <View style={styles.statusTopRow}>
               <View style={styles.apptIdContainer}>
@@ -220,6 +232,26 @@ export const AppointmentDetailsScreen: React.FC = () => {
                 </Text>
               </Text>
             </View>
+            {isVideoBtnShow && (
+              <TouchableOpacity
+                style={[styles.actionCtaButton, styles.actionCtaVideo]}
+                activeOpacity={0.75}
+                onPress={() => {
+                  handleJoinVideoCall({
+                    id: apptInfo?.id || '',
+                    appointment_id: apptInfo?.appointment_id || '',
+                    patient_id: apptInfo?.patient?.user_id || '',
+                    start_time: apptInfo?.start_time || '',
+                    end_time: apptInfo?.end_time || '',
+                    doctorName: apptInfo?.doctor?.name || '',
+                    patientAlphanumericId: apptInfo?.patient?.patient_id,
+                  });
+                }}
+              >
+                <VideoIcon size={18} color={theme.colors.textInverted} />
+                <Text style={styles.actionCtaText}>Join Video Call</Text>
+              </TouchableOpacity>
+            )}
           </View>
           {apptInfo.doctor && (
             <View style={styles.card}>

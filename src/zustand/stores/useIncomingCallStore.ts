@@ -45,6 +45,11 @@ export const useIncomingCallStore = create<IncomingCallStoreState>(set => ({
   hideCallBanner: () =>
     set({
       visible: false,
+      doctorName: '',
+      callType: '',
+      appointmentId: undefined,
+      meetingId: undefined,
+      onJoin: undefined,
     }),
 
   toggleCallBanner: () =>

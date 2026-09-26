@@ -85,6 +85,30 @@ export const appointmentDetailsStyles = StyleSheet.create({
     color: theme.colors.textPrimary,
   },
 
+  // Action CTA Button (Get Directions / Join Video Call)
+  actionCtaButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+  },
+  actionCtaDirections: {
+    backgroundColor: theme.colors.primary,
+  },
+  actionCtaVideo: {
+    backgroundColor: theme.colors.info,
+  },
+  actionCtaText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: theme.colors.textInverted,
+    letterSpacing: 0.3,
+  },
+
   // Base Section Card
   card: {
     backgroundColor: theme.colors.surface,
