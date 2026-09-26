@@ -2,6 +2,8 @@ package com.predcarefrontendstable
 
 import android.app.PictureInPictureParams
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Rational
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -15,28 +17,23 @@ class MainActivity : ReactActivity() {
     override fun createReactActivityDelegate(): ReactActivityDelegate =
         DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
 
-    /**
-     * Called by PiPModule.setCallActive(true/false) from JS.
-     * true  -> enable auto-enter PiP (Android 12+) or manual on Home press (O+)
-     * false -> disable PiP completely so Home button works normally on all other screens
-     */
+    private val mainHandler = Handler(Looper.getMainLooper())
+
+    private fun buildPiPParams(callActive: Boolean = true): PictureInPictureParams {
+        val builder = PictureInPictureParams.Builder()
+            .setAspectRatio(Rational(9, 16)) // portrait video call
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            builder.setSeamlessResizeEnabled(callActive)
+        }
+
+        return builder.build()
+    }
+
     fun updatePiPParams(callActive: Boolean) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         try {
-            val builder = PictureInPictureParams.Builder()
-                .setAspectRatio(Rational(9, 16)) // portrait video call
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                // Android 12+: auto-enter PiP when Home is pressed -> only when call is active
-                builder.setAutoEnterEnabled(callActive)
-            }
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                // Android 13+: hide the PiP button entirely when not in a call
-                builder.setSeamlessResizeEnabled(callActive)
-            }
-
-            setPictureInPictureParams(builder.build())
+            setPictureInPictureParams(buildPiPParams(callActive))
         } catch (e: Exception) {
             // Not all devices support all PiP params -> safe to ignore
         }
@@ -44,19 +41,32 @@ class MainActivity : ReactActivity() {
 
     /**
      * Triggered when Home button / Home swipe gesture is pressed on Android.
-     * Enters OS Picture-in-Picture mode whenever a call is active.
+     * 1. Dispatches onPiPEntering to React so it hides all controls and shows video only.
+     * 2. Waits 200ms for React to render, then calls enterPictureInPictureMode.
      */
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && PiPModule.isCallActive) {
-            try {
-                val params = PictureInPictureParams.Builder()
-                    .setAspectRatio(Rational(9, 16))
-                    .build()
-                enterPictureInPictureMode(params)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || !PiPModule.isCallActive) return
+
+        // Do not enter PiP when opening camera/gallery for photo capture
+        if (PiPModule.isCameraCaptureActive) return
+
+        try {
+            // Step 1: Tell React Native to switch to video-only layout immediately
+            PiPModule.notifyPiPEntering()
+
+            // Step 2: Wait 200ms for React to render the clean video surface, then enter PiP
+            mainHandler.postDelayed({
+                try {
+                    if (PiPModule.isCallActive && !PiPModule.isCameraCaptureActive) {
+                        enterPictureInPictureMode(buildPiPParams(true))
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }, 200)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -64,8 +74,17 @@ class MainActivity : ReactActivity() {
 
     override fun onResume() {
         super.onResume()
-        // If resumed from PiP mode via expand button, clear flag
-        wasInPiPMode = false
+        // Only notify PiP state changed if the activity was genuinely in PiP mode
+        if (wasInPiPMode) {
+            wasInPiPMode = false
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                if (!isInPictureInPictureMode) {
+                    PiPModule.notifyPiPStateChanged(false)
+                }
+            } else {
+                PiPModule.notifyPiPStateChanged(false)
+            }
+        }
     }
 
     override fun onStop() {

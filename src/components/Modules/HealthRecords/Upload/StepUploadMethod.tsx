@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { PermissionsAndroid, Platform, Text, TouchableOpacity, View } from 'react-native';
+import { NativeModules, PermissionsAndroid, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { showInfoToast } from '../../../../lib/common/toast.utils';
 import { uploadRecordStyles } from '../../../../styled/UploadHealthRecordScreen.styled';
+import { useMeetingStore } from '../../../../zustand/stores/useMeetingStore';
 import UploadOptionsModal from '../../../commons/UploadOptionsModal/UploadOptionsModal';
 import { CameraIcon, ChevronRightIcon, FolderIcon, GalleryIcon } from '../../../ui/icons';
+
+const { PiPModule } = NativeModules;
 
 export interface StepUploadMethodProps {
   onFileSelected: (file: {
@@ -36,6 +39,12 @@ export const StepUploadMethod: React.FC<StepUploadMethodProps> = ({ onFileSelect
 
       setShowUploadOptions(false);
 
+      // Notify native PiP module not to enter PiP when external camera intent opens
+      PiPModule?.setCameraCaptureActive?.(true);
+
+      // Pause active video consultation camera to free hardware sensor for camera app
+      useMeetingStore.getState().setIsCameraPausedForCapture(true);
+
       setTimeout(
         () => {
           launchCamera(
@@ -46,6 +55,10 @@ export const StepUploadMethod: React.FC<StepUploadMethodProps> = ({ onFileSelect
               includeBase64: false,
             },
             res => {
+              // Reset camera capture state
+              PiPModule?.setCameraCaptureActive?.(false);
+              useMeetingStore.getState().setIsCameraPausedForCapture(false);
+
               if (res.didCancel) return;
               if (res.errorCode) {
                 console.warn('launchCamera errorCode:', res.errorCode, res.errorMessage);
@@ -68,9 +81,11 @@ export const StepUploadMethod: React.FC<StepUploadMethodProps> = ({ onFileSelect
             }
           );
         },
-        Platform.OS === 'android' ? 200 : 50
+        Platform.OS === 'android' ? 250 : 50
       );
     } catch (err: any) {
+      PiPModule?.setCameraCaptureActive?.(false);
+      useMeetingStore.getState().setIsCameraPausedForCapture(false);
       console.warn('handleCamera error:', err);
       showInfoToast('Could not open camera', 'Camera Error');
     }
@@ -79,6 +94,12 @@ export const StepUploadMethod: React.FC<StepUploadMethodProps> = ({ onFileSelect
   const handleGallery = () => {
     try {
       setShowUploadOptions(false);
+
+      // Notify native PiP module not to enter PiP when photo picker opens
+      PiPModule?.setCameraCaptureActive?.(true);
+
+      // Pause camera before opening file picker to avoid resource contention
+      useMeetingStore.getState().setIsCameraPausedForCapture(true);
 
       setTimeout(
         () => {
@@ -90,6 +111,10 @@ export const StepUploadMethod: React.FC<StepUploadMethodProps> = ({ onFileSelect
               includeBase64: false,
             },
             res => {
+              // Reset camera capture state
+              PiPModule?.setCameraCaptureActive?.(false);
+              useMeetingStore.getState().setIsCameraPausedForCapture(false);
+
               if (res.didCancel) return;
               if (res.errorCode) {
                 console.warn('launchImageLibrary errorCode:', res.errorCode, res.errorMessage);
@@ -112,9 +137,11 @@ export const StepUploadMethod: React.FC<StepUploadMethodProps> = ({ onFileSelect
             }
           );
         },
-        Platform.OS === 'android' ? 200 : 50
+        Platform.OS === 'android' ? 250 : 50
       );
     } catch (err: any) {
+      PiPModule?.setCameraCaptureActive?.(false);
+      useMeetingStore.getState().setIsCameraPausedForCapture(false);
       console.warn('handleGallery error:', err);
       showInfoToast('Could not open gallery', 'Gallery Error');
     }

@@ -12,12 +12,23 @@ public class PiPModule extends ReactContextBaseJavaModule {
     // Read by MainActivity.onUserLeaveHint (Android 8-11 fallback)
     public static volatile boolean isCallActive = false;
 
+    // Set to true while opening camera/gallery to prevent onUserLeaveHint from triggering PiP
+    public static volatile boolean isCameraCaptureActive = false;
+
     public PiPModule(ReactApplicationContext reactContext) {
         super(reactContext);
     }
 
     @Override
     public String getName() { return "PiPModule"; }
+
+    @ReactMethod
+    public void setCameraCaptureActive(boolean active, Promise promise) {
+        isCameraCaptureActive = active;
+        if (promise != null) {
+            promise.resolve(true);
+        }
+    }
 
     @ReactMethod
     public void setCallActive(boolean active, Promise promise) {
@@ -50,12 +61,21 @@ public class PiPModule extends ReactContextBaseJavaModule {
         }
         activity.runOnUiThread(() -> {
             try {
-                android.app.PictureInPictureParams params =
-                    new android.app.PictureInPictureParams.Builder()
-                        .setAspectRatio(new android.util.Rational(9, 16))
-                        .build();
-                activity.enterPictureInPictureMode(params);
-                if (promise != null) promise.resolve(true);
+                notifyPiPEntering();
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                    try {
+                        if (isCallActive) {
+                            android.app.PictureInPictureParams params =
+                                new android.app.PictureInPictureParams.Builder()
+                                    .setAspectRatio(new android.util.Rational(9, 16))
+                                    .build();
+                            activity.enterPictureInPictureMode(params);
+                        }
+                        if (promise != null) promise.resolve(true);
+                    } catch (Exception e) {
+                        if (promise != null) promise.reject("PIP_ERROR", e.getMessage());
+                    }
+                }, 200);
             } catch (Exception e) {
                 if (promise != null) promise.reject("PIP_ERROR", e.getMessage());
             }
@@ -72,6 +92,16 @@ public class PiPModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void removeListeners(double count) {}
+
+    public static void notifyPiPEntering() {
+        if (sReactContext != null) {
+            try {
+                sReactContext
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit("onPiPEntering", true);
+            } catch (Exception e) { /* ignore */ }
+        }
+    }
 
     public static void notifyPiPStateChanged(boolean isInPiP) {
         if (sReactContext != null) {

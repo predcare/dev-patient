@@ -16,13 +16,27 @@ interface ToastState {
   hideToast: () => void;
 }
 
+const scheduleUpdate = (callback: () => void) => {
+  if (typeof requestAnimationFrame !== 'undefined') {
+    requestAnimationFrame(callback);
+  } else {
+    setTimeout(callback, 0);
+  }
+};
+
 export const useToastStore = create<ToastState>(set => ({
   toast: null,
   showToast: config => {
     const id = Date.now().toString() + Math.random().toString(36).substring(2, 6);
-    set({
-      toast: { ...config, id },
+    scheduleUpdate(() => {
+      set({
+        toast: { ...config, id },
+      });
     });
   },
-  hideToast: () => set({ toast: null }),
+  hideToast: () => {
+    scheduleUpdate(() => {
+      set({ toast: null });
+    });
+  },
 }));

@@ -28,14 +28,19 @@ export const GlobalMeetingManager: React.FC = () => {
     }
 
     const subscription = DeviceEventEmitter.addListener('onPiPModeChanged', (isInPip: boolean) => {
+      const wasNativePip = useMeetingStore.getState().isNativePip;
       setIsNativePip(isInPip);
-      if (!isInPip) {
+      if (!isInPip && wasNativePip) {
         // Restoring from OS Native Android PiP -> navigate directly to full-screen Meeting screen
         setIsInAppPip(false);
         if (navigationRef.isReady()) {
           (navigationRef as any).navigate(AppRoute.MEETING);
         }
       }
+    });
+
+    const enteringSubscription = DeviceEventEmitter.addListener('onPiPEntering', () => {
+      setIsNativePip(true);
     });
 
     let backSubscription: any;
@@ -71,6 +76,7 @@ export const GlobalMeetingManager: React.FC = () => {
 
     return () => {
       subscription.remove();
+      enteringSubscription.remove();
       backSubscription?.remove();
       if (PiPModule.setCallActive) {
         PiPModule.setCallActive(false).catch?.(() => {});
