@@ -58,6 +58,12 @@ export const AppNavigator: React.FC = () => {
           },
         }}
       >
+        <Stack.Screen name="Home" component={DashboardScreen} />
+        <Stack.Screen name="Doctors" component={MyDoctorsScreen} />
+        <Stack.Screen name="Schedule" component={AppointmentsScreen} />
+        <Stack.Screen name="Reports" component={ReportsScreen} />
+        <Stack.Screen name="Account" component={SettingScreen} />
+        <Stack.Screen name="MainTabs" component={DashboardScreen} />
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
@@ -85,14 +91,6 @@ export const AppNavigator: React.FC = () => {
         <Stack.Screen name="HealthRecordFolder" component={HealthRecordFolderScreen} />
         <Stack.Screen name="UploadHealthRecord" component={UploadHealthRecordScreen} />
         <Stack.Screen name="InvoicesList" component={InvoicesListScreen} />
-
-        {/* Primary Stack Screens with SafeAreaWrapper Bottom Bar */}
-        <Stack.Screen name="Home" component={DashboardScreen} />
-        <Stack.Screen name="Doctors" component={MyDoctorsScreen} />
-        <Stack.Screen name="Schedule" component={AppointmentsScreen} />
-        <Stack.Screen name="Reports" component={ReportsScreen} />
-        <Stack.Screen name="Account" component={SettingScreen} />
-        <Stack.Screen name="MainTabs" component={DashboardScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
