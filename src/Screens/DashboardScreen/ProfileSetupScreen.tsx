@@ -15,9 +15,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { mediaPaths } from '../../api/endpoints';
 import UploadOptionsModal from '../../components/commons/UploadOptionsModal/UploadOptionsModal';
+import { safeLaunchCamera, safeLaunchImageLibrary } from '../../lib/common/imagePicker.utils';
 import { DropdownPickerModal } from '../../components/Modules/MemberManagement';
 import { queryClient } from '../../components/providers/ReactQueryProvider';
 import AppHeader from '../../components/ui/AppHeader';
@@ -141,39 +141,34 @@ export const ProfileSetupScreen: React.FC = () => {
 
       setShowUploadOptions(false);
 
-      setTimeout(
-        () => {
-          launchCamera(
-            {
-              mediaType: 'photo',
-              quality: 0.8,
-              saveToPhotos: false,
-              includeBase64: false,
-            },
-            res => {
-              if (res.didCancel) return;
-              if (res.errorCode) {
-                console.warn('launchCamera errorCode:', res.errorCode, res.errorMessage);
-                showInfoToast(
-                  res.errorMessage || `Camera Error: ${res.errorCode}`,
-                  'Camera Failure'
-                );
-                return;
-              }
-              if (res.assets && res.assets[0]) {
-                const asset = res.assets[0];
-                const fileObj = {
-                  uri: asset.uri || '',
-                  name: asset.fileName || `profile_${Date.now()}.jpg`,
-                  type: asset.type || 'image/jpeg',
-                };
-                setValue('profilePic', fileObj, { shouldValidate: true });
-                showInfoToast('Photo captured successfully', 'Camera');
-              }
-            }
-          );
+      safeLaunchCamera(
+        {
+          mediaType: 'photo',
+          quality: 0.8,
+          saveToPhotos: false,
+          includeBase64: false,
         },
-        Platform.OS === 'android' ? 200 : 50
+        res => {
+          if (res.didCancel) return;
+          if (res.errorCode) {
+            console.warn('launchCamera errorCode:', res.errorCode, res.errorMessage);
+            showInfoToast(
+              res.errorMessage || `Camera Error: ${res.errorCode}`,
+              'Camera Failure'
+            );
+            return;
+          }
+          if (res.assets && res.assets[0]) {
+            const asset = res.assets[0];
+            const fileObj = {
+              uri: asset.uri || '',
+              name: asset.fileName || `profile_${Date.now()}.jpg`,
+              type: asset.type || 'image/jpeg',
+            };
+            setValue('profilePic', fileObj, { shouldValidate: true });
+            showInfoToast('Photo captured successfully', 'Camera');
+          }
+        }
       );
     } catch (err: any) {
       console.warn('handleCamera error:', err);
@@ -185,39 +180,34 @@ export const ProfileSetupScreen: React.FC = () => {
     try {
       setShowUploadOptions(false);
 
-      setTimeout(
-        () => {
-          launchImageLibrary(
-            {
-              mediaType: 'photo',
-              quality: 0.8,
-              selectionLimit: 1,
-              includeBase64: false,
-            },
-            res => {
-              if (res.didCancel) return;
-              if (res.errorCode) {
-                console.warn('launchImageLibrary errorCode:', res.errorCode, res.errorMessage);
-                showInfoToast(
-                  res.errorMessage || `Gallery Error: ${res.errorCode}`,
-                  'Gallery Failure'
-                );
-                return;
-              }
-              if (res.assets && res.assets[0]) {
-                const asset = res.assets[0];
-                const fileObj = {
-                  uri: asset.uri || '',
-                  name: asset.fileName || `profile_${Date.now()}.png`,
-                  type: asset.type || 'image/png',
-                };
-                setValue('profilePic', fileObj, { shouldValidate: true });
-                showInfoToast('Image selected from gallery', 'Gallery');
-              }
-            }
-          );
+      safeLaunchImageLibrary(
+        {
+          mediaType: 'photo',
+          quality: 0.8,
+          selectionLimit: 1,
+          includeBase64: false,
         },
-        Platform.OS === 'android' ? 200 : 50
+        res => {
+          if (res.didCancel) return;
+          if (res.errorCode) {
+            console.warn('launchImageLibrary errorCode:', res.errorCode, res.errorMessage);
+            showInfoToast(
+              res.errorMessage || `Gallery Error: ${res.errorCode}`,
+              'Gallery Failure'
+            );
+            return;
+          }
+          if (res.assets && res.assets[0]) {
+            const asset = res.assets[0];
+            const fileObj = {
+              uri: asset.uri || '',
+              name: asset.fileName || `profile_${Date.now()}.png`,
+              type: asset.type || 'image/png',
+            };
+            setValue('profilePic', fileObj, { shouldValidate: true });
+            showInfoToast('Image selected from gallery', 'Gallery');
+          }
+        }
       );
     } catch (err: any) {
       console.warn('handleGallery error:', err);

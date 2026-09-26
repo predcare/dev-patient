@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
-import { NativeModules, PermissionsAndroid, Platform, Text, TouchableOpacity, View } from 'react-native';
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import { PermissionsAndroid, Platform, Text, TouchableOpacity, View } from 'react-native';
+import { safeLaunchCamera, safeLaunchImageLibrary } from '../../../../lib/common/imagePicker.utils';
 import { showInfoToast } from '../../../../lib/common/toast.utils';
 import { uploadRecordStyles } from '../../../../styled/UploadHealthRecordScreen.styled';
-import { useMeetingStore } from '../../../../zustand/stores/useMeetingStore';
 import UploadOptionsModal from '../../../commons/UploadOptionsModal/UploadOptionsModal';
 import { CameraIcon, ChevronRightIcon, FolderIcon, GalleryIcon } from '../../../ui/icons';
-
-const { PiPModule } = NativeModules;
 
 export interface StepUploadMethodProps {
   onFileSelected: (file: {
@@ -39,53 +36,36 @@ export const StepUploadMethod: React.FC<StepUploadMethodProps> = ({ onFileSelect
 
       setShowUploadOptions(false);
 
-      // Notify native PiP module not to enter PiP when external camera intent opens
-      PiPModule?.setCameraCaptureActive?.(true);
-
-      // Pause active video consultation camera to free hardware sensor for camera app
-      useMeetingStore.getState().setIsCameraPausedForCapture(true);
-
-      setTimeout(
-        () => {
-          launchCamera(
-            {
-              mediaType: 'photo',
-              quality: 0.8,
-              saveToPhotos: false,
-              includeBase64: false,
-            },
-            res => {
-              // Reset camera capture state
-              PiPModule?.setCameraCaptureActive?.(false);
-              useMeetingStore.getState().setIsCameraPausedForCapture(false);
-
-              if (res.didCancel) return;
-              if (res.errorCode) {
-                console.warn('launchCamera errorCode:', res.errorCode, res.errorMessage);
-                showInfoToast(
-                  res.errorMessage || `Camera Error: ${res.errorCode}`,
-                  'Camera Failure'
-                );
-                return;
-              }
-              if (res.assets && res.assets[0]) {
-                const asset = res.assets[0];
-                const fileObj = {
-                  uri: asset.uri || '',
-                  name: asset.fileName || `record_${Date.now()}.jpg`,
-                  type: asset.type || 'image/jpeg',
-                  size: asset.fileSize,
-                };
-                onFileSelected(fileObj);
-              }
-            }
-          );
+      safeLaunchCamera(
+        {
+          mediaType: 'photo',
+          quality: 0.8,
+          saveToPhotos: false,
+          includeBase64: false,
         },
-        Platform.OS === 'android' ? 250 : 50
+        res => {
+          if (res.didCancel) return;
+          if (res.errorCode) {
+            console.warn('launchCamera errorCode:', res.errorCode, res.errorMessage);
+            showInfoToast(
+              res.errorMessage || `Camera Error: ${res.errorCode}`,
+              'Camera Failure'
+            );
+            return;
+          }
+          if (res.assets && res.assets[0]) {
+            const asset = res.assets[0];
+            const fileObj = {
+              uri: asset.uri || '',
+              name: asset.fileName || `record_${Date.now()}.jpg`,
+              type: asset.type || 'image/jpeg',
+              size: asset.fileSize,
+            };
+            onFileSelected(fileObj);
+          }
+        }
       );
     } catch (err: any) {
-      PiPModule?.setCameraCaptureActive?.(false);
-      useMeetingStore.getState().setIsCameraPausedForCapture(false);
       console.warn('handleCamera error:', err);
       showInfoToast('Could not open camera', 'Camera Error');
     }
@@ -95,53 +75,36 @@ export const StepUploadMethod: React.FC<StepUploadMethodProps> = ({ onFileSelect
     try {
       setShowUploadOptions(false);
 
-      // Notify native PiP module not to enter PiP when photo picker opens
-      PiPModule?.setCameraCaptureActive?.(true);
-
-      // Pause camera before opening file picker to avoid resource contention
-      useMeetingStore.getState().setIsCameraPausedForCapture(true);
-
-      setTimeout(
-        () => {
-          launchImageLibrary(
-            {
-              mediaType: 'mixed',
-              quality: 0.8,
-              selectionLimit: 1,
-              includeBase64: false,
-            },
-            res => {
-              // Reset camera capture state
-              PiPModule?.setCameraCaptureActive?.(false);
-              useMeetingStore.getState().setIsCameraPausedForCapture(false);
-
-              if (res.didCancel) return;
-              if (res.errorCode) {
-                console.warn('launchImageLibrary errorCode:', res.errorCode, res.errorMessage);
-                showInfoToast(
-                  res.errorMessage || `Gallery Error: ${res.errorCode}`,
-                  'Gallery Failure'
-                );
-                return;
-              }
-              if (res.assets && res.assets[0]) {
-                const asset = res.assets[0];
-                const fileObj = {
-                  uri: asset.uri || '',
-                  name: asset.fileName || `record_${Date.now()}.png`,
-                  type: asset.type || 'image/png',
-                  size: asset.fileSize,
-                };
-                onFileSelected(fileObj);
-              }
-            }
-          );
+      safeLaunchImageLibrary(
+        {
+          mediaType: 'mixed',
+          quality: 0.8,
+          selectionLimit: 1,
+          includeBase64: false,
         },
-        Platform.OS === 'android' ? 250 : 50
+        res => {
+          if (res.didCancel) return;
+          if (res.errorCode) {
+            console.warn('launchImageLibrary errorCode:', res.errorCode, res.errorMessage);
+            showInfoToast(
+              res.errorMessage || `Gallery Error: ${res.errorCode}`,
+              'Gallery Failure'
+            );
+            return;
+          }
+          if (res.assets && res.assets[0]) {
+            const asset = res.assets[0];
+            const fileObj = {
+              uri: asset.uri || '',
+              name: asset.fileName || `record_${Date.now()}.png`,
+              type: asset.type || 'image/png',
+              size: asset.fileSize,
+            };
+            onFileSelected(fileObj);
+          }
+        }
       );
     } catch (err: any) {
-      PiPModule?.setCameraCaptureActive?.(false);
-      useMeetingStore.getState().setIsCameraPausedForCapture(false);
       console.warn('handleGallery error:', err);
       showInfoToast('Could not open gallery', 'Gallery Error');
     }

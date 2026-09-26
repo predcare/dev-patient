@@ -15,10 +15,10 @@ import {
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as yup from 'yup';
 import { UploadOptionsModal } from '../../components/commons/UploadOptionsModal/UploadOptionsModal';
+import { safeLaunchCamera, safeLaunchImageLibrary } from '../../lib/common/imagePicker.utils';
 import { CategorySelectModal } from '../../components/Modules/Support';
 import { queryClient } from '../../components/providers/ReactQueryProvider';
 import AppHeader from '../../components/ui/AppHeader';
@@ -119,41 +119,36 @@ export const NewSupportTicketScreen: React.FC = () => {
 
       setShowUploadOptions(false);
 
-      setTimeout(
-        () => {
-          launchCamera(
-            {
-              mediaType: 'photo',
-              quality: 0.8,
-              saveToPhotos: false,
-              includeBase64: false,
-            },
-            res => {
-              if (res.didCancel) return;
-              if (res.errorCode) {
-                console.warn('launchCamera errorCode:', res.errorCode, res.errorMessage);
-                showInfoToast(
-                  res.errorMessage || `Camera Error: ${res.errorCode}`,
-                  'Camera Failure'
-                );
-                return;
-              }
-              if (res.assets && res.assets[0]) {
-                const asset = res.assets[0];
-                const fileObj = {
-                  uri: asset.uri || '',
-                  name: asset.fileName || `ticket_${Date.now()}.jpg`,
-                  type: asset.type || 'image/jpeg',
-                  size: asset.fileSize,
-                };
-                const updated = [...currentAttachments, fileObj].slice(0, MAX_IMAGES);
-                setValue('attachments', updated, { shouldValidate: true });
-                showInfoToast('Photo captured successfully', 'Camera');
-              }
-            }
-          );
+      safeLaunchCamera(
+        {
+          mediaType: 'photo',
+          quality: 0.8,
+          saveToPhotos: false,
+          includeBase64: false,
         },
-        Platform.OS === 'android' ? 200 : 50
+        res => {
+          if (res.didCancel) return;
+          if (res.errorCode) {
+            console.warn('launchCamera errorCode:', res.errorCode, res.errorMessage);
+            showInfoToast(
+              res.errorMessage || `Camera Error: ${res.errorCode}`,
+              'Camera Failure'
+            );
+            return;
+          }
+          if (res.assets && res.assets[0]) {
+            const asset = res.assets[0];
+            const fileObj = {
+              uri: asset.uri || '',
+              name: asset.fileName || `ticket_${Date.now()}.jpg`,
+              type: asset.type || 'image/jpeg',
+              size: asset.fileSize,
+            };
+            const updated = [...currentAttachments, fileObj].slice(0, MAX_IMAGES);
+            setValue('attachments', updated, { shouldValidate: true });
+            showInfoToast('Photo captured successfully', 'Camera');
+          }
+        }
       );
     } catch (err: any) {
       console.warn('handleCamera error:', err);
@@ -166,43 +161,38 @@ export const NewSupportTicketScreen: React.FC = () => {
       setShowUploadOptions(false);
       const remainingSlots = Math.max(1, MAX_IMAGES - currentAttachments.length);
 
-      setTimeout(
-        () => {
-          launchImageLibrary(
-            {
-              mediaType: 'photo',
-              quality: 0.8,
-              selectionLimit: remainingSlots,
-              includeBase64: false,
-            },
-            res => {
-              if (res.didCancel) return;
-              if (res.errorCode) {
-                console.warn('launchImageLibrary errorCode:', res.errorCode, res.errorMessage);
-                showInfoToast(
-                  res.errorMessage || `Gallery Error: ${res.errorCode}`,
-                  'Gallery Failure'
-                );
-                return;
-              }
-              if (res.assets && res.assets.length > 0) {
-                const newFiles = res.assets.map((asset, index) => ({
-                  uri: asset.uri || '',
-                  name: asset.fileName || `ticket_${Date.now()}_${index}.jpg`,
-                  type: asset.type || 'image/jpeg',
-                  size: asset.fileSize,
-                }));
-                const updated = [...currentAttachments, ...newFiles].slice(0, MAX_IMAGES);
-                setValue('attachments', updated, { shouldValidate: true });
-                showInfoToast(
-                  `${newFiles.length} image${newFiles.length > 1 ? 's' : ''} selected`,
-                  'Gallery'
-                );
-              }
-            }
-          );
+      safeLaunchImageLibrary(
+        {
+          mediaType: 'photo',
+          quality: 0.8,
+          selectionLimit: remainingSlots,
+          includeBase64: false,
         },
-        Platform.OS === 'android' ? 200 : 50
+        res => {
+          if (res.didCancel) return;
+          if (res.errorCode) {
+            console.warn('launchImageLibrary errorCode:', res.errorCode, res.errorMessage);
+            showInfoToast(
+              res.errorMessage || `Gallery Error: ${res.errorCode}`,
+              'Gallery Failure'
+            );
+            return;
+          }
+          if (res.assets && res.assets.length > 0) {
+            const newFiles = res.assets.map((asset, index) => ({
+              uri: asset.uri || '',
+              name: asset.fileName || `ticket_${Date.now()}_${index}.jpg`,
+              type: asset.type || 'image/jpeg',
+              size: asset.fileSize,
+            }));
+            const updated = [...currentAttachments, ...newFiles].slice(0, MAX_IMAGES);
+            setValue('attachments', updated, { shouldValidate: true });
+            showInfoToast(
+              `${newFiles.length} image${newFiles.length > 1 ? 's' : ''} selected`,
+              'Gallery'
+            );
+          }
+        }
       );
     } catch (err: any) {
       console.warn('handleGallery error:', err);
