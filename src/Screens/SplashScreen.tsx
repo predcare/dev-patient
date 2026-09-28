@@ -6,7 +6,6 @@ import { getItem, STORAGE_KEYS } from '../lib/common/asyncStorage';
 import { resetAndNavigate, resetToLogin } from '../lib/common/navigation.utils';
 import type { SplashScreenNavigationProp, SplashScreenRouteProp } from '../route';
 import { AppRoute } from '../route';
-import { theme } from '../styled/theme.styled';
 import { checkInitialNotification } from '../utils/firebaseMessaging';
 import { consumeTargetRoute } from '../utils/notificationRouter';
 import { useAuthStore } from '../zustand/stores/useAuthStore';
@@ -113,7 +112,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
   }, [navigation, fadeAnim, scaleAnim, pulseAnim, setUserData, logout]);
 
   return (
-    <SafeAreaWrapper backgroundColor={theme.colors.primaryDark} barStyle="light-content">
+    <SafeAreaWrapper>
       <View style={styles.container}>
         <View style={styles.circleContainer}>
           <View style={[styles.circle, styles.circle1]} />

@@ -3,7 +3,6 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import CommonErrorCard from '../../components/commons/CommonErrorCard/CommonErrorCard';
-
 import AppointmentDetailsSkeleton from '../../components/Skeletons/AppointmentDetailsSkeleton';
 import AppHeader from '../../components/ui/AppHeader';
 import {
@@ -215,7 +214,6 @@ export const AppointmentDetailsScreen: React.FC = () => {
                 </Text>
               </View>
             </View>
-
             <View style={styles.statusDivider} />
 
             <View style={styles.statusInfoRow}>
