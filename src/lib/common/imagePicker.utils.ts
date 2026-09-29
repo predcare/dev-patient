@@ -1,4 +1,4 @@
-import { NativeModules, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import {
   CameraOptions,
   ImageLibraryOptions,
@@ -8,20 +8,14 @@ import {
 } from 'react-native-image-picker';
 import { useMeetingStore } from '../../zustand/stores/useMeetingStore';
 
-const { PiPModule } = NativeModules;
-
 /**
- * Safely launches the Camera while managing consultation video stream pause/resume
- * and native Android PiP prevention.
+ * Safely launches the Camera while managing consultation video stream pause/resume.
  */
 export const safeLaunchCamera = (
   options: CameraOptions,
   callback: (response: ImagePickerResponse) => void
 ) => {
   try {
-    // Notify native PiP module not to enter PiP when external camera intent opens
-    PiPModule?.setCameraCaptureActive?.(true);
-
     // Pause active video consultation camera to free hardware sensor
     useMeetingStore.getState().setIsCameraPausedForCapture(true);
 
@@ -29,8 +23,6 @@ export const safeLaunchCamera = (
       () => {
         rawLaunchCamera(options, response => {
           try {
-            // Reset camera capture & pause state
-            PiPModule?.setCameraCaptureActive?.(false);
             useMeetingStore.getState().setIsCameraPausedForCapture(false);
           } catch (e) {
             // Ignore reset error
@@ -41,7 +33,6 @@ export const safeLaunchCamera = (
       Platform.OS === 'android' ? 250 : 50
     );
   } catch (err) {
-    PiPModule?.setCameraCaptureActive?.(false);
     useMeetingStore.getState().setIsCameraPausedForCapture(false);
     callback({
       didCancel: false,
@@ -52,17 +43,13 @@ export const safeLaunchCamera = (
 };
 
 /**
- * Safely launches the Photo Gallery / File picker while managing consultation video stream
- * pause/resume and native Android PiP prevention.
+ * Safely launches the Photo Gallery / File picker while managing consultation video stream pause/resume.
  */
 export const safeLaunchImageLibrary = (
   options: ImageLibraryOptions,
   callback: (response: ImagePickerResponse) => void
 ) => {
   try {
-    // Notify native PiP module not to enter PiP when photo picker opens
-    PiPModule?.setCameraCaptureActive?.(true);
-
     // Pause camera before opening picker to avoid resource contention
     useMeetingStore.getState().setIsCameraPausedForCapture(true);
 
@@ -70,8 +57,6 @@ export const safeLaunchImageLibrary = (
       () => {
         rawLaunchImageLibrary(options, response => {
           try {
-            // Reset camera capture & pause state
-            PiPModule?.setCameraCaptureActive?.(false);
             useMeetingStore.getState().setIsCameraPausedForCapture(false);
           } catch (e) {
             // Ignore reset error
@@ -82,7 +67,6 @@ export const safeLaunchImageLibrary = (
       Platform.OS === 'android' ? 250 : 50
     );
   } catch (err) {
-    PiPModule?.setCameraCaptureActive?.(false);
     useMeetingStore.getState().setIsCameraPausedForCapture(false);
     callback({
       didCancel: false,

@@ -65,7 +65,7 @@ export const CustomBottomBar: React.FC<CustomBottomBarProps> = ({
   visibleTabs,
   onTabPress,
   containerStyle,
-  isPathClear = true,
+  isPathClear = false,
 }) => {
   const insets = useSafeAreaInsets();
   const rootNavigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();

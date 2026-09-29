@@ -121,12 +121,7 @@ const MeetingSessionController: React.FC = () => {
   if (isNativePip) {
     return (
       <View style={[StyleSheet.absoluteFillObject, { backgroundColor: '#000000', zIndex: 999999 }]}>
-        <MeetingStageContainer
-          callState={callState}
-          remoteParticipantId={remoteParticipantId}
-          errorMessage={errorMessage}
-          onGoBack={handleEndCall}
-        />
+        <DoctorMeetingContainer inPipMode={true} />
       </View>
     );
   }
@@ -137,7 +132,7 @@ const MeetingSessionController: React.FC = () => {
 
   return (
     <View style={[StyleSheet.absoluteFillObject, { backgroundColor: '#000000', zIndex: 9999 }]}>
-      <DoctorMeetingContainer navigation={navigationRef as any} />
+      <DoctorMeetingContainer navigation={navigationRef as any} inPipMode={false} />
     </View>
   );
 };

@@ -19,6 +19,7 @@ interface MeetingControlBarProps {
   onRxPress?: () => void;
   onUploadPress?: () => void;
   onPipPress?: () => void;
+  inPipMode?: boolean;
 }
 
 export const MeetingControlBar: React.FC<MeetingControlBarProps> = ({
@@ -31,7 +32,58 @@ export const MeetingControlBar: React.FC<MeetingControlBarProps> = ({
   onRxPress,
   onUploadPress,
   onPipPress,
+  inPipMode = false,
 }) => {
+  if (inPipMode) {
+    return (
+      <View style={PatientMeetingScreenStyles.controlBarContainerPip}>
+        <View style={PatientMeetingScreenStyles.controlRowPip}>
+          <TouchableOpacity
+            style={PatientMeetingScreenStyles.controlBtnPip}
+            activeOpacity={0.8}
+            onPress={onToggleAudio}
+          >
+            {isMicOn ? (
+              <MicOnIcon size={14} color="#2DD4BF" />
+            ) : (
+              <MicOffIcon size={14} color="#EF4444" />
+            )}
+            <Text style={PatientMeetingScreenStyles.controlBtnTxtPip}>
+              {isMicOn ? 'MUTE' : 'ON'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={PatientMeetingScreenStyles.controlBtnPip}
+            activeOpacity={0.8}
+            onPress={onToggleVideo}
+          >
+            {isCameraOn ? (
+              <CameraOffIcon size={14} color="#EF4444" />
+            ) : (
+              <CameraOnIcon size={14} color="#2DD4BF" />
+            )}
+            <Text style={PatientMeetingScreenStyles.controlBtnTxtPip}>
+              {isCameraOn ? 'OFF' : 'ON'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              PatientMeetingScreenStyles.controlBtnPip,
+              PatientMeetingScreenStyles.controlBtnEndPip,
+            ]}
+            activeOpacity={0.8}
+            onPress={onEndCall}
+          >
+            <EndPhoneIcon size={14} color="#FFFFFF" />
+            <Text style={PatientMeetingScreenStyles.controlBtnTxtPip}>END</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={PatientMeetingScreenStyles.controlBarContainer}>
       <View

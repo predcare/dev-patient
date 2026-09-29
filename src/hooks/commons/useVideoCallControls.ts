@@ -3,8 +3,6 @@ import { useCallback, useEffect, useRef } from 'react';
 import {
   AppState,
   AppStateStatus,
-  DeviceEventEmitter,
-  NativeModules,
   Platform,
 } from 'react-native';
 import { queryClient } from '../../components/providers/ReactQueryProvider';
@@ -12,8 +10,6 @@ import { showErrorToast, showInfoToast } from '../../lib/common/toast.utils';
 import { useLoadingStore } from '../../zustand/stores/useLoadingStore';
 import { useMeetingStore } from '../../zustand/stores/useMeetingStore';
 import { AppointmemntQueryKey } from '../react-query/query.keys';
-
-const { PiPModule } = NativeModules;
 
 export const useVideoCallControls = (onLeaveCallback?: () => void) => {
   const hasJoinedRef = useRef(false);
@@ -23,8 +19,6 @@ export const useVideoCallControls = (onLeaveCallback?: () => void) => {
   const callStartTimeRef = useRef<string | null>(null);
   const maxParticipantsRef = useRef<number>(1);
   const wasCameraOnBeforeCaptureRef = useRef<boolean>(false);
-  const wasCameraOnBeforeInterruptionRef = useRef<boolean>(false);
-  const recoveryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const {
     setCallState,
@@ -76,8 +70,6 @@ export const useVideoCallControls = (onLeaveCallback?: () => void) => {
           setFacingMode('front');
         }
       } catch (err) {
-        // Swallow camera init errors — they are non-fatal and the SDK
-        // will fall back to a default camera automatically.
         console.warn('[VideoSDK]: Non-fatal error selecting front camera on join:', err);
       }
     },
@@ -85,9 +77,6 @@ export const useVideoCallControls = (onLeaveCallback?: () => void) => {
       hasJoinedRef.current = false;
       isJoiningRef.current = false;
       isLeavingRef.current = false;
-      if (Platform.OS === 'android' && PiPModule?.setCallActive) {
-        PiPModule.setCallActive(false).catch?.(() => {});
-      }
       resetMeetingStore();
       if (onLeaveCallback) {
         onLeaveCallback();
@@ -350,121 +339,11 @@ export const useVideoCallControls = (onLeaveCallback?: () => void) => {
     }
   }, [isCameraPausedForCapture, disableWebcam, enableWebcam, setCameraState]);
 
-  const recoverCameraStream = useCallback(() => {
-    const store = useMeetingStore.getState();
-    const shouldRecover =
-      wasCameraOnBeforeInterruptionRef.current ||
-      store.isCameraOn ||
-      store.isExternalCameraInterrupted;
-
-    if (!shouldRecover) return;
-
-    if (recoveryTimeoutRef.current) {
-      clearTimeout(recoveryTimeoutRef.current);
-    }
-
-    recoveryTimeoutRef.current = setTimeout(async () => {
-      if (!isMountedRef.current) return;
-      const currentStore = useMeetingStore.getState();
-      const isCallActive =
-        currentStore.callState === 'CONNECTED' ||
-        currentStore.callState === 'CONNECTING' ||
-        hasJoinedRef.current;
-
-      if (!isCallActive) return;
-
-      try {
-        if (disableWebcam) {
-          disableWebcam();
-        }
-      } catch (e) {
-        // ignore
-      }
-
-      setTimeout(async () => {
-        if (!isMountedRef.current) return;
-        try {
-          if (enableWebcam) {
-            enableWebcam();
-          }
-          if (getWebcams && changeWebcam) {
-            const webcams = await getWebcams();
-            const currentMode = useMeetingStore.getState().facingMode;
-            const targetCam = webcams?.find(w =>
-              currentMode === 'front'
-                ? w.facingMode === 'user' || w.label?.toLowerCase().includes('front')
-                : w.facingMode === 'environment' || w.label?.toLowerCase().includes('back')
-            );
-            if (targetCam) {
-              await changeWebcam(targetCam.deviceId);
-            }
-          }
-          setCameraState(true);
-          wasCameraOnBeforeInterruptionRef.current = false;
-          useMeetingStore.getState().setIsExternalCameraInterrupted(false);
-          console.log('[VideoSDK]: Camera capturer auto-recovered successfully');
-        } catch (err) {
-          console.warn('[VideoSDK]: Camera auto-recovery error:', err);
-        }
-      }, 350);
-    }, 400);
-  }, [disableWebcam, enableWebcam, getWebcams, changeWebcam, setCameraState]);
-
-  // Listen to native hardware availability & focus events for camera auto-recovery
-  useEffect(() => {
-    const subInterrupted = DeviceEventEmitter.addListener('onCameraInterrupted', () => {
-      const storeState = useMeetingStore.getState();
-      if (storeState.isCameraOn) {
-        wasCameraOnBeforeInterruptionRef.current = true;
-      }
-      storeState.setIsExternalCameraInterrupted(true);
-      console.log('[VideoSDK]: Native camera interrupted by external app');
-    });
-
-    const subRestored = DeviceEventEmitter.addListener('onCameraAccessRestored', () => {
-      console.log('[VideoSDK]: Native camera access restored, initiating stream recovery');
-      recoverCameraStream();
-    });
-
-    const subFocus = DeviceEventEmitter.addListener('onActivityFocusRestored', () => {
-      const storeState = useMeetingStore.getState();
-      if (storeState.isExternalCameraInterrupted || wasCameraOnBeforeInterruptionRef.current) {
-        console.log('[VideoSDK]: App/PiP regained top focus after external app, recovering camera');
-        recoverCameraStream();
-      }
-    });
-
-    const subPiP = DeviceEventEmitter.addListener('onPiPModeChanged', (isInPiP: boolean) => {
-      if (!isInPiP) {
-        const storeState = useMeetingStore.getState();
-        if (storeState.isExternalCameraInterrupted || wasCameraOnBeforeInterruptionRef.current) {
-          recoverCameraStream();
-        }
-      }
-    });
-
-    return () => {
-      subInterrupted.remove();
-      subRestored.remove();
-      subFocus.remove();
-      subPiP.remove();
-      if (recoveryTimeoutRef.current) {
-        clearTimeout(recoveryTimeoutRef.current);
-      }
-    };
-  }, [recoverCameraStream]);
-
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
       if (nextAppState === 'active') {
         if (wasCameraOnBeforeCaptureRef.current) {
           resumeCameraAfterCapture();
-        }
-        if (
-          useMeetingStore.getState().isExternalCameraInterrupted ||
-          wasCameraOnBeforeInterruptionRef.current
-        ) {
-          recoverCameraStream();
         }
       }
     });
@@ -472,7 +351,7 @@ export const useVideoCallControls = (onLeaveCallback?: () => void) => {
     return () => {
       subscription.remove();
     };
-  }, [resumeCameraAfterCapture, recoverCameraStream]);
+  }, [resumeCameraAfterCapture]);
 
   const endCall = useCallback(
     async (
@@ -527,9 +406,6 @@ export const useVideoCallControls = (onLeaveCallback?: () => void) => {
       } catch (err) {
         console.warn('[saveCall Error]:', err);
       } finally {
-        if (Platform.OS === 'android' && PiPModule?.setCallActive) {
-          PiPModule.setCallActive(false).catch?.(() => {});
-        }
         try {
           if (leave) {
             leave();

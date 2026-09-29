@@ -102,7 +102,7 @@ export const HealthRecordsScreen: React.FC = () => {
 
   const handleFolderPress = (folder: IEMRCatsList) => {
     navigation.navigate(AppRoute.HEALTH_RECORD_FOLDER, {
-      patinentId: userData?.id,
+      patientId: Number(userData?.id),
       folderName: folder.documentType,
     });
   };

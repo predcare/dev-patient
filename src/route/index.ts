@@ -83,14 +83,14 @@ export type RootStackParamList = {
     | undefined;
   MainTabs?: { screen?: string } | undefined;
   HealthRecords: undefined;
-  HealthRecordFolder: { patinentId?: string; folderName?: string } | undefined;
+  HealthRecordFolder: { patientId?: string | number; folderName?: string } | undefined;
   UploadHealthRecord: { initialCategory?: string } | undefined;
   Home: undefined;
   Doctors: undefined;
   Schedule: { refresh?: boolean } | undefined;
   Reports: undefined;
   Account: undefined;
-  AppointmentDetails: { appointmentId?: number, isComingFromNotification?: boolean } | undefined;
+  AppointmentDetails: { appointmentId?: number; isComingFromNotification?: boolean } | undefined;
   InvoicesList: undefined;
 };
 

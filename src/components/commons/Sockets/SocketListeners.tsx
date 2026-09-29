@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { NativeModules, Platform } from 'react-native';
 import { queryClient } from '../../../components/providers/ReactQueryProvider';
 import { SocketEvents } from '../../../config/socket.constants';
 import { AppointmemntQueryKey } from '../../../hooks/react-query/query.keys';
@@ -10,8 +9,6 @@ import useIncomingCallStore from '../../../zustand/stores/useIncomingCallStore';
 import { useLoadingStore } from '../../../zustand/stores/useLoadingStore';
 import { useMeetingStore } from '../../../zustand/stores/useMeetingStore';
 import { useSocketStore } from '../../../zustand/stores/useSocketStore';
-
-const { PiPModule } = NativeModules;
 
 const SocketListeners = () => {
   const { socketConnection } = useSocketStore();
@@ -64,11 +61,6 @@ const SocketListeners = () => {
       const isCallActiveForThisAppt = String(incomingApptId) === String(meetingState.appointmentId);
 
       if (isCallActiveForThisAppt) {
-        // Dismiss Native PiP on Android if active
-        if (Platform.OS === 'android' && PiPModule?.setCallActive) {
-          PiPModule.setCallActive(false).catch?.(() => {});
-        }
-
         // Clean up meeting state & loaders
         meetingState.resetMeetingStore();
         useLoadingStore.getState().hideLoader();

@@ -9,6 +9,7 @@ interface DoctorMeetingHeaderProps {
   appointmentId?: string;
   elapsedText?: string;
   remainingText?: string;
+  inPipMode?: boolean;
 }
 
 export const DoctorMeetingHeader: React.FC<DoctorMeetingHeaderProps> = React.memo(
@@ -18,8 +19,29 @@ export const DoctorMeetingHeader: React.FC<DoctorMeetingHeaderProps> = React.mem
     appointmentId,
     elapsedText = '0:00',
     remainingText = '--:--',
+    inPipMode = false,
   }) => {
     const isConnected = callState === 'CONNECTED';
+
+    if (inPipMode) {
+      return (
+        <View style={PatientMeetingScreenStyles.headerBarPip}>
+          <Text style={PatientMeetingScreenStyles.doctorNamePip} numberOfLines={1}>
+            {patientName}
+          </Text>
+          <View style={PatientMeetingScreenStyles.headerTopRightRow}>
+            <View style={PatientMeetingScreenStyles.connectingPillPip}>
+              <View style={PatientMeetingScreenStyles.connectingDotPip} />
+              <Text style={PatientMeetingScreenStyles.connectingTextPip}>
+                {isConnected ? 'LIVE' : 'CONN...'}
+              </Text>
+            </View>
+            <Text style={PatientMeetingScreenStyles.timerTextPip}>{remainingText}</Text>
+          </View>
+        </View>
+      );
+    }
+
     return (
       <View style={PatientMeetingScreenStyles.headerBar}>
         <View style={PatientMeetingScreenStyles.headerLeft}>

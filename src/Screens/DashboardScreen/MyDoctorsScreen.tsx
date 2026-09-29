@@ -53,12 +53,7 @@ export const MyDoctorsScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaWrapper
-      style={doctorStyles.container}
-      showBottomBar={true}
-      activeBottomTab="Doctors"
-      isPathClear={true}
-    >
+    <SafeAreaWrapper style={doctorStyles.container} showBottomBar={true} activeBottomTab="Doctors">
       <Header title={t('commons.myDoctors')} subTitle={t('myDoctorsScreen.subTitle')} />
       {isLoadingMyDoctors && !refreshing && !myDoctorsData ? (
         <MyDoctorsSkeleton />

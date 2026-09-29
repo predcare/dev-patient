@@ -22,7 +22,7 @@ export const MeetingScreen: React.FC<MeetingScreenProps> = ({ navigation }) => {
     setIsInAppPip(false);
   }, [setIsInAppPip]);
 
-  // Intercept navigation pop (back gesture / header back) to switch active call to In-App PiP mode
+  // When navigating away from MeetingScreen, activate in-app PiP if call is active
   useEffect(() => {
     if (!navigation) return;
 
@@ -32,7 +32,7 @@ export const MeetingScreen: React.FC<MeetingScreenProps> = ({ navigation }) => {
         (state.callState === 'CONNECTED' || state.callState === 'CONNECTING') &&
         Boolean(state.token && state.meetingId);
 
-      if (isCallActive && !state.isInAppPip) {
+      if (isCallActive) {
         state.setIsInAppPip(true);
       }
     });

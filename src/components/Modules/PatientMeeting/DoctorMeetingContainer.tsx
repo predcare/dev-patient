@@ -1,10 +1,10 @@
-import React, { useCallback, useEffect, useRef } from 'react';
-import { BackHandler, View } from 'react-native';
+import React, { useCallback, useEffect } from 'react';
+import { BackHandler, Platform, View } from 'react-native';
 import { useMeetingTimer } from '../../../hooks/commons/useMeetingTimer';
 import { useVideoCallControls } from '../../../hooks/commons/useVideoCallControls';
 import { SafeAreaWrapper } from '../../../Layout/SafeAreaWrapper';
 import { showErrorToast, showInfoToast } from '../../../lib/common/toast.utils';
-import { canGoBack, goBack, replace } from '../../../navigation/navigationRef';
+import { replace } from '../../../navigation/navigationRef';
 import { AppRoute, type MeetingScreenProps } from '../../../route';
 import PatientMeetingScreenStyles from '../../../styled/PatientMeetingScreen.styled';
 import { useMeetingStore } from '../../../zustand/stores/useMeetingStore';
@@ -13,7 +13,13 @@ import { LocalParticipantView } from './LocalParticipantView';
 import { MeetingControlBar } from './MeetingControlBar';
 import { MeetingStageContainer } from './MeetingStageContainer';
 
-export const DoctorMeetingContainer: React.FC<MeetingScreenProps> = () => {
+interface DoctorMeetingContainerProps extends Partial<MeetingScreenProps> {
+  inPipMode?: boolean;
+}
+
+export const DoctorMeetingContainer: React.FC<DoctorMeetingContainerProps> = ({
+  inPipMode = false,
+}) => {
   const {
     callState,
     errorMessage,
@@ -33,6 +39,8 @@ export const DoctorMeetingContainer: React.FC<MeetingScreenProps> = () => {
     resetMeetingStore,
   } = useMeetingStore();
 
+  const isPipActive = inPipMode || isNativePip;
+
   const { elapsedText, remainingText } = useMeetingTimer(
     callState,
     startTime,
@@ -45,18 +53,27 @@ export const DoctorMeetingContainer: React.FC<MeetingScreenProps> = () => {
       replace('Schedule');
     });
 
-  const handleEnterPip = useCallback(() => {
+  const handleInAppPip = useCallback(() => {
     if (callState === 'CONNECTED' || callState === 'CONNECTING') {
       setIsInAppPip(true);
-      if (canGoBack()) {
-        goBack();
+      replace(AppRoute.SCHEDULE);
+    } else {
+      endCall('patient_left');
+      replace(AppRoute.SCHEDULE);
+    }
+  }, [callState, setIsInAppPip, endCall]);
+
+  const handleNativePipPress = useCallback(() => {
+    if (callState === 'CONNECTED' || callState === 'CONNECTING') {
+      if (Platform.OS === 'android') {
+        handleInAppPip();
       } else {
-        replace(AppRoute.SCHEDULE);
+        handleInAppPip();
       }
     } else {
       endCall('patient_left');
     }
-  }, [callState, setIsInAppPip, endCall]);
+  }, [callState, handleInAppPip, endCall]);
 
   const handleRxPress = useCallback(() => {
     if (callState === 'CONNECTED' || callState === 'CONNECTING') {
@@ -78,11 +95,11 @@ export const DoctorMeetingContainer: React.FC<MeetingScreenProps> = () => {
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-      handleEnterPip();
+      handleInAppPip();
       return true;
     });
     return () => backHandler.remove();
-  }, [handleEnterPip]);
+  }, [handleInAppPip]);
 
   useEffect(() => {
     if (callState === 'ERROR') {
@@ -95,15 +112,22 @@ export const DoctorMeetingContainer: React.FC<MeetingScreenProps> = () => {
     }
   }, [callState, errorMessage, resetMeetingStore]);
 
-  // If in Native Android PiP mode, show full-screen pure video stream
-  if (isNativePip) {
+  // When rendering inside Native PiP floating window, show ONLY dual videos (Doctor + Self camera)
+  if (isPipActive) {
     return (
-      <View style={PatientMeetingScreenStyles.container}>
+      <View style={[PatientMeetingScreenStyles.container, { backgroundColor: '#000000' }]}>
         <MeetingStageContainer
           callState={callState}
           remoteParticipantId={remoteParticipantId}
           errorMessage={errorMessage}
-          onGoBack={handleEnterPip}
+          onGoBack={() => endCall('patient_left')}
+        />
+        <LocalParticipantView
+          participantId={localParticipant?.id}
+          isCameraOn={isCameraOn}
+          isMicOn={isMicOn}
+          facingMode={facingMode}
+          inPipMode={true}
         />
       </View>
     );
@@ -116,7 +140,7 @@ export const DoctorMeetingContainer: React.FC<MeetingScreenProps> = () => {
           callState={callState}
           remoteParticipantId={remoteParticipantId}
           errorMessage={errorMessage}
-          onGoBack={handleEnterPip}
+          onGoBack={handleInAppPip}
         />
         <DoctorMeetingHeader
           callState={callState}
@@ -124,12 +148,14 @@ export const DoctorMeetingContainer: React.FC<MeetingScreenProps> = () => {
           appointmentId={appointmentGeneratedId ?? undefined}
           elapsedText={elapsedText}
           remainingText={remainingText}
+          inPipMode={false}
         />
         <LocalParticipantView
           participantId={localParticipant?.id}
           isCameraOn={isCameraOn}
           isMicOn={isMicOn}
           facingMode={facingMode}
+          inPipMode={false}
         />
         <MeetingControlBar
           isMicOn={isMicOn}
@@ -138,9 +164,10 @@ export const DoctorMeetingContainer: React.FC<MeetingScreenProps> = () => {
           onToggleVideo={toggleVideo}
           onSwitchCamera={switchCamera}
           onEndCall={() => endCall('patient_left')}
-          onPipPress={handleEnterPip}
+          onPipPress={handleNativePipPress}
           onRxPress={handleRxPress}
           onUploadPress={handleUploadPress}
+          inPipMode={false}
         />
       </View>
     </SafeAreaWrapper>

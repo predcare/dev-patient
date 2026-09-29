@@ -1,3 +1,4 @@
+import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -12,6 +13,7 @@ import {
 } from 'react-native';
 import { useInfiniteNotifications } from '../../../hooks/react-query/notifications/notifications.hooks';
 import { formatActionTitle, formatTimeAgo } from '../../../lib/common/common.utils';
+import { resolveNotificationModalNavigation } from '../../../lib/common/notificationModal.utils';
 import { theme } from '../../../styled/theme.styled';
 import { IMetadata } from '../../../typescripts/interfaces/notification.interfaces';
 import { BellIcon, CircleXIcon } from '../../ui/icons';
@@ -39,6 +41,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
   fetching: propsFetching,
   onRefresh: propsOnRefresh,
 }) => {
+  const navigation = useNavigation<any>();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const {
     data: infiniteData,
@@ -72,7 +75,16 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  console.log('notificationsList', notificationsList)
+  const handleNotificationPress = useCallback(
+    (item: any) => {
+      onClose();
+      const target = resolveNotificationModalNavigation(item);
+      if (target?.name) {
+        navigation.navigate(target.name, target.params);
+      }
+    },
+    [navigation, onClose]
+  );
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -155,6 +167,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
                       <TouchableOpacity
                         style={[NotifificationModalStyles.notifCard]}
                         activeOpacity={0.7}
+                        onPress={() => handleNotificationPress(item)}
                       >
                         <View
                           style={[

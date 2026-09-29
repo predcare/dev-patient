@@ -143,12 +143,7 @@ export const ReportsScreen: React.FC = () => {
   );
 
   return (
-    <SafeAreaWrapper
-      style={reportsStyles.container}
-      showBottomBar={true}
-      activeBottomTab="Reports"
-      isPathClear={true}
-    >
+    <SafeAreaWrapper style={reportsStyles.container} showBottomBar={true} activeBottomTab="Reports">
       <AppHeader
         title={t('reportsScreen.title')}
         titleColor={theme.colors.primary}

@@ -109,7 +109,6 @@ export const AppointmentsScreen: React.FC = () => {
       style={appointmentsStyles.root}
       showBottomBar={true}
       activeBottomTab="Schedule"
-      isPathClear={true}
     >
       <Header title={t('appointments.title')} subTitle={t('appointments.subTitle')} />
       <View style={appointmentsStyles.segmentWrap}>

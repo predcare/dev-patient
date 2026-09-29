@@ -110,12 +110,7 @@ export const SettingScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaWrapper
-      style={settingStyles.container}
-      showBottomBar={true}
-      activeBottomTab="Account"
-      isPathClear={true}
-    >
+    <SafeAreaWrapper style={settingStyles.container} showBottomBar={true} activeBottomTab="Account">
       <Header
         title={t('settingScreen.settingsTitle')}
         subTitle={t('settingScreen.preferencesAccountSubtitle')}

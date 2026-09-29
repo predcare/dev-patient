@@ -12,6 +12,7 @@ import {
 } from '../../hooks/react-query/prescriptions/prescriptions.hooks';
 import { capitalize, formatDate, getInitials } from '../../lib/common/common.utils';
 import { showErrorToast } from '../../lib/common/toast.utils';
+import { AppRoute } from '../../route';
 import { prescriptionsStyles } from '../../styled/PrescriptionsScreen.styled';
 import { theme } from '../../styled/theme.styled';
 
@@ -109,7 +110,13 @@ export const PrescriptionDetailScreen: React.FC = () => {
         }}
       >
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate(AppRoute.HOME);
+            }
+          }}
           activeOpacity={0.7}
           style={{ padding: 4 }}
         >

@@ -1,13 +1,12 @@
+import PipHandler from '@videosdk.live/react-native-pip-android';
 import { MeetingProvider } from '@videosdk.live/react-native-sdk';
 import React, { useEffect } from 'react';
-import { BackHandler, DeviceEventEmitter, NativeModules, Platform } from 'react-native';
-import { navigationRef, replace } from '../../../navigation/navigationRef';
+import { BackHandler, Platform } from 'react-native';
+import { goBack, navigationRef, replace } from '../../../navigation/navigationRef';
 import { AppRoute } from '../../../route';
 import { useAuthStore } from '../../../zustand/stores/useAuthStore';
 import { useMeetingStore } from '../../../zustand/stores/useMeetingStore';
 import MeetingSessionController from './MeetingSessionController';
-
-const { PiPModule } = NativeModules;
 
 export const GlobalMeetingManager: React.FC = () => {
   const { userData } = useAuthStore();
@@ -20,27 +19,37 @@ export const GlobalMeetingManager: React.FC = () => {
   } = useMeetingStore();
 
   useEffect(() => {
-    if (Platform.OS !== 'android' || !PiPModule) return;
+    if (Platform.OS !== 'android') return;
 
-    const isCalling = (callState === 'CONNECTED' || callState === 'CONNECTING') && !!callmeetingId;
-    if (PiPModule.setCallActive) {
-      PiPModule.setCallActive(isCalling).catch?.(() => {});
+    const isCalling = (callState === 'CONNECTED' || callState === 'CONNECTING') && Boolean(callmeetingId);
+
+    if (isCalling) {
+      PipHandler.setDefaultPipDimensions(9, 16);
+      PipHandler.setMeetingScreenState(true);
+    } else {
+      PipHandler.setMeetingScreenState(false);
     }
 
-    const subscription = DeviceEventEmitter.addListener('onPiPModeChanged', (isInPip: boolean) => {
-      const wasNativePip = useMeetingStore.getState().isNativePip;
-      setIsNativePip(isInPip);
-      if (!isInPip && wasNativePip) {
-        // Restoring from OS Native Android PiP -> navigate directly to full-screen Meeting screen
+    const handlePiPStateChange = (isEnabled: boolean) => {
+      const state = useMeetingStore.getState();
+      const wasNativePip = state.isNativePip;
+      if (wasNativePip === isEnabled) return;
+
+      setIsNativePip(isEnabled);
+
+      if (!isEnabled && wasNativePip) {
         setIsInAppPip(false);
         if (navigationRef.isReady()) {
-          (navigationRef as any).navigate(AppRoute.MEETING);
+          const currentRoute = navigationRef.getCurrentRoute()?.name;
+          if (currentRoute !== AppRoute.MEETING) {
+            (navigationRef as any).navigate(AppRoute.MEETING);
+          }
         }
       }
-    });
+    };
 
-    const enteringSubscription = DeviceEventEmitter.addListener('onPiPEntering', () => {
-      setIsNativePip(true);
+    const pipSub = PipHandler.onPipModeChanged((isInPip: Boolean) => {
+      handlePiPStateChange(Boolean(isInPip));
     });
 
     let backSubscription: any;
@@ -51,21 +60,16 @@ export const GlobalMeetingManager: React.FC = () => {
           const canGoBack = navigationRef.canGoBack();
 
           if (currentRouteName === AppRoute.MEETING) {
-            if (canGoBack) {
-              // Standard back navigation will fire MeetingScreen's beforeRemove, enabling In-App PiP
-              return false;
-            } else {
-              // Fallback if Meeting is root: navigate to Schedule in app with In-App PiP
-              useMeetingStore.getState().setIsInAppPip(true);
-              replace(AppRoute.SCHEDULE);
-              return true;
-            }
+            useMeetingStore.getState().setIsInAppPip(true);
+            replace(AppRoute.SCHEDULE);
+            return true;
           }
 
           if (!canGoBack) {
-            // Root screen reached while call is active -> enter Native OS PiP mode
-            if (PiPModule.enterPiP) {
-              PiPModule.enterPiP().catch?.(() => {});
+            try {
+              PipHandler.enterPipMode(9, 16);
+              return true;
+            } catch {
               return true;
             }
           }
@@ -75,12 +79,9 @@ export const GlobalMeetingManager: React.FC = () => {
     }
 
     return () => {
-      subscription.remove();
-      enteringSubscription.remove();
+      pipSub?.remove();
       backSubscription?.remove();
-      if (PiPModule.setCallActive) {
-        PiPModule.setCallActive(false).catch?.(() => {});
-      }
+      PipHandler.setMeetingScreenState(false);
     };
   }, [callState, callmeetingId, setIsNativePip, setIsInAppPip]);
 

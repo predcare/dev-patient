@@ -99,15 +99,14 @@ const getCategoryVisualConfig = (idOrName: string = '') => {
 export const HealthRecordFolderScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute<any>();
+  const { userData } = useAuthStore(state => state);
   const folderName = route.params?.folderName || '';
-  const patinentId = route.params?.patinentId || 0;
+  const patinentId = route.params?.patientId || userData?.id || 0;
 
   const searchInputRef = useRef<TextInput>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [refreshing, setRefreshing] = useState(false);
-
-  const { userData } = useAuthStore(state => state);
   const { showLoader, hideLoader } = useLoadingStore();
   const { showConfirm } = useAlertStore();
   const debounceSearch = useDebounce(search.trim(), 500);
@@ -200,6 +199,13 @@ export const HealthRecordFolderScreen: React.FC = () => {
           titleColor={theme.colors.primary}
           showBack={true}
           border={false}
+          onBack={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate(AppRoute.HEALTH_RECORDS);
+            }
+          }}
           right={
             <TouchableOpacity
               activeOpacity={0.7}

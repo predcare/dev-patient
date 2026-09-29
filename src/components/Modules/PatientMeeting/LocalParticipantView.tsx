@@ -9,6 +9,7 @@ interface LocalParticipantViewProps {
   isCameraOn: boolean;
   isMicOn: boolean;
   facingMode: 'front' | 'back';
+  inPipMode?: boolean;
 }
 
 export const LocalParticipantView: React.FC<LocalParticipantViewProps> = ({
@@ -16,6 +17,7 @@ export const LocalParticipantView: React.FC<LocalParticipantViewProps> = ({
   isCameraOn,
   isMicOn,
   facingMode,
+  inPipMode = false,
 }) => {
   const { webcamStream, webcamOn } = useParticipant(participantId || '');
 
@@ -40,27 +42,60 @@ export const LocalParticipantView: React.FC<LocalParticipantViewProps> = ({
   }, [isCameraOn, webcamOn, webcamStream, webcamStream?.track, (webcamStream?.track as any)?.id]);
 
   return (
-    <View style={PatientMeetingScreenStyles.selfPipCard}>
+    <View
+      style={
+        inPipMode
+          ? PatientMeetingScreenStyles.selfPipCardPip
+          : PatientMeetingScreenStyles.selfPipCard
+      }
+    >
       {streamUrl && typeof streamUrl === 'string' ? (
         <RTCView
           streamURL={streamUrl}
           objectFit="cover"
           zOrder={1}
-          style={{ width: '100%', height: '100%', borderRadius: 16 }}
+          style={{ width: '100%', height: '100%', borderRadius: inPipMode ? 8 : 16 }}
           mirror={facingMode === 'front'}
         />
       ) : (
-        <Text style={PatientMeetingScreenStyles.pipAvatarTxt}>P</Text>
+        <Text
+          style={[
+            PatientMeetingScreenStyles.pipAvatarTxt,
+            inPipMode && { fontSize: 16 },
+          ]}
+        >
+          P
+        </Text>
       )}
 
       {!isMicOn && (
-        <View style={PatientMeetingScreenStyles.pipMuteBadge}>
+        <View
+          style={
+            inPipMode
+              ? PatientMeetingScreenStyles.pipMuteBadgePip
+              : PatientMeetingScreenStyles.pipMuteBadge
+          }
+        >
           <TinyMicOffIcon />
         </View>
       )}
 
-      <View style={PatientMeetingScreenStyles.pipYouBadge}>
-        <Text style={PatientMeetingScreenStyles.pipYouTxt}>YOU</Text>
+      <View
+        style={
+          inPipMode
+            ? PatientMeetingScreenStyles.pipYouBadgePip
+            : PatientMeetingScreenStyles.pipYouBadge
+        }
+      >
+        <Text
+          style={
+            inPipMode
+              ? PatientMeetingScreenStyles.pipYouTxtPip
+              : PatientMeetingScreenStyles.pipYouTxt
+          }
+        >
+          YOU
+        </Text>
       </View>
     </View>
   );
