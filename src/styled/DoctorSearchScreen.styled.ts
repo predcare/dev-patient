@@ -178,6 +178,13 @@ export const doctorSearchStyles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 12,
   },
+  disableBookBtn: {
+    backgroundColor: theme.colors.disableBg,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+  },
   bookBtnText: {
     fontSize: 14,
     fontWeight: '700',

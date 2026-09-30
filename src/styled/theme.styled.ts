@@ -75,6 +75,7 @@ export const theme = {
     overlayWhite25: 'rgba(255, 255, 255, 0.25)',
     overlayWhite75: 'rgba(255, 255, 255, 0.75)',
     overlayWhite80: 'rgba(255, 255, 255, 0.8)',
+    disableBg: 'rgba(229, 231, 235, 1)',
   },
 
   spacing: {

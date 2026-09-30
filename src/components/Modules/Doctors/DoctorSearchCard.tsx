@@ -21,6 +21,7 @@ export interface DoctorSearchCardProps {
   offersVideo?: boolean;
   onProfilePress?: () => void;
   onBookPress?: () => void;
+  onClinicPress?: () => void;
 }
 
 export const DoctorSearchCard: React.FC<DoctorSearchCardProps> = ({
@@ -37,6 +38,7 @@ export const DoctorSearchCard: React.FC<DoctorSearchCardProps> = ({
   offersVideo,
   onProfilePress,
   onBookPress,
+  onClinicPress,
 }) => {
   const { t } = useTranslation();
   const navigation = useNavigation<any>();
@@ -91,6 +93,7 @@ export const DoctorSearchCard: React.FC<DoctorSearchCardProps> = ({
           {clinicName ? (
             <TouchableOpacity
               activeOpacity={0.7}
+              onPress={onClinicPress}
               style={{ marginTop: 4, flexDirection: 'row', alignItems: 'center' }}
             >
               <Text style={{ fontSize: 12, fontWeight: '700', color: theme.colors.primary }}>
@@ -119,7 +122,10 @@ export const DoctorSearchCard: React.FC<DoctorSearchCardProps> = ({
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={doctorSearchStyles.bookBtn}
+          style={[
+            doctorSearchStyles.bookBtn,
+            !nextAvailableDate && doctorSearchStyles.disableBookBtn,
+          ]}
           onPress={handleBook}
           activeOpacity={0.85}
           disabled={!nextAvailableDate}

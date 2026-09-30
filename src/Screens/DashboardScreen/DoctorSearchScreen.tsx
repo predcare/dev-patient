@@ -357,6 +357,11 @@ export const DoctorSearchScreen: React.FC = () => {
                 onBookPress={() =>
                   handleBookPress(Number(item?.data?.user_id), Number(item?.data?.clinic?.id))
                 }
+                onClinicPress={() => {
+                  if (item?.data?.clinic?.id) {
+                    handleClinicPress(Number(item?.data?.clinic?.id));
+                  }
+                }}
               />
             ) : (
               <ClinicCard
