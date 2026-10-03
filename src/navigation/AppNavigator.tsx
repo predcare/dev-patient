@@ -10,6 +10,9 @@ import HomeScreen from '../Features/Dashboard/HomeScreen/HomeScreen';
 import AddFamilyMemberScreen from '../Features/Dashboard/ProfileSceen/AddFamilyMemberScreen';
 import ProfileSetupScreen from '../Features/Dashboard/ProfileSceen/ProfileSetupScreen';
 import SettingScreen from '../Features/Dashboard/SettingScreen/SettingScreen';
+import NewSupportTicketScreen from '../Features/Dashboard/SupportScreen/NewSupportTicketScreen';
+import SupportScreen from '../Features/Dashboard/SupportScreen/SupportScreen';
+import SupportTicketDetailsScreen from '../Features/Dashboard/SupportScreen/SupportTicketDetailsScreen';
 import SplashScreen from '../Features/SplashScreen/SplashScreen';
 import { DashboardTabParamList, RootStackParamList } from '../route';
 import { navigationRef } from './navigationRef';
@@ -38,6 +41,9 @@ export const AppNavigator: React.FC = () => {
         <Stack.Screen name="Account" component={SettingScreen} />
         <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
         <Stack.Screen name="AddNewMember" component={AddFamilyMemberScreen} />
+        <Stack.Screen name="Support" component={SupportScreen} />
+        <Stack.Screen name="NewSupportTicket" component={NewSupportTicketScreen} />
+        <Stack.Screen name="SupportTicketDetails" component={SupportTicketDetailsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
