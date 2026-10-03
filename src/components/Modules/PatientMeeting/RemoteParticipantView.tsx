@@ -39,7 +39,7 @@ export const RemoteParticipantView: React.FC<RemoteParticipantViewProps> = ({
     return (
       <RTCView
         streamURL={streamUrl}
-        objectFit="cover"
+        objectFit="contain"
         zOrder={0}
         style={{ flex: 1, width: '100%', height: '100%' }}
       />
