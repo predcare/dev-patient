@@ -34,7 +34,19 @@
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string>PRED Care uses your location to discover nearby clinics, doctors, and hospitals.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>PRED Care requires camera access for video consultations with doctors and scanning medical records.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>PRED Care requires microphone access for audio and video consultations with doctors.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>PRED Care requires access to your photo library to upload profile pictures and health documents.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>PRED Care requires access to save prescriptions and health reports to your photo library.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>PRED Care uses Bluetooth to connect with wireless headsets and audio devices during consultations.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>PRED Care uses Bluetooth to connect with wireless audio devices during consultations.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
