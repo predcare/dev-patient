@@ -6,6 +6,7 @@ import LoginScreen from '../Features/Auth/LoginScreen';
 import PolicyAcceptanceScreen from '../Features/Auth/PolicyAcceptanceScreen';
 import RegisterScreen from '../Features/Auth/RegisterScreen';
 import DoctorScreen from '../Features/Dashboard/DoctorScreen/DoctorScreen';
+import DoctorSearchScreen from '../Features/Dashboard/DoctorScreen/DoctorSearchScreen';
 import HomeScreen from '../Features/Dashboard/HomeScreen/HomeScreen';
 import AddFamilyMemberScreen from '../Features/Dashboard/ProfileSceen/AddFamilyMemberScreen';
 import ProfileSetupScreen from '../Features/Dashboard/ProfileSceen/ProfileSetupScreen';
@@ -44,6 +45,7 @@ export const AppNavigator: React.FC = () => {
         <Stack.Screen name="Support" component={SupportScreen} />
         <Stack.Screen name="NewSupportTicket" component={NewSupportTicketScreen} />
         <Stack.Screen name="SupportTicketDetails" component={SupportTicketDetailsScreen} />
+        <Stack.Screen name="DoctorSearch" component={DoctorSearchScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

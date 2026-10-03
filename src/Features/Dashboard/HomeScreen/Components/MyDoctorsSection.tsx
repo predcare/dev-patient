@@ -55,7 +55,7 @@ export const MyDoctorsSection: React.FC = () => {
   const { t } = useTranslation();
   const {
     data: myDoctorsData,
-    isFetching: isPendingMyDoctors,
+    isPending: isPendingMyDoctors,
     isError: isErrorMyDoctors,
     refetch: refetchMyDoctors,
   } = useGetMyDoctors();

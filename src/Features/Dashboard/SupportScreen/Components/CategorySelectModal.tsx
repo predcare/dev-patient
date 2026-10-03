@@ -1,5 +1,6 @@
 import React from 'react';
 import { Modal, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CheckIcon } from '../../../../components/ui/icons';
 import supportStyles from '../../../../styled/SupportScreen.styled';
 import theme from '../../../../styled/theme.styled';
@@ -22,11 +23,21 @@ export const CategorySelectModal: React.FC<CategorySelectModalProps> = ({
   onSelect,
   onClose,
 }) => {
+  const insets = useSafeAreaInsets();
+
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
       <TouchableOpacity style={supportStyles.modalSheetOverlay} activeOpacity={1} onPress={onClose}>
         <TouchableWithoutFeedback>
-          <View style={supportStyles.modalSheet}>
+          <View
+            style={[supportStyles.modalSheet, { paddingBottom: Math.max(insets.bottom + 16, 32) }]}
+          >
             <Text style={supportStyles.modalSheetTitle}>Select a category</Text>
             {categories.length === 0 ? (
               <Text style={supportStyles.emptyCats}>No categories available.</Text>

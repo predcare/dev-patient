@@ -6,6 +6,7 @@ export const useNotificationCount = () => {
   return useQuery({
     queryKey: [NotificationQueryKeys.NotificationCount],
     queryFn: () => getNotificationCount(),
+    staleTime: 120000,
   });
 };
 

@@ -88,6 +88,7 @@ export const useGetHealthCareTips = () =>
       if (Array.isArray(v?.data)) return v.data;
       return [];
     },
+    staleTime: 5 * 60 * 1000,
   });
 
 export const useAllCities = (params?: { search?: string }) =>
