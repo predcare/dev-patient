@@ -1,7 +1,5 @@
-import { Dimensions, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { theme } from './theme.styled';
-
-const { width: SW, height: SH } = Dimensions.get('window');
 
 export const meetingStyles = StyleSheet.create({
   container: {
@@ -37,7 +35,7 @@ export const meetingStyles = StyleSheet.create({
   // Top Header Bar
   headerBar: {
     position: 'absolute',
-    top: 50,
+    top: 10,
     left: 16,
     right: 16,
     flexDirection: 'row',
@@ -121,9 +119,9 @@ export const meetingStyles = StyleSheet.create({
   },
 
   // Floating PiP Camera Preview
-  pipContainer: {
+  localContainer: {
     position: 'absolute',
-    top: 150,
+    top: 80,
     right: 16,
     width: 120,
     height: 165,
@@ -139,7 +137,7 @@ export const meetingStyles = StyleSheet.create({
     elevation: 8,
     zIndex: 10,
   },
-  pipVideoMock: {
+  localVideoMock: {
     flex: 1,
     backgroundColor: '#334155',
     alignItems: 'center',
@@ -149,12 +147,12 @@ export const meetingStyles = StyleSheet.create({
   // Bottom HUD Control Container
   bottomHud: {
     position: 'absolute',
-    bottom: 24,
-    left: 14,
-    right: 14,
+    bottom: 10,
+    left: 10,
+    right: 10,
     backgroundColor: 'rgba(15, 23, 42, 0.92)',
     borderRadius: 24,
-    padding: 12,
+    padding: 10,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.15)',
     zIndex: 10,

@@ -1,4 +1,4 @@
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { theme } from './theme.styled';
 
 export const consultationCompletedStyles = StyleSheet.create({
@@ -6,148 +6,344 @@ export const consultationCompletedStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  bellWrap: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   content: {
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 40,
-    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 36,
   },
 
-  // Check Circle Hero
-  checkCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+  // Hero Section
+  heroSection: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  checkCircleOuter: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: theme.colors.mintBg,
+    borderWidth: 3,
+    borderColor: theme.colors.mintBdr,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  checkCircleInner: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     backgroundColor: theme.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
-  },
-  missedCircle: {
-    backgroundColor: theme.colors.danger,
   },
   heading: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '800',
     color: theme.colors.textPrimary,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 4,
   },
-  subtext: {
-    fontSize: 14,
+  subheading: {
+    fontSize: 13,
     color: theme.colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 22,
-    paddingHorizontal: 16,
-    marginBottom: 24,
+    paddingHorizontal: 20,
+    lineHeight: 18,
   },
 
-  // People Comparison Card
+  // Generic Card
   card: {
-    width: '100%',
     backgroundColor: theme.colors.surface,
-    borderRadius: 18,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: theme.colors.surfaceBorder,
-    padding: 20,
-    marginBottom: 20,
+    padding: 16,
+    marginBottom: 14,
     shadowColor: theme.colors.cardShadow,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
     elevation: 2,
   },
-  peopleRow: {
+
+  // Doctor Header inside Card
+  doctorRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    gap: 12,
   },
-  personCol: {
-    flex: 1,
-    alignItems: 'center',
+  doctorAvatarWrap: {
+    position: 'relative',
   },
-  midCol: {
-    width: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  midLine: {
-    width: 1,
-    height: 18,
-    backgroundColor: theme.colors.surfaceBorder,
-  },
-  midIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: theme.colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-  },
-  avatarDoctor: {
+  doctorAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: theme.colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  avatarPatient: {
-    backgroundColor: theme.colors.primaryDark,
-  },
-  avatarTxt: {
+  doctorAvatarTxt: {
     color: theme.colors.surface,
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
   },
-  personName: {
-    fontSize: 15,
+  verifiedBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    backgroundColor: theme.colors.surface,
+    borderRadius: 10,
+  },
+  doctorDetails: {
+    flex: 1,
+  },
+  doctorName: {
+    fontSize: 16,
     fontWeight: '700',
     color: theme.colors.textPrimary,
-    textAlign: 'center',
+    marginBottom: 2,
   },
-  personRole: {
+  doctorSpecialty: {
+    fontSize: 13,
+    color: theme.colors.primary,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  doctorClinic: {
     fontSize: 12,
-    color: theme.colors.textSecondary,
-    marginTop: 2,
-    textAlign: 'center',
+    color: theme.colors.textMuted,
   },
 
-  // 3-Box Metadata Grid
-  metaRow: {
+  // Status Badge
+  statusBadge: {
     flexDirection: 'row',
-    gap: 8,
-  },
-  metaBox: {
-    flex: 1,
-    backgroundColor: theme.colors.primarySoft,
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
     alignItems: 'center',
+    gap: 5,
+    backgroundColor: theme.colors.greenBg,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: theme.colors.green,
+  },
+  statusBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: theme.colors.green,
+  },
+
+  // Card Divider
+  cardDivider: {
+    height: 1,
+    backgroundColor: theme.colors.surfaceBorder,
+    marginVertical: 12,
+  },
+
+  // Doctor Card Meta Row
+  cardMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  typePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: theme.colors.primarySoft,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: theme.colors.tealBdr,
   },
-  metaLbl: {
-    fontSize: 10,
-    color: theme.colors.textMuted,
-    fontWeight: '700',
-    letterSpacing: 0.6,
-    marginBottom: 4,
+  typePillText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: theme.colors.primary,
   },
-  metaVal: {
+  refIdContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  refIdLabel: {
+    fontSize: 12,
+    color: theme.colors.textMuted,
+    fontWeight: '500',
+  },
+  refIdValue: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: theme.colors.textPrimary,
+  },
+
+  // Grid
+  gridRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 10,
+  },
+  gridCell: {
+    flex: 1,
+    backgroundColor: theme.colors.surfaceSecondary,
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.surfaceBorder,
+  },
+  gridCellHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
+  gridIconWrap: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    backgroundColor: theme.colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gridLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: theme.colors.textMuted,
+    letterSpacing: 0.5,
+  },
+  gridValue: {
     fontSize: 13,
+    fontWeight: '700',
+    color: theme.colors.textPrimary,
+  },
+
+  // Section Headers
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  cardSectionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: theme.colors.textMuted,
+    letterSpacing: 0.8,
+  },
+
+  // Physician Advice Box
+  adviceBox: {
+    backgroundColor: theme.colors.primarySoft,
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.tealBdr,
+    marginBottom: 12,
+  },
+  adviceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
+  adviceTitle: {
+    fontSize: 12,
+    fontWeight: '700',
     color: theme.colors.primaryDark,
+  },
+  adviceText: {
+    fontSize: 13,
+    color: theme.colors.textSecondary,
+    lineHeight: 19,
+  },
+
+  // Follow-up Row
+  followUpRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  followUpIconBox: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: theme.colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  followUpContent: {
+    flex: 1,
+  },
+  followUpLabel: {
+    fontSize: 11,
+    color: theme.colors.textMuted,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  followUpValue: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: theme.colors.textPrimary,
+  },
+
+  // Prescription Card
+  rxCard: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.tealBdr,
+    padding: 14,
+    marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    shadowColor: theme.colors.cardShadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  rxIconCircle: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: theme.colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.tealBdr,
+  },
+  rxInfo: {
+    flex: 1,
+  },
+  rxTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: theme.colors.textPrimary,
+    marginBottom: 2,
+  },
+  rxSubtitle: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+  },
+  rxActionChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: theme.colors.primarySoft,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+  },
+  rxActionChipText: {
+    color: theme.colors.primary,
+    fontSize: 12,
     fontWeight: '700',
   },
 
@@ -157,11 +353,11 @@ export const consultationCompletedStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
+    gap: 8,
     backgroundColor: theme.colors.primary,
     borderRadius: 14,
-    paddingVertical: 16,
-    marginBottom: 12,
+    paddingVertical: 14,
+    marginBottom: 10,
   },
   primaryBtnTxt: {
     color: theme.colors.surface,
@@ -173,30 +369,18 @@ export const consultationCompletedStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
+    gap: 8,
     backgroundColor: theme.colors.surface,
     borderRadius: 14,
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderWidth: 1.5,
     borderColor: theme.colors.primary,
-    marginBottom: 20,
+    marginBottom: 12,
   },
   secondaryBtnTxt: {
     color: theme.colors.primary,
     fontSize: 15,
     fontWeight: '700',
-  },
-  homeLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 8,
-  },
-  homeLinkTxt: {
-    fontSize: 12,
-    color: theme.colors.textMuted,
-    fontWeight: '700',
-    letterSpacing: 0.8,
   },
 });
 

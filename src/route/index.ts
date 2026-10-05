@@ -77,19 +77,8 @@ export type RootStackParamList = {
   PrescriptionsList: undefined;
   PrescriptionDetail: { prescriptionId?: number | string } | undefined;
   RescheduleAppointment: { appointmentId?: number | string; appointment?: any } | undefined;
-  Meeting: { appointmentId?: number | string; appointment?: any } | undefined;
-  ConsultationCompleted:
-    | {
-        appointmentId?: number | string;
-        doctorName?: string;
-        doctorSpecialization?: string;
-        patientName?: string;
-        appointmentDate?: string;
-        durationSeconds?: number;
-        durationLabel?: string;
-        consultationType?: string;
-      }
-    | undefined;
+  Meeting: { appointmentId?: number | string } | undefined;
+  ConsultationCompleted: undefined;
   MainTabs?: { screen?: string } | undefined;
   HealthRecords: undefined;
   HealthRecordFolder: { patientId?: string | number; folderName?: string } | undefined;
@@ -360,4 +349,17 @@ export type InvoicesListScreenRouteProp = RouteProp<RootStackParamList, 'Invoice
 export interface InvoicesListScreenProps {
   navigation?: InvoicesListScreenNavigationProp;
   route?: InvoicesListScreenRouteProp;
+}
+
+export type ConsultationCompletedScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'ConsultationCompleted'
+>;
+export type ConsultationCompletedScreenRouteProp = RouteProp<
+  RootStackParamList,
+  'ConsultationCompleted'
+>;
+export interface ConsultationCompletedScreenProps {
+  navigation?: ConsultationCompletedScreenNavigationProp;
+  route?: ConsultationCompletedScreenRouteProp;
 }

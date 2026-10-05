@@ -170,7 +170,9 @@ export const AppointmentsScreen: React.FC = () => {
                             mode={apt?.consultation_type || ''}
                             time={_formatTime(apt?.start_time) || ''}
                             onCancelPress={() => handleCancelAppt(apt)}
-                            onJoinVideo={() => showInfoToast('')}
+                            onJoinVideo={() => {
+                                navigation.navigate(AppRoute.MEETING, { appointmentId: apt.id })
+                            }}
                             onReschedule={() =>
                                 showInfoToast(
                                     t('appointments.rescheduleUnavailable'),
