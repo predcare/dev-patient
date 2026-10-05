@@ -152,7 +152,7 @@ export const UpcomingAppointmentsCard: React.FC = () => {
   };
 
   const handleCardPress = (type: string, item: IMyAppointmentDoc) => {
-    if (type === 'deatils') {
+    if (type === 'details') {
       navigation.navigate(AppRoute.APPOINTMENT_DETAILS, {
         appointmentId: item.appointment_id,
       });
