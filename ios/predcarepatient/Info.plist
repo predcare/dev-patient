@@ -24,12 +24,6 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
-	<key>UIFileSharingEnabled</key>
-	<true/>
-	<key>LSSupportsOpeningDocumentsInPlace</key>
-	<true/>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>tez</string>
@@ -38,6 +32,10 @@
 		<string>bhim</string>
 		<string>credpay</string>
 	</array>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
@@ -45,41 +43,22 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>PRED Care uses your location to discover nearby clinics, doctors, and hospitals.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>PRED Care requires camera access for video consultations with doctors and scanning medical records.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>PRED Care requires microphone access for audio and video consultations with doctors.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>PRED Care requires access to your photo library to upload profile pictures and health documents.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>PRED Care requires access to save prescriptions and health reports to your photo library.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>PRED Care uses Bluetooth to connect with wireless headsets and audio devices during consultations.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>PRED Care uses Bluetooth to connect with wireless audio devices during consultations.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>PRED Care requires camera access for video consultations with doctors and scanning medical records.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>PRED Care uses your location to discover nearby clinics, doctors, and hospitals.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>PRED Care requires microphone access for audio and video consultations with doctors.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>PRED Care requires access to save prescriptions and health reports to your photo library.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>PRED Care requires access to your photo library to upload profile pictures and health documents.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
-	<key>UIRequiredDeviceCapabilities</key>
-	<array>
-		<string>arm64</string>
-	</array>
-	<key>UISupportedInterfaceOrientations</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-	</array>
-	<key>UIViewControllerBasedStatusBarAppearance</key>
-	<false/>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -97,5 +76,19 @@
 			</array>
 		</dict>
 	</dict>
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>arm64</string>
+	</array>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
 </dict>
 </plist>

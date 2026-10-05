@@ -28,6 +28,8 @@ end
 target 'predcarepatient' do
   config = use_native_modules!
 
+  pod 'react-native-webrtc', :path => '../node_modules/@videosdk.live/react-native-webrtc'
+
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.
@@ -46,6 +48,12 @@ target 'predcarepatient' do
       target.build_configurations.each do |config|
         if config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f < 15.1
           config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1'
+        end
+
+        config.build_settings['HEADER_SEARCH_PATHS'] ||= '$(inherited) '
+        incall_path = '"$(SRCROOT)/../node_modules/@videosdk.live/react-native-incallmanager/ios/RNInCallManager"'
+        unless config.build_settings['HEADER_SEARCH_PATHS'].include?(incall_path)
+          config.build_settings['HEADER_SEARCH_PATHS'] = "#{config.build_settings['HEADER_SEARCH_PATHS']} #{incall_path}"
         end
       end
     end

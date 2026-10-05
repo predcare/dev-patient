@@ -1385,6 +1385,9 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - react-native-webrtc (0.0.25):
+    - React-Core
+    - WebRTC-SDK (= 125.6422.07)
   - React-NativeModulesApple (0.87.1):
     - hermes-engine
     - React-bridging
@@ -1743,6 +1746,8 @@ PODS:
     - React-utils (= 0.87.1)
     - ReactNativeDependencies
   - ReactNativeDependencies (0.87.1)
+  - ReactNativeIncallManager (0.1.3):
+    - React-Core
   - RNFileViewer (2.1.5):
     - React-Core
   - RNFS (2.20.0):
@@ -1868,6 +1873,11 @@ PODS:
     - Yoga
   - SocketRocket (0.7.1):
     - ReactNativeDependencies
+  - SwiftProtobuf (1.38.1)
+  - VideoSDKPubsub (1.0.1):
+    - React-Core
+    - SwiftProtobuf (~> 1.28)
+  - WebRTC-SDK (125.6422.07)
   - Yoga (0.0.0):
     - React-Core-prebuilt
 
@@ -1924,6 +1934,7 @@ DEPENDENCIES:
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-razorpay (from `../node_modules/react-native-razorpay`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
+  - "react-native-webrtc (from `../node_modules/@videosdk.live/react-native-webrtc`)"
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-networking (from `../node_modules/react-native/ReactCommon/react/networking`)
   - React-oscompat (from `../node_modules/react-native/ReactCommon/oscompat`)
@@ -1960,6 +1971,7 @@ DEPENDENCIES:
   - ReactCodegen (from `build/generated/ios/ReactCodegen`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - ReactNativeDependencies (from `../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec`)
+  - "ReactNativeIncallManager (from `../node_modules/@videosdk.live/react-native-incallmanager`)"
   - RNFileViewer (from `../node_modules/react-native-file-viewer`)
   - RNFS (from `../node_modules/react-native-fs`)
   - "RNNotifee (from `../node_modules/@notifee/react-native`)"
@@ -1967,12 +1979,15 @@ DEPENDENCIES:
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - SocketRocket (from `build/rndeps-facades/SocketRocket`)
+  - "VideoSDKPubsub (from `../node_modules/@videosdk.live/react-native-sdk`)"
   - Yoga (from `build/rncore-facades/Yoga`)
 
 SPEC REPOS:
   trunk:
     - razorpay-core-pod
     - razorpay-pod
+    - SwiftProtobuf
+    - WebRTC-SDK
 
 EXTERNAL SOURCES:
   AsyncStorage:
@@ -2078,6 +2093,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-razorpay"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
+  react-native-webrtc:
+    :path: "../node_modules/@videosdk.live/react-native-webrtc"
   React-NativeModulesApple:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios"
   React-networking:
@@ -2150,6 +2167,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   ReactNativeDependencies:
     :podspec: "../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec"
+  ReactNativeIncallManager:
+    :path: "../node_modules/@videosdk.live/react-native-incallmanager"
   RNFileViewer:
     :path: "../node_modules/react-native-file-viewer"
   RNFS:
@@ -2164,6 +2183,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-svg"
   SocketRocket:
     :path: build/rndeps-facades/SocketRocket
+  VideoSDKPubsub:
+    :path: "../node_modules/@videosdk.live/react-native-sdk"
   Yoga:
     :path: build/rncore-facades/Yoga
 
@@ -2221,6 +2242,7 @@ SPEC CHECKSUMS:
   react-native-image-picker: 870b31525256975a2d4b6b20a54db9b380cd725d
   react-native-razorpay: e34b010d462fdbf2cba24ac6484c0ade76545e74
   react-native-safe-area-context: f2bf5d3db254014a48910436c4a58ab0c4e2fe1f
+  react-native-webrtc: ff48005960f5d078ed65ff0160034b312746f42d
   React-NativeModulesApple: adb1dd8361dff80e9f6652fb3fdbf033cfbe2a89
   React-networking: c00b437c4408f0640ba0d4158357133488521eca
   React-oscompat: 3175a287dd7175d1a20fdce5048a4b9e11f4b915
@@ -2257,6 +2279,7 @@ SPEC CHECKSUMS:
   ReactCodegen: 13d2ebfe2d8f1200052509b4fc4abf7a6825a7fc
   ReactCommon: 749169e12aa3461a3df3656a00e48dbe0456b2d6
   ReactNativeDependencies: 94c922c39e0e6150ee9ad05e2ca1946e0ef55783
+  ReactNativeIncallManager: c287a44bb2d9758a4f6f6c42be4599f0a0451f04
   RNFileViewer: 4b5d83358214347e4ab2d4ca8d5c1c90d869e251
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
   RNNotifee: 5e3b271e8ea7456a36eec994085543c9adca9168
@@ -2264,8 +2287,11 @@ SPEC CHECKSUMS:
   RNScreens: 038dc998fe1ab34778d9e8f4a33318a6c7a5bde8
   RNSVG: 6c9bcbf53822153be6f6c1484f6b0b57c0040d21
   SocketRocket: 37aec555668fb852ec12e3c0de59a86ca58f0871
+  SwiftProtobuf: 409d3aaec90e51b1705b1dd8065b56893450e77c
+  VideoSDKPubsub: 04ddf7d0efcd400711a0dea060f5dcde5545e3a2
+  WebRTC-SDK: dff00a3892bc570b6014e046297782084071657e
   Yoga: d1c536142c5ff8ec8cd856ab2a7c227a1d875c8e
 
-PODFILE CHECKSUM: 47e5f25bc856f9cb29b367181db670d142b964f5
+PODFILE CHECKSUM: d1a6cabc7a2ea2d802252e47491fa11dbfb8f049
 
 COCOAPODS: 1.17.0

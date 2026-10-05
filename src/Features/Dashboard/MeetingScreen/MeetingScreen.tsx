@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, View } from 'react-native';
+import { StatusBar, Text, View } from 'react-native';
 import SafeAreaWrapper from '../../../Layout/SafeAreaWrapper';
 import { resetRoot } from '../../../navigation/navigationRef';
 import { AppRoute } from '../../../route';
@@ -17,6 +17,7 @@ export const MeetingScreen: React.FC = () => {
 
     return (
         <SafeAreaWrapper style={meetingStyles.container}>
+            <StatusBar barStyle={'light-content'} />
             <View style={meetingStyles.videoContainer}>
                 <View style={meetingStyles.videoPlaceholder}>
                     <View style={meetingStyles.doctorAvatarCircle}>

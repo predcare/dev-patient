@@ -17,3 +17,7 @@
 -keepclasseswithmembers class * {
     public void onPayment*(...);
 }
+
+# VideoSDK / WebRTC ProGuard Rules
+-keep class org.webrtc.** { *; }
+
