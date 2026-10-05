@@ -229,3 +229,12 @@ export const _toTitleCase = (value: string): string => {
     .trim()
     .replace(/\b\w/g, char => char.toUpperCase());
 };
+
+export const formatFileSize = (sizeBytes?: number | string) => {
+  if (!sizeBytes) return 'Ready to upload';
+  const bytes = Number(sizeBytes);
+  if (isNaN(bytes) || bytes <= 0) return 'Ready to upload';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};

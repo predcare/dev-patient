@@ -2,7 +2,9 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Image, Text, TouchableOpacity, View } from 'react-native';
 import { CommonProfileModal } from '../components/commons/CommonProfileModal/CommonProfileModal';
-import LanguageSwitcherModal, { LANGUAGES } from '../components/commons/LanguageSwitcherModal/LanguageSwitcherModal';
+import LanguageSwitcherModal, {
+  LANGUAGES,
+} from '../components/commons/LanguageSwitcherModal/LanguageSwitcherModal';
 import NotificationModal from '../components/commons/NotificationModal/NotificationModal';
 import {
   ArrowLeftIcon,
@@ -13,6 +15,7 @@ import {
   InvoiceIcon,
   PatientsIcon,
   PrescriptionIcon,
+  ReportsIcon,
   SettingsIcon,
 } from '../components/ui/icons';
 import { useLanguageContext } from '../contexts/LanguageContext';
@@ -38,6 +41,9 @@ const getDefaultHeaderIcon = (title?: string) => {
   if (lower.includes('prescrip') || lower.includes('rx')) {
     return <PrescriptionIcon size={20} color={theme.colors.primary} />;
   }
+  if (lower.includes('report')) {
+    return <ReportsIcon size={20} color={theme.colors.primary} />;
+  }
   return <InfoCircleIcon size={20} color={theme.colors.primary} />;
 };
 
@@ -56,6 +62,8 @@ export interface HeaderProps {
   initials?: string;
   avatarColor?: string;
   unreadCount?: number;
+  isLang?: boolean;
+  isNotifyShow?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -73,6 +81,8 @@ export const Header: React.FC<HeaderProps> = ({
   initials,
   avatarColor = theme.colors.primarySoft,
   unreadCount,
+  isLang = true,
+  isNotifyShow = true,
 }) => {
   const navigation = useNavigation<any>();
   const [isLangModalOpen, setIsLangModalOpen] = useState<boolean>(false);
@@ -218,35 +228,39 @@ export const Header: React.FC<HeaderProps> = ({
             rightAction
           ) : (
             <>
-              <TouchableOpacity
-                style={headerStyles.langPill}
-                onPress={() => setIsLangModalOpen(true)}
-                activeOpacity={0.8}
-                hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
-                accessibilityRole="button"
-                accessibilityLabel="Select Language"
-              >
-                <GlobeIcon size={16} color={theme.colors.primary} />
-                <Text style={headerStyles.langText} numberOfLines={1}>
-                  {currentLang.code.toUpperCase()}
-                </Text>
-              </TouchableOpacity>
+              {isLang && (
+                <TouchableOpacity
+                  style={headerStyles.langPill}
+                  onPress={() => setIsLangModalOpen(true)}
+                  activeOpacity={0.8}
+                  hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Select Language"
+                >
+                  <GlobeIcon size={16} color={theme.colors.primary} />
+                  <Text style={headerStyles.langText} numberOfLines={1}>
+                    {currentLang.code.toUpperCase()}
+                  </Text>
+                </TouchableOpacity>
+              )}
 
-              <TouchableOpacity
-                style={headerStyles.notificationButton}
-                onPress={handleNotificationPress}
-                activeOpacity={0.8}
-                hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
-                accessibilityRole="button"
-                accessibilityLabel="Notifications"
-              >
-                {isLoadingNotificationCount ? (
-                  <ActivityIndicator size="small" color={theme.colors.primary} />
-                ) : (
-                  <BellIcon size={20} color={theme.colors.textSecondary} />
-                )}
-                {hasUnread && <View style={headerStyles.notificationDot} />}
-              </TouchableOpacity>
+              {isNotifyShow && (
+                <TouchableOpacity
+                  style={headerStyles.notificationButton}
+                  onPress={handleNotificationPress}
+                  activeOpacity={0.8}
+                  hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Notifications"
+                >
+                  {isLoadingNotificationCount ? (
+                    <ActivityIndicator size="small" color={theme.colors.primary} />
+                  ) : (
+                    <BellIcon size={20} color={theme.colors.textSecondary} />
+                  )}
+                  {hasUnread && <View style={headerStyles.notificationDot} />}
+                </TouchableOpacity>
+              )}
             </>
           )}
         </View>
@@ -269,10 +283,7 @@ export const Header: React.FC<HeaderProps> = ({
       )}
 
       {isNotifModalOpen && (
-        <NotificationModal
-          visible={isNotifModalOpen}
-          onClose={() => setIsNotifModalOpen(false)}
-        />
+        <NotificationModal visible={isNotifModalOpen} onClose={() => setIsNotifModalOpen(false)} />
       )}
     </View>
   );

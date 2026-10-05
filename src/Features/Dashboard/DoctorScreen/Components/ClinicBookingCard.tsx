@@ -8,7 +8,7 @@ export interface ClinicBookingCardProps {
   name: string;
   address?: string;
   availableDates?: string[];
-  onBookAppointment?: (clinicId: string, clinicName: string, selectedDate: string) => void;
+  onBookAppointment?: (clinicId: string) => void;
 }
 
 export const ClinicBookingCard: React.FC<ClinicBookingCardProps> = ({
@@ -41,9 +41,10 @@ export const ClinicBookingCard: React.FC<ClinicBookingCardProps> = ({
       )}
 
       <TouchableOpacity
-        style={doctorDetailsStyles.bookBtn}
+        style={[doctorDetailsStyles.bookBtn, availableDates?.length === 0 && { opacity: 0.5 }]}
         activeOpacity={0.85}
-        onPress={() => onBookAppointment?.(id, name, availableDates[0] || '')}
+        disabled={availableDates?.length === 0}
+        onPress={() => onBookAppointment?.(id)}
       >
         <Text style={doctorDetailsStyles.bookBtnText}>Book Appointment</Text>
       </TouchableOpacity>

@@ -217,3 +217,59 @@ export interface IApptInfoClinic {
   gst_number: string;
   about: string;
 }
+
+export interface ICreateAppointmentPayload {
+  doctor_id: string;
+  patient_id: string;
+  clinic_id: string;
+  availability_id?: (string | number)[];
+  appointment_date: string;
+  start_time: string;
+  end_time: string;
+  consultation_type: string;
+  appointment_type: string;
+  reason?: string;
+  appointment_slot_time: string;
+}
+
+export interface IBookingDoctorInfo {
+  doctor_name: string;
+  specialization: string;
+  profile_image?: string | null;
+}
+
+export interface IBookingClinicInfo {
+  name: string;
+  city?: string;
+}
+
+export interface IBookingData {
+  apiPayload: ICreateAppointmentPayload;
+  date: string;
+  dateLabel: string;
+  doctor: IBookingDoctorInfo;
+  clinic: IBookingClinicInfo;
+  patientName: string;
+  patientId?: string | number;
+  slot: string;
+  consultationFee: number;
+  platformFee: number;
+  isFeeHidden: boolean;
+  consultation_type: string;
+  appointment_type: string;
+  reason?: string;
+  totalAmount: number;
+  doctorName?: string;
+  doctorSpecialization?: string;
+  doctorImage?: string;
+  clinicName?: string;
+  clinicCity?: string;
+  appointment_id?: string;
+  appointmentId?: string;
+  id?: string;
+  _id?: string;
+  consultationType?: string;
+  hideFee?: boolean;
+  hide_fee?: boolean;
+}
+

@@ -135,10 +135,10 @@ export const SupportScreen: React.FC = () => {
       headerBackgroundColor={theme.colors.surface}
       showBottomBar={true}
       activeBottomTab="Account"
-      isPathClear={true}
       header={
         <Header
           isBackBtn={true}
+          isLang={false}
           title={t('support.supportTickets')}
           onBackPress={() => navigation.goBack()}
         />

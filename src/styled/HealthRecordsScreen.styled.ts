@@ -132,7 +132,7 @@ export const healthRecordsStyles = StyleSheet.create({
         elevation: 6,
       },
     }),
-    zIndex: 99,
+    zIndex: 100,
   },
 
   // ----------------------------------------------------

@@ -50,7 +50,7 @@ export const downloadPrescriptionPdf = async ({
     filename,
     action: 'save',
     notificationTitle: 'Prescription Downloaded',
-    notificationMessage: `${filename} saved to Downloads. Tap to open.`,
-    successMessage: `${filename} saved to Downloads`,
+    notificationMessage: `${filename} saved. Tap to open.`,
+    successMessage: `${filename} downloaded successfully`,
   });
 };

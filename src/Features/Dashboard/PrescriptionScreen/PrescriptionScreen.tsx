@@ -1,0 +1,316 @@
+import { useNavigation } from '@react-navigation/native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+    ActivityIndicator,
+    FlatList,
+    RefreshControl,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import Header from '../../../Layout/Header';
+import SafeAreaWrapper from '../../../Layout/SafeAreaWrapper';
+import { FilterIcon, PrescriptionIcon, SearchIcon } from '../../../components/ui/icons';
+import { useDebounce } from '../../../hooks/commons/useDebounce';
+import {
+    IRxParamQuery,
+    RxDateFilter,
+    RxStatus,
+} from '../../../hooks/react-query/prescriptions/prescriptions.funcs';
+import {
+    useDownloadPrescriptionPdf,
+    useGetPrescriptionsInfinite,
+} from '../../../hooks/react-query/prescriptions/prescriptions.hooks';
+import { formatDate } from '../../../lib/common/common.utils';
+import { showErrorToast } from '../../../lib/common/toast.utils';
+import { AppRoute } from '../../../route';
+import prescriptionsStyles from '../../../styled/PrescriptionsScreen.styled';
+import theme from '../../../styled/theme.styled';
+import PrescriptionCard from './Components/PrescriptionCard';
+import PrescriptionFilterModal, {
+    PrescriptionFilterValues,
+    RxDatePreset,
+} from './Components/PrescriptionFilterModal';
+import PrescriptionsSkeleton from './Skeletons/PrescriptionsSkeleton';
+
+export interface IRxFilterState {
+    limit: number;
+    search: string;
+    status?: RxStatus;
+    date_filter?: RxDateFilter;
+    from_date?: string;
+    to_date?: string;
+    doctorQuery?: string;
+}
+
+const DefualtFilterState: IRxFilterState = {
+    limit: 10,
+    search: '',
+    status: 'sent',
+    date_filter: undefined,
+    from_date: undefined,
+    to_date: undefined,
+    doctorQuery: '',
+};
+
+export const PrescriptionsScreen: React.FC = () => {
+    const { t } = useTranslation();
+    const navigation = useNavigation();
+    const [filterStates, setFilterStates] = useState<IRxFilterState>(DefualtFilterState);
+    const [filterVisible, setFilterVisible] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+    const [downloadingRxId, setDownloadingRxId] = useState<string | number | null>(null);
+    const [downloadProgress, setDownloadProgress] = useState(0);
+    const debounceSearch = useDebounce(filterStates.search?.trim(), 500);
+
+    const queryParams = useMemo<Omit<IRxParamQuery, 'page'>>(
+        () => ({
+            limit: filterStates.limit,
+            status: filterStates.status,
+            search: debounceSearch || undefined,
+            date_filter: filterStates.date_filter,
+            from_date: filterStates.from_date,
+            to_date: filterStates.to_date,
+        }),
+        [
+            filterStates.limit,
+            filterStates.status,
+            filterStates.date_filter,
+            filterStates.from_date,
+            filterStates.to_date,
+            debounceSearch,
+        ]
+    );
+
+    const {
+        data: rxPagesData,
+        isLoading: allRxLoading,
+        isFetchingNextPage,
+        hasNextPage,
+        fetchNextPage,
+        refetch: refetchAllRx,
+    } = useGetPrescriptionsInfinite(queryParams);
+
+    const allPrescriptions = useMemo(() => {
+        return rxPagesData?.pages?.flatMap(page => page.data || []) || [];
+    }, [rxPagesData]);
+
+    const isFilterActive = Boolean(
+        filterStates.date_filter ||
+        filterStates.from_date ||
+        filterStates.to_date ||
+        filterStates.doctorQuery
+    );
+
+    const { mutate: downloadPdfMutation, isPending: downloadPdfLoading } =
+        useDownloadPrescriptionPdf();
+
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
+        await refetchAllRx();
+        setRefreshing(false);
+    }, [refetchAllRx]);
+
+    const handleLoadMore = useCallback(() => {
+        if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+        }
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+    const handleClearFilters = useCallback(() => {
+        setFilterStates(DefualtFilterState);
+    }, []);
+
+    const updateFilterStates = useCallback((patch: Partial<IRxFilterState>) => {
+        setFilterStates(prev => ({
+            ...prev,
+            ...patch,
+        }));
+    }, []);
+
+    const modalInitialValues = useMemo<PrescriptionFilterValues>(
+        () => ({
+            doctorQuery: filterStates.doctorQuery || '',
+            datePreset: (filterStates.date_filter as RxDatePreset) || null,
+            customFrom: filterStates.from_date || '',
+            customTo: filterStates.to_date || '',
+        }),
+        [
+            filterStates.doctorQuery,
+            filterStates.date_filter,
+            filterStates.from_date,
+            filterStates.to_date,
+        ]
+    );
+
+    const handleApplyModalFilters = useCallback(
+        (values: PrescriptionFilterValues) => {
+            updateFilterStates({
+                doctorQuery: values.doctorQuery,
+                search: values.doctorQuery ? values.doctorQuery : filterStates.search,
+                date_filter: (values.datePreset as RxDateFilter) || undefined,
+                from_date: values.customFrom || undefined,
+                to_date: values.customTo || undefined,
+            });
+            setFilterVisible(false);
+        },
+        [filterStates.search, updateFilterStates]
+    );
+
+    const handleViewInfo = (rxId: number) => {
+        if (!rxId) return showErrorToast(t('prescriptionsScreen.somethingWentWrong'));
+        navigation.navigate(AppRoute.PRESCRIPTION_DETAIL, {
+            prescriptionId: rxId,
+        });
+    };
+
+    const handleDownloadPDF = useCallback(
+        (id: string | number) => {
+            if (!id) {
+                showErrorToast(
+                    t('prescriptionsScreen.rxIdMissing'),
+                    t('prescriptionsScreen.downloadFailed')
+                );
+                return;
+            }
+            setDownloadingRxId(id);
+            setDownloadProgress(0);
+            downloadPdfMutation(
+                {
+                    id: id,
+                    onProgress: setDownloadProgress,
+                },
+                {
+                    onSuccess: () => {
+                        setDownloadingRxId(null);
+                        setDownloadProgress(0);
+                    },
+                    onError: err => {
+                        console.error('Download PDF error:', err);
+                        setDownloadingRxId(null);
+                        setDownloadProgress(0);
+                    },
+                }
+            );
+        },
+        [downloadPdfMutation, t]
+    );
+
+    return (
+        <SafeAreaWrapper
+            style={prescriptionsStyles.screen}
+            showBottomBar={true}
+            activeBottomTab="Reports"
+            headerBackgroundColor={theme.colors.surface}
+            header={
+                <Header
+                    isBackBtn={true}
+                    title={t('prescriptionsScreen.title')}
+                    subTitle={t('prescriptionsScreen.subTitle')}
+                />
+            }
+        >
+            <FlatList
+                data={allRxLoading && !refreshing ? [] : allPrescriptions}
+                keyExtractor={item => String(item.prescription_id || item.id)}
+                contentContainerStyle={prescriptionsStyles.listContent}
+                showsVerticalScrollIndicator={true}
+                keyboardShouldPersistTaps="handled"
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+                onEndReached={handleLoadMore}
+                onEndReachedThreshold={0.4}
+                ListHeaderComponent={
+                    <View style={prescriptionsStyles.searchRow}>
+                        <View style={prescriptionsStyles.searchBox}>
+                            <SearchIcon size={18} color={theme.colors.textMuted} />
+                            <TextInput
+                                style={prescriptionsStyles.searchInput}
+                                placeholder={t('prescriptionsScreen.searchPlaceholder')}
+                                placeholderTextColor={theme.colors.textMuted}
+                                value={filterStates.search}
+                                onChangeText={text => updateFilterStates({ search: text })}
+                                returnKeyType="search"
+                                autoCorrect={false}
+                            />
+                        </View>
+                        <TouchableOpacity
+                            style={[
+                                prescriptionsStyles.filterBtn,
+                                isFilterActive && prescriptionsStyles.filterBtnActive,
+                            ]}
+                            onPress={() => setFilterVisible(true)}
+                            activeOpacity={0.8}
+                        >
+                            <FilterIcon
+                                size={20}
+                                color={isFilterActive ? theme.colors.surface : theme.colors.primary}
+                            />
+                        </TouchableOpacity>
+                    </View>
+                }
+                renderItem={({ item }) => {
+                    const itemId = item.id || item.prescription_id;
+                    const isDownloading = downloadPdfLoading && downloadingRxId === itemId;
+                    return (
+                        <PrescriptionCard
+                            doctorName={item.doctor_info?.name || ''}
+                            rxNumber={item.prescription_id || ''}
+                            consultationDate={formatDate(item.email_sent_at, 'DD') || ''}
+                            consultationDateLabel={formatDate(item.email_sent_at, 'MMM') || ''}
+                            date={formatDate(item.email_sent_at, 'DD-MMM-YYYY') || ''}
+                            isDownloading={isDownloading}
+                            downloadProgress={isDownloading ? downloadProgress : 0}
+                            onView={() => handleViewInfo(Number(item.id) || 0)}
+                            onDownload={() => {
+                                handleDownloadPDF(itemId);
+                            }}
+                        />
+                    );
+                }}
+                ListFooterComponent={
+                    isFetchingNextPage ? (
+                        <View style={{ paddingVertical: 16, alignItems: 'center', justifyContent: 'center' }}>
+                            <ActivityIndicator size="small" color={theme.colors.primary} />
+                        </View>
+                    ) : (
+                        <></>
+                    )
+                }
+                ListEmptyComponent={
+                    allRxLoading && !refreshing ? (
+                        <PrescriptionsSkeleton />
+                    ) : (
+                        <View style={prescriptionsStyles.emptyWrap}>
+                            <View style={prescriptionsStyles.emptyIcon}>
+                                <PrescriptionIcon size={32} color={theme.colors.primary} />
+                            </View>
+                            <Text style={prescriptionsStyles.emptyTitle}>
+                                {t('prescriptionsScreen.noMatchingTitle')}
+                            </Text>
+                            <Text style={prescriptionsStyles.emptySubtitle}>
+                                {t('prescriptionsScreen.noMatchingSubtitle')}
+                            </Text>
+                            <TouchableOpacity style={prescriptionsStyles.refreshBtn} onPress={handleClearFilters}>
+                                <Text style={prescriptionsStyles.refreshText}>
+                                    {t('prescriptionsScreen.clearFilters')}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    )
+                }
+            />
+            {filterVisible && (
+                <PrescriptionFilterModal
+                    visible={filterVisible}
+                    initialValues={modalInitialValues}
+                    onClose={() => setFilterVisible(false)}
+                    onApply={handleApplyModalFilters}
+                />
+            )}
+        </SafeAreaWrapper>
+    );
+};
+
+export default PrescriptionsScreen;

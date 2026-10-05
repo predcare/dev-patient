@@ -1,7 +1,9 @@
-import { NativeModules, PermissionsAndroid, Platform } from 'react-native';
+import { PermissionsAndroid, Platform, Share } from 'react-native';
 import * as FileViewerModule from 'react-native-file-viewer';
 import * as RNFSModule from 'react-native-fs';
+import { showDownloadCompleteNotification } from '../../services/notifications/handlers/downloadNotification.handler';
 import { showErrorToast, showSuccessToast } from './toast.utils';
+
 
 export type FileAction = 'open' | 'save';
 
@@ -94,6 +96,41 @@ export const sanitizeFilename = (filename: string, defaultName = 'Document.pdf')
   return `${safeName}${ext || '.pdf'}`;
 };
 
+/**
+ * Safely opens a file in the system default viewer with an automatic fallback
+ * to the native React Native Share sheet (supporting "Save to Files" on iOS).
+ */
+export const openOrShareFile = async (
+  filePath: string,
+  title: string = 'Document'
+): Promise<boolean> => {
+  const FileViewer = getFileViewer();
+  if (FileViewer && typeof FileViewer.open === 'function') {
+    try {
+      await FileViewer.open(filePath, {
+        showOpenWithDialog: true,
+        showAppsSuggestions: true,
+      });
+      return true;
+    } catch (viewerErr) {
+      console.log('[file.utils] FileViewer failed, attempting Share fallback:', viewerErr);
+    }
+  }
+
+  try {
+    const shareUrl = Platform.OS === 'ios' ? filePath : `file://${filePath}`;
+    await Share.share({
+      title,
+      url: shareUrl,
+      message: Platform.OS === 'android' ? title : undefined,
+    });
+    return true;
+  } catch (shareErr) {
+    console.log('[file.utils] Share fallback error:', shareErr);
+    return false;
+  }
+};
+
 export const saveOrOpenFile = async ({
   data,
   filename,
@@ -105,13 +142,17 @@ export const saveOrOpenFile = async ({
 }: SaveOrOpenFileParams): Promise<string | null> => {
   try {
     const RNFS = getRNFS();
-    const FileViewer = getFileViewer();
 
     if (!RNFS || typeof RNFS.CachesDirectoryPath === 'undefined') {
       const nativeModuleErr =
         'Native FileSystem module (react-native-fs) is not linked or loaded. Please rebuild your native app (npx react-native run-android).';
       console.warn(nativeModuleErr);
       showErrorToast('Please rebuild app (npx react-native run-android)', 'Module Not Linked');
+      return null;
+    }
+
+    if (!data) {
+      showErrorToast('Empty file data received', errorTitle);
       return null;
     }
 
@@ -126,78 +167,85 @@ export const saveOrOpenFile = async ({
     await RNFS.writeFile(cachePath, base64Data, 'base64');
 
     if (action === 'open') {
-      if (FileViewer && typeof FileViewer.open === 'function') {
-        try {
-          await FileViewer.open(cachePath, {
-            showOpenWithDialog: true,
-          });
-        } catch (err: any) {
-          try {
-            await FileViewer.open(cachePath, {
-              showOpenWithDialog: false,
-            });
-          } catch (viewerError: any) {
-            showErrorToast(
-              viewerError?.message || 'No PDF viewer application found on device',
-              'Cannot Open File'
-            );
-          }
-        }
+      const opened = await openOrShareFile(cachePath, cleanFilename);
+      if (!opened) {
+        showErrorToast('No application found to open this file', 'Cannot Open File');
       }
       return cachePath;
     } else {
-      await requestAndroidPermissions();
-
-      const candidateDirs = [
-        RNFS.DownloadDirectoryPath,
-        Platform.OS === 'android' ? `${RNFS.ExternalStorageDirectoryPath}/Download` : null,
-        RNFS.ExternalDirectoryPath,
-        RNFS.DocumentDirectoryPath,
-        RNFS.CachesDirectoryPath,
-      ].filter(Boolean) as string[];
-
-      let destPath: string | null = null;
-      let lastError: any = null;
-
-      for (const dir of candidateDirs) {
-        try {
-          if (!(await RNFS.exists(dir))) {
-            await RNFS.mkdir(dir);
-          }
-          const testPath = `${dir}/${cleanFilename}`;
-          if (await RNFS.exists(testPath)) {
-            await RNFS.unlink(testPath);
-          }
-          await RNFS.copyFile(cachePath, testPath);
-          destPath = testPath;
-          break;
-        } catch (copyErr: any) {
-          lastError = copyErr;
-          console.log(`[file.utils] Could not save to ${dir}:`, copyErr?.message);
-        }
-      }
-
-      if (!destPath) {
-        throw lastError || new Error('Failed to save file to any accessible directory');
-      }
-
       if (Platform.OS === 'android') {
+        await requestAndroidPermissions();
+
+        const candidateDirs = [
+          RNFS.DownloadDirectoryPath,
+          `${RNFS.ExternalStorageDirectoryPath}/Download`,
+          `${RNFS.ExternalDirectoryPath}/Downloads`,
+          RNFS.DocumentDirectoryPath,
+          RNFS.CachesDirectoryPath,
+        ].filter(Boolean) as string[];
+
+        let destPath: string | null = null;
+        let lastError: any = null;
+
+        for (const dir of candidateDirs) {
+          try {
+            if (!(await RNFS.exists(dir))) {
+              await RNFS.mkdir(dir);
+            }
+            const testPath = `${dir}/${cleanFilename}`;
+            if (await RNFS.exists(testPath)) {
+              await RNFS.unlink(testPath);
+            }
+            await RNFS.copyFile(cachePath, testPath);
+            destPath = testPath;
+            break;
+          } catch (copyErr: any) {
+            lastError = copyErr;
+            console.log(`[file.utils] Could not save to ${dir}:`, copyErr?.message);
+          }
+        }
+
+        if (!destPath) {
+          throw lastError || new Error('Failed to save file to any accessible directory');
+        }
+
         if (typeof RNFS.scanFile === 'function') {
           try {
             await RNFS.scanFile(destPath);
           } catch {}
         }
 
-        await notifyDownloadComplete(
-          destPath,
-          cleanFilename,
-          notificationTitle || 'Download Complete',
-          notificationMessage || `${cleanFilename} saved to Downloads. Tap to open.`
-        );
-      }
+        showSuccessToast(successMessage || `${cleanFilename} saved to Downloads`);
+        await showDownloadCompleteNotification({
+          filePath: destPath,
+          fileName: cleanFilename,
+          title: notificationTitle || 'Download Complete',
+          message: notificationMessage || `${cleanFilename} saved. Tap to view.`,
+        });
+        await openOrShareFile(destPath, cleanFilename);
+        return destPath;
+      } else {
+        // iOS: Save to Documents directory so it persists in the app container
+        const destDir = RNFS.DocumentDirectoryPath || RNFS.CachesDirectoryPath;
+        const destPath = `${destDir}/${cleanFilename}`;
 
-      showSuccessToast(successMessage || `${cleanFilename} saved to Downloads`);
-      return destPath;
+        if (await RNFS.exists(destPath)) {
+          await RNFS.unlink(destPath);
+        }
+
+        await RNFS.copyFile(cachePath, destPath);
+
+        showSuccessToast(successMessage || `${cleanFilename} downloaded`);
+        await showDownloadCompleteNotification({
+          filePath: destPath,
+          fileName: cleanFilename,
+          title: notificationTitle || 'Download Complete',
+          message: notificationMessage || `${cleanFilename} downloaded. Tap to view.`,
+        });
+        // Opens the iOS UIDocumentInteractionController / Share sheet with 'Save to Files'
+        await openOrShareFile(destPath, cleanFilename);
+        return destPath;
+      }
     }
   } catch (error: any) {
     console.log('file.utils error:', error?.message);
@@ -207,7 +255,7 @@ export const saveOrOpenFile = async ({
 };
 
 /**
- * Triggers native system download notification with tap-to-open intent (Android).
+ * Triggers system download notification with tap-to-open handler.
  */
 export const notifyDownloadComplete = async (
   filePath: string,
@@ -215,23 +263,12 @@ export const notifyDownloadComplete = async (
   title = 'Download Complete',
   message?: string
 ): Promise<void> => {
-  if (Platform.OS !== 'android') return;
-  const { DownloadNotificationModule } = NativeModules;
-  if (
-    DownloadNotificationModule &&
-    typeof DownloadNotificationModule.notifyDownloadComplete === 'function'
-  ) {
-    try {
-      await DownloadNotificationModule.notifyDownloadComplete(
-        filePath,
-        fileName,
-        title,
-        message || `${fileName} saved to Downloads. Tap to open.`
-      );
-    } catch (notifErr) {
-      console.log('[file.utils] Notification module error:', notifErr);
-    }
-  }
+  await showDownloadCompleteNotification({
+    filePath,
+    fileName,
+    title,
+    message,
+  });
 };
 
 export const handleInvoicePdfAction = async (
@@ -247,6 +284,6 @@ export const handleInvoicePdfAction = async (
     filename,
     action,
     notificationTitle: 'Invoice Downloaded',
-    notificationMessage: `${filename} saved to Downloads. Tap to open.`,
+    notificationMessage: `${filename} saved. Tap to open.`,
   });
 };

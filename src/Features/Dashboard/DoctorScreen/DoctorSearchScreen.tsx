@@ -1,9 +1,431 @@
-import React from 'react'
+import { useNavigation } from '@react-navigation/native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+    ActivityIndicator,
+    FlatList,
+    RefreshControl,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import CustomSwitch from '../../../components/ui/CustomSwitch/CustomSwitch';
+import {
+    CalendarIcon,
+    FilterIcon,
+    SearchIcon,
+    StethoscopeIcon,
+    VideoIcon,
+} from '../../../components/ui/icons';
+import { useDebounce } from '../../../hooks/commons/useDebounce';
+import { useGetAllDoctorsInfinite } from '../../../hooks/react-query/doctors/doctor.hooks';
+import Header from '../../../Layout/Header';
+import SafeAreaWrapper from '../../../Layout/SafeAreaWrapper';
+import { AppRoute } from '../../../route';
+import doctorSearchStyles from '../../../styled/DoctorSearchScreen.styled';
+import theme from '../../../styled/theme.styled';
+import { IClinicDoc, IDoctorDoc } from '../../../typescripts/interfaces/doctors.interfaces';
+import ClinicCard from './Components/ClinicCard';
+import DoctorFilterModal, { DoctorFilterValues } from './Components/DoctorFilterModal';
+import DoctorSearchCard from './Components/DoctorSearchCard';
+import DoctorSearchSkeleton from './Skeletons/DoctorSearchSkeleton';
 
-const DoctorSearchScreen: React.FC = () => {
-    return (
-        <></>
-    )
+type ListItemType = { type: 'doctor'; data: IDoctorDoc } | { type: 'clinic'; data: IClinicDoc };
+
+export interface IDoctorFilterStates {
+    searchQuery: string;
+    selectedSpecialty: string | null;
+    selectedSubSpecialty: string | null;
+    selectedCity: string | null;
+    todayOnly: boolean;
+    videoOnly: boolean;
+    gender: string | null;
+    experience: string | null;
+    consultationType: 'video' | 'in_person' | 'both' | null;
+    availability: 'today' | 'this_week' | 'this_month' | null;
+    minFee: number | null;
+    maxFee: number | null;
 }
 
-export default DoctorSearchScreen
+export const defaultFilterStates: IDoctorFilterStates = {
+    searchQuery: '',
+    selectedSpecialty: null,
+    selectedSubSpecialty: null,
+    selectedCity: null,
+    todayOnly: false,
+    videoOnly: false,
+    gender: null,
+    experience: null,
+    consultationType: null,
+    availability: null,
+    minFee: null,
+    maxFee: null,
+};
+
+export const DoctorSearchScreen: React.FC = () => {
+    const navigation = useNavigation<any>();
+    const { t } = useTranslation();
+
+    const [filterStates, setFilterStates] = useState<IDoctorFilterStates>(defaultFilterStates);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const updateFilterState = (updates: Partial<IDoctorFilterStates>) => {
+        setFilterStates(prev => ({ ...prev, ...updates }));
+    };
+
+    const debouncedSearch = useDebounce(filterStates.searchQuery, 500);
+
+    const queryParams = useMemo(() => {
+        const params: Record<string, any> = {
+            limit: 20,
+        };
+        if (debouncedSearch.trim().length >= 3) params.search = debouncedSearch.trim();
+        if (filterStates.selectedSpecialty) params.specialization = filterStates.selectedSpecialty;
+        if (filterStates.selectedSubSpecialty)
+            params.sub_specialization = filterStates.selectedSubSpecialty;
+        if (filterStates.selectedCity) params.city = filterStates.selectedCity;
+        if (filterStates.gender) params.gender = filterStates.gender;
+        if (filterStates.experience) params.experience = filterStates.experience;
+
+        if (filterStates.videoOnly) {
+            params.consultation_type = 'video';
+        } else if (filterStates.consultationType) {
+            params.consultation_type = filterStates.consultationType;
+        }
+
+        if (filterStates.todayOnly) {
+            params.availability = 'today';
+        } else if (filterStates.availability) {
+            params.availability = filterStates.availability;
+        }
+
+        if (filterStates.minFee != null) params.min_fee = filterStates.minFee;
+        if (filterStates.maxFee != null) params.max_fee = filterStates.maxFee;
+
+        return params;
+    }, [debouncedSearch, filterStates]);
+
+    const {
+        data: infiniteData,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+        isPending,
+        refetch,
+    } = useGetAllDoctorsInfinite(queryParams);
+
+    const [showFilterModal, setShowFilterModal] = useState<boolean>(false);
+
+    const hasActiveFilters = useMemo(() => {
+        return (
+            !!filterStates.searchQuery ||
+            !!filterStates.selectedSpecialty ||
+            !!filterStates.selectedSubSpecialty ||
+            !!filterStates.selectedCity ||
+            filterStates.todayOnly ||
+            filterStates.videoOnly ||
+            !!filterStates.gender ||
+            !!filterStates.experience ||
+            !!filterStates.consultationType ||
+            !!filterStates.availability ||
+            filterStates.minFee != null ||
+            filterStates.maxFee != null
+        );
+    }, [filterStates]);
+
+    const handleResetFilters = () => {
+        setFilterStates(defaultFilterStates);
+    };
+
+    const handleRefresh = useCallback(async () => {
+        setIsRefreshing(true);
+        await refetch();
+        setIsRefreshing(false);
+    }, [filterStates]);
+
+    const combinedList: ListItemType[] = useMemo(() => {
+        if (!infiniteData?.pages) return [];
+        const clinics = infiniteData.pages.flatMap(
+            page => page.data?.clinics?.map(c => ({ type: 'clinic' as const, data: c })) || []
+        );
+        const doctors = infiniteData.pages.flatMap(
+            page => page.data?.doctors?.map(d => ({ type: 'doctor' as const, data: d })) || []
+        );
+        return [...doctors, ...clinics];
+    }, [infiniteData]);
+
+    const handleProfilePress = (doctorId: number) => {
+        navigation.navigate('DoctorDetails', { doctorId: doctorId });
+    };
+
+    const handleBookPress = (doctorId: number, clinicId: number) => {
+        navigation.navigate('BookAppointment', { doctorId, clinicId });
+    };
+
+    const handleClinicPress = (clinicId: number) => {
+        navigation.navigate(AppRoute.CLINIC_DETAILS, { clinicId });
+    };
+
+    const handleApplyFilters = (filters: DoctorFilterValues) => {
+        const updates: Partial<IDoctorFilterStates> = {
+            selectedCity: filters.selectedCity,
+            selectedSpecialty: filters.selectedSpecialty,
+        };
+
+        if (filters.specialtyQuery !== undefined) {
+            updates.searchQuery = filters.specialtyQuery;
+        }
+        if (filters.gender !== undefined) {
+            updates.gender = filters.gender;
+        }
+        if (filters.experience !== undefined) {
+            updates.experience = filters.experience;
+        }
+        if (filters.consultationType !== undefined) {
+            const mapped =
+                filters.consultationType === 'in-person' ? 'in_person' : filters.consultationType;
+            updates.consultationType = mapped as any;
+            updates.videoOnly = filters.consultationType === 'video';
+        }
+        if (filters.availability !== undefined) {
+            const availMap: Record<string, any> = {
+                today: 'today',
+                week: 'this_week',
+                month: 'this_month',
+            };
+            updates.availability = filters.availability ? availMap[filters.availability] || null : null;
+            updates.todayOnly = filters.availability === 'today';
+        }
+        if (filters.fee !== undefined) {
+            if (filters.fee === 'under500') {
+                updates.minFee = null;
+                updates.maxFee = 500;
+            } else if (filters.fee === '500to1000') {
+                updates.minFee = 500;
+                updates.maxFee = 1000;
+            } else if (filters.fee === '1000plus') {
+                updates.minFee = 1000;
+                updates.maxFee = null;
+            } else {
+                updates.minFee = null;
+                updates.maxFee = null;
+            }
+        }
+
+        updateFilterState(updates);
+    };
+
+    return (
+        <SafeAreaWrapper
+            showBottomBar={true}
+            activeBottomTab="Doctors"
+            header={
+                <Header
+                    isBackBtn={true}
+                    title={t('commons.findSpecialist')}
+                    onBackPress={() => navigation.goBack()}
+                />
+            }
+        >
+            <View style={doctorSearchStyles.searchChrome}>
+                <View style={doctorSearchStyles.searchBox}>
+                    <SearchIcon size={18} color={theme.colors.textMuted} />
+                    <TextInput
+                        style={doctorSearchStyles.searchInput}
+                        placeholder={t('doctorSearchScreen.searchPlaceholder')}
+                        placeholderTextColor={theme.colors.textMuted}
+                        value={filterStates.searchQuery}
+                        onChangeText={searchQuery => updateFilterState({ searchQuery })}
+                        autoCapitalize="none"
+                    />
+                    <TouchableOpacity
+                        onPress={() => setShowFilterModal(true)}
+                        activeOpacity={1}
+                        style={{ paddingLeft: 8 }}
+                    >
+                        <FilterIcon size={20} color={theme.colors.primaryDark} />
+                    </TouchableOpacity>
+                </View>
+
+                <View style={doctorSearchStyles.toggleRow}>
+                    <View style={doctorSearchStyles.toggleCard}>
+                        <CalendarIcon size={18} color={theme.colors.primary} />
+                        <Text style={doctorSearchStyles.toggleLabel}>{t('commons.today')}</Text>
+                        <CustomSwitch
+                            value={filterStates.todayOnly}
+                            onValueChange={todayOnly =>
+                                updateFilterState({ todayOnly, availability: todayOnly ? 'today' : null })
+                            }
+                        />
+                    </View>
+
+                    <View style={doctorSearchStyles.toggleCard}>
+                        <VideoIcon size={18} color={theme.colors.primary} />
+                        <Text style={doctorSearchStyles.toggleLabel}>{t('commons.video')}</Text>
+                        <CustomSwitch
+                            value={filterStates.videoOnly}
+                            onValueChange={videoOnly =>
+                                updateFilterState({ videoOnly, consultationType: videoOnly ? 'video' : null })
+                            }
+                        />
+                    </View>
+                </View>
+
+                <View
+                    style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: 14,
+                    }}
+                >
+                    <Text style={[doctorSearchStyles.sectionTitle, { marginBottom: 0 }]}>
+                        {t('doctorSearchScreen.sectionTitle')}
+                    </Text>
+                    {hasActiveFilters && (
+                        <TouchableOpacity
+                            onPress={handleResetFilters}
+                            activeOpacity={1}
+                            style={{
+                                paddingHorizontal: 10,
+                                paddingVertical: 4,
+                                borderRadius: 12,
+                                backgroundColor: theme.colors.primary || '#FEE2E2',
+                            }}
+                        >
+                            <Text style={{ fontSize: 12, fontWeight: '600', color: theme.colors.surface }}>
+                                {t('commons.clearAll')}
+                            </Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
+            </View>
+
+            {isPending && !isFetchingNextPage ? (
+                <View style={{ flex: 1 }}>
+                    <DoctorSearchSkeleton cardOnly={true} />
+                </View>
+            ) : (
+                <FlatList
+                    style={{ flex: 1 }}
+                    data={combinedList}
+                    keyExtractor={item =>
+                        item.type === 'clinic' ? `clinic-${item.data.id}` : `doctor-${item.data.id}`
+                    }
+                    showsVerticalScrollIndicator={true}
+                    keyboardShouldPersistTaps="handled"
+                    contentContainerStyle={doctorSearchStyles.listContent}
+                    onEndReached={() => {
+                        if (hasNextPage && !isFetchingNextPage) {
+                            fetchNextPage();
+                        }
+                    }}
+                    onEndReachedThreshold={0.5}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={isRefreshing}
+                            onRefresh={handleRefresh}
+                            colors={[theme.colors.primary]}
+                        />
+                    }
+                    ListFooterComponent={
+                        isFetchingNextPage ? (
+                            <View style={{ paddingVertical: 16, alignItems: 'center' }}>
+                                <ActivityIndicator size="small" color={theme.colors.primary} />
+                            </View>
+                        ) : (
+                            <></>
+                        )
+                    }
+                    renderItem={({ item }) =>
+                        item.type === 'doctor' ? (
+                            <DoctorSearchCard
+                                id={item.data.id}
+                                doctorId={item.data.doctor_id}
+                                name={item.data.name}
+                                profileImage={item.data.profile_image}
+                                specialization={item.data.specialization}
+                                experienceYears={item.data.experience_years}
+                                city={item.data.city}
+                                clinicName={item.data.clinic?.name}
+                                nextAvailableDate={item.data.next_available_date}
+                                offersInPerson={item.data.offers_in_person}
+                                offersVideo={item.data.offers_video}
+                                onProfilePress={() => handleProfilePress(Number(item.data?.user_id))}
+                                onBookPress={() =>
+                                    handleBookPress(Number(item?.data?.user_id), Number(item?.data?.clinic?.id))
+                                }
+                                onClinicPress={() => {
+                                    if (item?.data?.clinic?.id) {
+                                        handleClinicPress(Number(item?.data?.clinic?.id));
+                                    }
+                                }}
+                            />
+                        ) : (
+                            <ClinicCard
+                                id={item.data.id}
+                                name={item.data.name}
+                                location={item.data.location}
+                                city={item.data.city}
+                                state={item.data.state}
+                                specialities={item.data.specialities}
+                                availableDoctorsCount={item.data.available_doctors_count}
+                                onPress={() => handleClinicPress(Number(item.data?.id))}
+                            />
+                        )
+                    }
+                    ListEmptyComponent={
+                        <View style={doctorSearchStyles.emptyBox}>
+                            <StethoscopeIcon size={36} color={theme.colors.primaryDark} />
+                            <Text style={doctorSearchStyles.emptyTitle}>
+                                {hasActiveFilters
+                                    ? t('commons.noResultsFound')
+                                    : t('doctorSearchScreen.searchDoctorsTitle')}
+                            </Text>
+                            <Text style={doctorSearchStyles.emptySubtitle}>
+                                {hasActiveFilters
+                                    ? t('doctorSearchScreen.noResultsSub')
+                                    : t('doctorSearchScreen.searchDoctorsSub')}
+                            </Text>
+                        </View>
+                    }
+                />
+            )}
+
+            {showFilterModal && (
+                <DoctorFilterModal
+                    visible={showFilterModal}
+                    initialValues={{
+                        specialtyQuery: filterStates.searchQuery,
+                        selectedSpecialty: filterStates.selectedSpecialty,
+                        selectedCity: filterStates.selectedCity,
+                        gender: filterStates.gender as any,
+                        experience: filterStates.experience as any,
+                        consultationType:
+                            filterStates.consultationType === 'in_person'
+                                ? 'in-person'
+                                : filterStates.consultationType,
+                        availability:
+                            filterStates.availability === 'this_week'
+                                ? 'week'
+                                : filterStates.availability === 'this_month'
+                                    ? 'month'
+                                    : filterStates.availability,
+                        fee:
+                            filterStates.maxFee === 500 && !filterStates.minFee
+                                ? 'under500'
+                                : filterStates.minFee === 500 && filterStates.maxFee === 1000
+                                    ? '500to1000'
+                                    : filterStates.minFee === 1000 && !filterStates.maxFee
+                                        ? '1000plus'
+                                        : null,
+                    }}
+                    onClose={() => setShowFilterModal(false)}
+                    onApply={handleApplyFilters}
+                />
+            )}
+        </SafeAreaWrapper>
+    );
+};
+
+export default DoctorSearchScreen;

@@ -20,6 +20,7 @@ export const AppRoute = {
   DOCTOR_DETAILS: 'DoctorDetails',
   BOOK_APPOINTMENT: 'BookAppointment',
   PAYMENT: 'Payment',
+  PAYMENT_PROCESSING: 'PaymentProcessing',
   BOOKING_SUCCESS: 'BookingSuccess',
   PRESCRIPTIONS_LIST: 'PrescriptionsList',
   PRESCRIPTION_DETAIL: 'PrescriptionDetail',
@@ -64,9 +65,17 @@ export type RootStackParamList = {
     | { doctorId?: number; doctor?: any; clinicId?: number; clinicName?: string }
     | undefined;
   Payment: { bookingData?: any; totalAmount?: number } | undefined;
+  PaymentProcessing: {
+    bookingData: any;
+    paymentVerifyParams: {
+      appointment_id: string;
+      razorpay_order_id: string;
+      razorpay_payment_id: string;
+    };
+  };
   BookingSuccess: { bookingData?: any } | undefined;
   PrescriptionsList: undefined;
-  PrescriptionDetail: { prescriptionId?: number; prescription?: any } | undefined;
+  PrescriptionDetail: { prescriptionId?: number | string } | undefined;
   RescheduleAppointment: { appointmentId?: number | string; appointment?: any } | undefined;
   Meeting: { appointmentId?: number | string; appointment?: any } | undefined;
   ConsultationCompleted:
@@ -90,7 +99,9 @@ export type RootStackParamList = {
   Schedule: { refresh?: boolean } | undefined;
   Reports: undefined;
   Account: undefined;
-  AppointmentDetails: { appointmentId?: number; isComingFromNotification?: boolean } | undefined;
+  AppointmentDetails:
+    | { appointmentId?: number | string; isComingFromNotification?: boolean }
+    | undefined;
   InvoicesList: undefined;
 };
 
@@ -250,6 +261,33 @@ export type DoctorDetailsScreenRouteProp = RouteProp<RootStackParamList, 'Doctor
 export interface DoctorDetailsScreenProps {
   navigation?: DoctorDetailsScreenNavigationProp;
   route?: DoctorDetailsScreenRouteProp;
+}
+
+export type PaymentScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Payment'>;
+export type PaymentScreenRouteProp = RouteProp<RootStackParamList, 'Payment'>;
+export interface PaymentScreenProps {
+  navigation?: PaymentScreenNavigationProp;
+  route?: PaymentScreenRouteProp;
+}
+
+export type PaymentProcessingScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'PaymentProcessing'
+>;
+export type PaymentProcessingScreenRouteProp = RouteProp<RootStackParamList, 'PaymentProcessing'>;
+export interface PaymentProcessingScreenProps {
+  navigation?: PaymentProcessingScreenNavigationProp;
+  route?: PaymentProcessingScreenRouteProp;
+}
+
+export type BookingSuccessScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'BookingSuccess'
+>;
+export type BookingSuccessScreenRouteProp = RouteProp<RootStackParamList, 'BookingSuccess'>;
+export interface BookingSuccessScreenProps {
+  navigation?: BookingSuccessScreenNavigationProp;
+  route?: BookingSuccessScreenRouteProp;
 }
 
 /**

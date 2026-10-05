@@ -1,8 +1,10 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { ChevronRightIcon, ClinicIcon } from '../../../../components/ui/icons';
 import { getInitials } from '../../../../lib/common/common.utils';
 import doctorStyles from '../../../../styled/DoctorScreen.styled';
+import theme from '../../../../styled/theme.styled';
 export interface DoctorCardProps {
   onProfilePress?: () => void;
   onBookPress?: () => void;
@@ -10,6 +12,7 @@ export interface DoctorCardProps {
   clinicName: string;
   specialization: string;
   profile_image: string;
+  onClinicPress?: () => void
 }
 
 export const DoctorCard: React.FC<DoctorCardProps> = ({
@@ -19,6 +22,7 @@ export const DoctorCard: React.FC<DoctorCardProps> = ({
   specialization,
   onBookPress,
   onProfilePress,
+  onClinicPress
 }) => {
   const { t } = useTranslation();
 
@@ -41,9 +45,23 @@ export const DoctorCard: React.FC<DoctorCardProps> = ({
             {specialization}
           </Text>
           {clinicName ? (
-            <Text style={doctorStyles.clinicName} numberOfLines={1}>
-              {clinicName}
-            </Text>
+            <TouchableOpacity
+              style={doctorStyles.clinicBtn}
+              onPress={onClinicPress}
+              activeOpacity={0.7}
+              disabled={!onClinicPress}
+              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+              accessibilityRole="button"
+              accessibilityLabel={`Clinic: ${clinicName}`}
+            >
+              <ClinicIcon size={12} color={theme.colors.primary} />
+              <Text style={doctorStyles.clinicName} numberOfLines={1}>
+                {clinicName}
+              </Text>
+              {onClinicPress ? (
+                <ChevronRightIcon size={11} color={theme.colors.primary} />
+              ) : null}
+            </TouchableOpacity>
           ) : null}
         </View>
       </View>

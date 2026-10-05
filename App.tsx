@@ -7,6 +7,7 @@ import GlobalToast from './src/components/commons/Toast/GlobalToast';
 import ReactQueryProvider from './src/components/providers/ReactQueryProvider';
 import { LanguageProvider } from './src/contexts/LanguageContext';
 import AppNavigator from './src/navigation/AppNavigator';
+import NotificationEventListener from './src/services/notifications/components/NotificationEventListener';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -17,6 +18,7 @@ function App() {
           <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
           <AppNavigator />
           <EventListener />
+          <NotificationEventListener />
           <GlobalToast />
           <GlobalPopupAlert />
           <BackdropLoader />

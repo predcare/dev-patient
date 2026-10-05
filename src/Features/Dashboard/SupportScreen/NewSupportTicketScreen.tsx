@@ -266,6 +266,7 @@ export const NewSupportTicketScreen: React.FC = () => {
       header={
         <Header
           isBackBtn={true}
+          isLang={false}
           title={t('support.newTicket')}
           onBackPress={() => navigation.goBack()}
         />

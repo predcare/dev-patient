@@ -122,7 +122,7 @@ export const CustomBottomBar: React.FC<CustomBottomBarProps> = ({
     ) {
       return 'Schedule';
     }
-    if (routeName === 'Reports' || routeName === 'InvoiceList') return 'Reports';
+    if (routeName === 'Reports') return 'Reports';
     if (
       routeName === 'Account' ||
       routeName === 'DoctorProfile' ||
