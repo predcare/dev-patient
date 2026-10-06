@@ -1826,6 +1826,28 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - RNSound (0.13.0):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-bridging
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - RNSVG (15.15.5):
     - hermes-engine
     - RCTRequired
@@ -1977,6 +1999,7 @@ DEPENDENCIES:
   - "RNNotifee (from `../node_modules/@notifee/react-native`)"
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - RNSound (from `../node_modules/react-native-sound`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - SocketRocket (from `build/rndeps-facades/SocketRocket`)
   - "VideoSDKPubsub (from `../node_modules/@videosdk.live/react-native-sdk`)"
@@ -2179,6 +2202,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-permissions"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  RNSound:
+    :path: "../node_modules/react-native-sound"
   RNSVG:
     :path: "../node_modules/react-native-svg"
   SocketRocket:
@@ -2285,6 +2310,7 @@ SPEC CHECKSUMS:
   RNNotifee: 5e3b271e8ea7456a36eec994085543c9adca9168
   RNPermissions: f81dd16b54af93c20a270551aa276c4150404c1e
   RNScreens: 038dc998fe1ab34778d9e8f4a33318a6c7a5bde8
+  RNSound: 098714824a8fd4bc600d62a35aeceb65b6504da5
   RNSVG: 6c9bcbf53822153be6f6c1484f6b0b57c0040d21
   SocketRocket: 37aec555668fb852ec12e3c0de59a86ca58f0871
   SwiftProtobuf: 409d3aaec90e51b1705b1dd8065b56893450e77c
@@ -2294,4 +2320,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: d1a6cabc7a2ea2d802252e47491fa11dbfb8f049
 
-COCOAPODS: 1.17.0
+COCOAPODS: 1.15.2

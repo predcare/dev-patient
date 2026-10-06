@@ -1,11 +1,14 @@
 import React from 'react';
 import { queryClient } from '../../../components/providers/ReactQueryProvider';
 import useDevicePermissions from '../../../hooks/commons/useDevicePermissions';
-import { getApptInfo } from '../../../hooks/react-query/appointments/appointments.funcs';
+import { getApptInfo, getApptToken } from '../../../hooks/react-query/appointments/appointments.funcs';
 import { AppointmemntQueryKey } from '../../../hooks/react-query/query.keys';
 import { showErrorToast } from '../../../lib/common/toast.utils';
+import { navigate } from '../../../navigation/navigationRef';
+import { AppRoute } from '../../../route';
 import { useIncomingCallStore } from '../../../zustand/stores/useIncomingCallStore';
 import { useLoadingStore } from '../../../zustand/stores/useLoadingStore';
+import { useMeetingStore } from '../../../zustand/stores/useMeetingStore';
 import IncomingCallBanner from './IncomingCallBanner';
 
 export const GlobalIncomingCallBanner: React.FC = () => {
@@ -13,6 +16,7 @@ export const GlobalIncomingCallBanner: React.FC = () => {
   const { hideCallBanner } = useIncomingCallStore(state => state);
   const { showLoader, hideLoader } = useLoadingStore(state => state);
   const { requestAudioVideoPermissions } = useDevicePermissions();
+  const setCallInfo = useMeetingStore(state => state.setCallInfo);
 
   if (!visible) return null;
 
@@ -42,8 +46,27 @@ export const GlobalIncomingCallBanner: React.FC = () => {
         return;
       }
 
-      hideCallBanner();
+      const tokenRes = await getApptToken(appointmentId);
+      if (!tokenRes?.data || !tokenRes?.success) {
+        hideLoader();
+        showErrorToast('Failed to join video call session');
+        return;
+      }
 
+      setCallInfo({
+        token: tokenRes.data.token,
+        meeting_id: tokenRes.data.meeting_id,
+        appointment: tokenRes.data.appointment || apptInfo,
+        doctorInfo: {
+          name: apptInfo.doctor?.name || doctorName,
+          specialty: apptInfo.doctor?.specialization || apptInfo.specialization,
+          profileImage: apptInfo.doctor?.profile_image,
+          clinicName: apptInfo.clinic?.name,
+        },
+      });
+
+      hideCallBanner();
+      navigate(AppRoute.MEETING);
     } catch (error) {
       console.error('[GlobalIncomingCallBanner] Join failed:', error);
       showErrorToast('Failed to join the call. Please try again.');

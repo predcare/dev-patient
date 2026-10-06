@@ -1,9 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Text, TouchableOpacity, Vibration, View } from 'react-native';
-let Sound: any = null;
-try {
-  Sound = require('react-native-sound');
-} catch {}
+import Sound from 'react-native-sound';
 import { incomingCallStyles } from '../../../styled/IncomingCallBanner.styled';
 import { theme } from '../../../styled/theme.styled';
 import useIncomingCallStore from '../../../zustand/stores/useIncomingCallStore';
@@ -86,21 +83,29 @@ export const IncomingCallBanner: React.FC<IncomingCallBannerProps> = ({
   }, [visible, pulseAnim]);
 
   useEffect(() => {
-    let sound: any | null = null;
+    let sound: Sound | null = null;
 
     if (visible) {
       Vibration.vibrate(CALL_VIBRATION_PATTERN, true);
 
-      Sound.setCategory('Playback');
-      // @ts-ignore
+      try {
+        Sound.setCategory('Playback', true);
+      } catch (err) {
+        console.warn('[IncomingCallBanner] setCategory error:', err);
+      }
+
       sound = new Sound('ringtone.mp3', Sound.MAIN_BUNDLE, (error: any) => {
         if (error) {
-          console.log('failed to load the sound', error);
+          console.warn('[IncomingCallBanner] Failed to load sound:', error);
           return;
         }
         sound?.setNumberOfLoops(-1);
         sound?.setVolume(1.0);
-        sound?.play();
+        sound?.play(success => {
+          if (!success) {
+            console.warn('[IncomingCallBanner] Sound playback failed');
+          }
+        });
       });
     } else {
       Vibration.cancel();
@@ -109,8 +114,9 @@ export const IncomingCallBanner: React.FC<IncomingCallBannerProps> = ({
     return () => {
       Vibration.cancel();
       if (sound) {
-        sound.stop();
-        sound.release();
+        sound.stop(() => {
+          sound?.release();
+        });
       }
     };
   }, [visible]);

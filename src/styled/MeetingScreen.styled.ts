@@ -218,9 +218,9 @@ export const meetingStyles = StyleSheet.create({
   },
   ctrlLabel: {
     color: theme.colors.surface,
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.4,
+    fontSize: 10,
+    fontWeight: '500',
+    letterSpacing: 0.2,
   },
 });
 

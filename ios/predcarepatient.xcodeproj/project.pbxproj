@@ -19,6 +19,7 @@
 		PIP0000000000000000005 /* PiPFrameProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = PIP0000000000000000015 /* PiPFrameProcessor.swift */; };
 		PIP0000000000000000006 /* PiPTrackRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = PIP0000000000000000016 /* PiPTrackRenderer.m */; };
 		PIP0000000000000000007 /* PiPCameraMultitasking.m in Sources */ = {isa = PBXBuildFile; fileRef = PIP0000000000000000017 /* PiPCameraMultitasking.m */; };
+		SND00000000000000000002 /* ringtone.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = SND00000000000000000001 /* ringtone.mp3 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,6 +43,7 @@
 		PIP0000000000000000017 /* PiPCameraMultitasking.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = PiPCameraMultitasking.m; path = predcarepatient/pipmode/PiPCameraMultitasking.m; sourceTree = "<group>"; };
 		PIP0000000000000000018 /* PiPTrackRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PiPTrackRenderer.h; path = predcarepatient/pipmode/PiPTrackRenderer.h; sourceTree = "<group>"; };
 		PIP0000000000000000019 /* PiPCameraMultitasking.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PiPCameraMultitasking.h; path = predcarepatient/pipmode/PiPCameraMultitasking.h; sourceTree = "<group>"; };
+		SND00000000000000000001 /* ringtone.mp3 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = audio.mp3; name = ringtone.mp3; path = predcarepatient/ringtone.mp3; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,24 +68,9 @@
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
 				PIP0000000000000000010 /* predcarepatient-Bridging-Header.h */,
 				PIP0000000000000000020 /* pipmode */,
+				SND00000000000000000001 /* ringtone.mp3 */,
 			);
 			name = predcarepatient;
-			sourceTree = "<group>";
-		};
-		PIP0000000000000000020 /* pipmode */ = {
-			isa = PBXGroup;
-			children = (
-				PIP0000000000000000019 /* PiPCameraMultitasking.h */,
-				PIP0000000000000000017 /* PiPCameraMultitasking.m */,
-				PIP0000000000000000013 /* PiPContainerView.swift */,
-				PIP0000000000000000015 /* PiPFrameProcessor.swift */,
-				PIP0000000000000000011 /* PiPManager.swift */,
-				PIP0000000000000000012 /* PiPManagerBridge.m */,
-				PIP0000000000000000018 /* PiPTrackRenderer.h */,
-				PIP0000000000000000016 /* PiPTrackRenderer.m */,
-				PIP0000000000000000014 /* PiPVideoView.swift */,
-			);
-			name = pipmode;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
@@ -131,6 +118,22 @@
 				5709B34CF0A7D63546082F79 /* Pods-predcarepatient.release.xcconfig */,
 			);
 			path = Pods;
+			sourceTree = "<group>";
+		};
+		PIP0000000000000000020 /* pipmode */ = {
+			isa = PBXGroup;
+			children = (
+				PIP0000000000000000019 /* PiPCameraMultitasking.h */,
+				PIP0000000000000000017 /* PiPCameraMultitasking.m */,
+				PIP0000000000000000013 /* PiPContainerView.swift */,
+				PIP0000000000000000015 /* PiPFrameProcessor.swift */,
+				PIP0000000000000000011 /* PiPManager.swift */,
+				PIP0000000000000000012 /* PiPManagerBridge.m */,
+				PIP0000000000000000018 /* PiPTrackRenderer.h */,
+				PIP0000000000000000016 /* PiPTrackRenderer.m */,
+				PIP0000000000000000014 /* PiPVideoView.swift */,
+			);
+			name = pipmode;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -196,6 +199,7 @@
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				5262F94258E419F70B658C09 /* PrivacyInfo.xcprivacy in Resources */,
+				SND00000000000000000002 /* ringtone.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
