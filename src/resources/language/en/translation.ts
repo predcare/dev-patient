@@ -306,6 +306,8 @@ export const englishTranslations = {
     inPerson: 'In-Person',
     getDirections: 'Get Directions',
     joinVideoCall: 'Join Video Call',
+    returnToCall: 'Return to Call',
+    rejoin: 'Re-Join',
     viewDetails: 'View Details',
     reschedule: 'Reschedule',
     cancel: 'Cancel',

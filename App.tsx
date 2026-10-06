@@ -6,6 +6,7 @@ import GlobalPopupAlert from './src/components/commons/PopupAlert/GlobalPopupAle
 import GlobalToast from './src/components/commons/Toast/GlobalToast';
 import ReactQueryProvider from './src/components/providers/ReactQueryProvider';
 import { LanguageProvider } from './src/contexts/LanguageContext';
+import MeetingSessionHost from './src/components/meeting/MeetingSessionHost';
 import AppNavigator from './src/navigation/AppNavigator';
 import NotificationEventListener from './src/services/notifications/components/NotificationEventListener';
 
@@ -17,6 +18,7 @@ function App() {
         <LanguageProvider>
           <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
           <AppNavigator />
+          <MeetingSessionHost />
           <EventListener />
           <NotificationEventListener />
           <GlobalToast />

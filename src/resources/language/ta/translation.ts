@@ -300,6 +300,8 @@ export const tamilTranslations = {
     inPerson: 'நேரடியாக',
     getDirections: 'வழிகளைப் பெறுங்கள்',
     joinVideoCall: 'வீடியோ அழைப்பில் சேரவும்',
+    returnToCall: 'அழைப்புக்குத் திரும்பு',
+    rejoin: 'மீண்டும் இணையுங்கள்',
     viewDetails:"முழு விவரத்தையும் பார்க்க",
     reschedule: 'மறுஅட்டவணைப்படுத்து',
     cancel: 'ரத்துசெய்',

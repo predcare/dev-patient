@@ -16,8 +16,8 @@ export const settingStyles = StyleSheet.create({
     paddingBottom: 48,
   },
   sectionHeader: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 10,
+    fontWeight: '600',
     color: theme.colors.textMuted,
     letterSpacing: 1.2,
     textTransform: 'uppercase',
@@ -79,7 +79,7 @@ export const settingStyles = StyleSheet.create({
     flex: 1,
   },
   profileName: {
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: '700',
     color: theme.colors.textPrimary,
   },
@@ -116,7 +116,7 @@ export const settingStyles = StyleSheet.create({
     flex: 1,
   },
   rowTitle: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '600',
     color: theme.colors.textPrimary,
   },

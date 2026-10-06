@@ -114,14 +114,14 @@ export const headerStyles = StyleSheet.create({
   greeting: {
     fontSize: 11,
     color: theme.colors.textMuted,
-    fontWeight: theme.fontWeight.semibold,
+    fontWeight: theme.fontWeight.medium,
     letterSpacing: 0.3,
     textTransform: 'uppercase',
     marginBottom: 2,
   },
   userName: {
-    fontSize: 16,
-    fontWeight: theme.fontWeight.bold,
+    fontSize: 15.5,
+    fontWeight: theme.fontWeight.semibold,
     color: theme.colors.textPrimary,
     letterSpacing: -0.2,
   },
@@ -143,7 +143,7 @@ export const headerStyles = StyleSheet.create({
   },
   langText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     color: theme.colors.primary,
     letterSpacing: 0.4,
   },

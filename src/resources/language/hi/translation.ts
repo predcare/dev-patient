@@ -298,6 +298,8 @@ export const hindiTranslations = {
     inPerson: 'व्यक्तिगत',
     getDirections: 'दिशा-निर्देश प्राप्त करें',
     joinVideoCall: 'वीडियो कॉल में शामिल हों',
+    returnToCall: 'कॉल पर वापस जाएं',
+    rejoin: 'पुनः जुड़ें',
     viewDetails: 'विवरण देखें',
     reschedule: 'रीशेड्यूल करें',
     cancel: 'रद्द करें',

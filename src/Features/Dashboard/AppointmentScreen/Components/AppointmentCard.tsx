@@ -24,6 +24,7 @@ export interface AppointmentCardProps {
   time: string;
   duration: string;
   mode: string;
+  isCurrentCallActive?: boolean;
   onJoinVideo: () => void;
   onReschedule: () => void;
   onCancelPress: () => void;
@@ -42,6 +43,7 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
   duration,
   time,
   mode,
+  isCurrentCallActive,
   onCancelPress,
   onJoinVideo,
   onReschedule,
@@ -49,6 +51,19 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
   onView,
 }) => {
   const { t } = useTranslation();
+
+  const joinButtonLabel = useMemo(() => {
+    if (isCurrentCallActive) {
+      return t('appointments.returnToCall');
+    }
+    const s = String(apptStatus || '')
+      .toLowerCase()
+      .trim();
+    if (s === 'in_progress' || s === 'in-progress') {
+      return t('appointments.rejoin');
+    }
+    return t('appointments.joinVideoCall');
+  }, [isCurrentCallActive, apptStatus, t]);
 
   const statusConfig = useMemo(() => {
     const s = String(apptStatus || '')
@@ -276,7 +291,7 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
             onPress={onJoinVideo}
           >
             <VideoIcon size={18} color={theme.colors.surface} />
-            <Text style={appointmentsStyles.btnJoinTxt}>{t('appointments.joinVideoCall')}</Text>
+            <Text style={appointmentsStyles.btnJoinTxt}>{joinButtonLabel}</Text>
           </TouchableOpacity>
         )}
         {apptStatus === 'confirmed' && (

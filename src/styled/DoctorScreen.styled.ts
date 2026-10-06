@@ -109,13 +109,13 @@ export const doctorStyles = StyleSheet.create({
     minWidth: 0,
   },
   doctorName: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '600',
     color: theme.colors.textPrimary,
   },
   doctorSpecialization: {
     marginTop: 2,
-    fontSize: 13,
+    fontSize: 12,
     color: theme.colors.textSecondary,
   },
   clinicBtn: {
@@ -133,8 +133,8 @@ export const doctorStyles = StyleSheet.create({
     maxWidth: '100%',
   },
   clinicName: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 10,
+    fontWeight: '500',
     letterSpacing: 0.3,
     color: theme.colors.primaryDark,
     textTransform: 'uppercase',
@@ -153,8 +153,8 @@ export const doctorStyles = StyleSheet.create({
     padding: 12,
   },
   sectionLabel: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 10,
+    fontWeight: '600',
     letterSpacing: 0.5,
     color: theme.colors.textSecondary,
     marginBottom: 10,
@@ -238,7 +238,7 @@ export const doctorStyles = StyleSheet.create({
   },
   profileBtnTxt: {
     color: theme.colors.primaryDark,
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 14,
   },
   bookBtn: {
@@ -250,7 +250,7 @@ export const doctorStyles = StyleSheet.create({
   },
   bookBtnTxt: {
     color: theme.colors.surface,
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 14,
   },
   findCard: {

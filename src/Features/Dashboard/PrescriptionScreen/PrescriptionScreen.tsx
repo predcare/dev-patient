@@ -200,13 +200,10 @@ export const PrescriptionsScreen: React.FC = () => {
 
     return (
         <SafeAreaWrapper
-            style={prescriptionsStyles.screen}
             showBottomBar={true}
-            activeBottomTab="Reports"
-            headerBackgroundColor={theme.colors.surface}
             header={
                 <Header
-                    isBackBtn={true}
+                    isBackBtn={false}
                     title={t('prescriptionsScreen.title')}
                     subTitle={t('prescriptionsScreen.subTitle')}
                 />

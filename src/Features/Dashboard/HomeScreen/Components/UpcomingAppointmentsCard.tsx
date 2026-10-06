@@ -13,13 +13,20 @@ import {
   StethoscopeIcon,
   VideoIcon,
 } from '../../../../components/ui/icons';
-import { useMyAppointments } from '../../../../hooks/react-query/appointments/appointments.hooks';
+import useMeetingPermissions from '../../../../hooks/commons/meeting/useMeetingPermissions';
+import useMeetingPip from '../../../../hooks/commons/meeting/useMeetingPip';
+import {
+  useGetToken,
+  useMyAppointments,
+} from '../../../../hooks/react-query/appointments/appointments.hooks';
 import { _formatTime, getInitials, openLocationOnMap } from '../../../../lib/common/common.utils';
-import { showInfoToast } from '../../../../lib/common/toast.utils';
+import { showErrorToast } from '../../../../lib/common/toast.utils';
 import { AppRoute } from '../../../../route';
 import { UpcomingApptStyles } from '../../../../styled/DashboardScreen.styled';
 import theme from '../../../../styled/theme.styled';
 import { IMyAppointmentDoc } from '../../../../typescripts/interfaces/appointments.interfaces';
+import { useLoadingStore } from '../../../../zustand/stores/useLoadingStore';
+import { useMeetingStore } from '../../../../zustand/stores/useMeetingStore';
 
 const getStatusBadgeInfo = (status?: string | null) => {
   const normalized = (status || '').toLowerCase().trim();
@@ -133,6 +140,13 @@ const AppointmentCardSkeleton: React.FC = () => {
 export const UpcomingAppointmentsCard: React.FC = () => {
   const navigation = useNavigation<any>();
   const { t } = useTranslation();
+  const { restoreToMeeting } = useMeetingPip();
+  const { requestPermissions } = useMeetingPermissions();
+  const { mutate: getToken } = useGetToken();
+  const { showLoader, hideLoader } = useLoadingStore(state => state);
+  const setCallInfo = useMeetingStore(state => state.setCallInfo);
+  const activeMeetingId = useMeetingStore(state => state.callInfo?.meetingId);
+  const activeCallAppointmentId = useMeetingStore(state => state.callInfo?.appointment?.id);
 
   const { data: upcomingAppts, isFetching: upcomingAppointmentsIsPending } = useMyAppointments({
     status: 'pending,confirmed,in_progress',
@@ -142,6 +156,20 @@ export const UpcomingAppointmentsCard: React.FC = () => {
 
   const appointmentsList = upcomingAppts?.data || [];
   const totalCount = appointmentsList.length;
+
+  const getJoinButtonLabel = useCallback(
+    (item: IMyAppointmentDoc) => {
+      if (activeMeetingId && String(activeCallAppointmentId) === String(item?.id)) {
+        return t('appointments.returnToCall') || 'Return to Call';
+      }
+      const s = String(item?.appointment_status || '').toLowerCase().trim();
+      if (s === 'in_progress' || s === 'in-progress') {
+        return t('appointments.rejoin') || 'Re-Join';
+      }
+      return t('appointments.joinVideoCall') || 'Join Video Call';
+    },
+    [activeMeetingId, activeCallAppointmentId, t]
+  );
 
   const handleSeeAll = () => {
     navigation.navigate(AppRoute.SCHEDULE);
@@ -169,10 +197,62 @@ export const UpcomingAppointmentsCard: React.FC = () => {
     });
   };
 
-  const handleJoinVideoCall = useCallback(async (appointment: IMyAppointmentDoc) => {
-    if (!appointment) return;
-    showInfoToast('VideoCall Coming Soon');
-  }, []);
+  const handleJoinVideoCall = useCallback(
+    async (appointment: IMyAppointmentDoc) => {
+      if (!appointment?.id) return;
+
+      if (activeMeetingId && String(activeCallAppointmentId) === String(appointment.id)) {
+        restoreToMeeting();
+        return;
+      }
+
+      const hasPermissions = await requestPermissions();
+      if (!hasPermissions) {
+        showErrorToast(
+          'Camera and microphone permissions are required to join the video consultation.'
+        );
+        return;
+      }
+
+      showLoader(t('appointments.joiningVideoCall'));
+      getToken(
+        { appointmentId: String(appointment.id) },
+        {
+          onSuccess: async res => {
+            if (res?.data && res?.success) {
+              setCallInfo({
+                token: res?.data?.token,
+                meeting_id: res?.data?.meeting_id,
+                appointment: res?.data?.appointment,
+                doctorInfo: {
+                  name: appointment?.doctorInfo?.name,
+                  specialty: appointment?.specialization,
+                  profileImage: appointment?.doctorInfo?.profileImage,
+                  clinicName: appointment?.clinicInfo?.name,
+                },
+              });
+              navigation.navigate(AppRoute.MEETING);
+            }
+          },
+          onSettled: () => {
+            hideLoader();
+          },
+        }
+      );
+    },
+    [
+      activeMeetingId,
+      activeCallAppointmentId,
+      restoreToMeeting,
+      requestPermissions,
+      getToken,
+      setCallInfo,
+      showLoader,
+      hideLoader,
+      t,
+      navigation,
+    ]
+  );
 
   return (
     <View style={UpcomingApptStyles.section}>
@@ -380,9 +460,7 @@ export const UpcomingAppointmentsCard: React.FC = () => {
                     >
                       <VideoIcon size={14} color="#FFFFFF" />
                       <Text style={UpcomingApptStyles.actionButtonText}>
-                        {item?.appointment_status === 'in_progress'
-                          ? 'Re-Join Call'
-                          : 'Join Video Call'}
+                        {getJoinButtonLabel(item)}
                       </Text>
                     </TouchableOpacity>
                   )}

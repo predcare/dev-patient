@@ -117,7 +117,13 @@ export const HealthRecordsScreen: React.FC = () => {
   return (
     <SafeAreaWrapper
       showBottomBar={true}
-      header={<Header isBackBtn={true} title="Health Records" />}
+      header={
+        <Header
+          isBackBtn={true}
+          title="Health Records"
+          onBackPress={() => navigation.navigate(AppRoute.HOME)}
+        />
+      }
     >
       <ScrollView
         contentContainerStyle={healthRecordsStyles.contentScroll}

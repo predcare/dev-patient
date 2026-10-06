@@ -151,12 +151,12 @@ export const PatientMeetingScreenStyles = StyleSheet.create({
 
   // Main Stage Area (Full Screen Background)
   stageContainerFull: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: '#000000',
     zIndex: 1,
   },
   stageContainer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,

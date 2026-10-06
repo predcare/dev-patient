@@ -159,12 +159,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
     color: theme.colors.textPrimary,
   },
   seeAllText: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '600',
     color: theme.colors.primary,
   },
@@ -209,8 +209,8 @@ const styles = StyleSheet.create({
     marginRight: 14,
   },
   avatarText: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '600',
     color: '#D97706',
   },
   docInfo: {
@@ -218,19 +218,19 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   docName: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 13,
+    fontWeight: '600',
     color: theme.colors.textPrimary,
     marginBottom: 2,
   },
   docSpec: {
-    fontSize: 13,
+    fontSize: 11,
     color: theme.colors.textSecondary,
-    fontWeight: '500',
+    fontWeight: '400',
   },
   clinicName: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 10,
+    fontWeight: '500',
     color: theme.colors.primaryDark,
     marginTop: 2,
   },
@@ -243,8 +243,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   consultBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '500',
     color: theme.colors.surface,
   },
   emptyCard: {
@@ -266,14 +266,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   emptyTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '600',
     color: theme.colors.textPrimary,
     marginBottom: 6,
     textAlign: 'center',
   },
   emptySubText: {
-    fontSize: 13,
+    fontSize: 12.5,
     color: theme.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 18,
@@ -287,8 +287,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   emptyBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 12.5,
+    fontWeight: '600',
     color: theme.colors.surface,
   },
   skeletonAvatar: {

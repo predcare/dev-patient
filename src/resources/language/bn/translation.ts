@@ -301,6 +301,8 @@ export const banglaTranslations = {
     inPerson: 'সরাসরি',
     getDirections: 'দিকনির্দেশ পান',
     joinVideoCall: 'ভিডিও কলে যোগ দিন',
+    returnToCall: 'কলে ফিরে যান',
+    rejoin: 'পুনরায় যোগ দিন',
     reschedule: 'সময় পুনর্নির্ধারণ',
     cancel: 'বাতিল করুন',
     statusOnline: 'অনলাইন',

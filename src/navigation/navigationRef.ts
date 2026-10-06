@@ -1,4 +1,4 @@
-import { CommonActions, createNavigationContainerRef } from '@react-navigation/native';
+import { CommonActions, createNavigationContainerRef, StackActions } from '@react-navigation/native';
 import type { RootStackParamList } from '../route';
 
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();
@@ -17,7 +17,7 @@ export function replace<RouteName extends keyof RootStackParamList>(
   params?: RootStackParamList[RouteName]
 ) {
   if (navigationRef.isReady()) {
-    (navigationRef as any).replace(name, params);
+    navigationRef.dispatch(StackActions.replace(name as string, params));
   }
 }
 

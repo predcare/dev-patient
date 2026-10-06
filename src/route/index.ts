@@ -73,7 +73,7 @@ export type RootStackParamList = {
       razorpay_payment_id: string;
     };
   };
-  BookingSuccess: { bookingData?: any } | undefined;
+  BookingSuccess: { appointmentId?: string | number; bookingData?: any } | undefined;
   PrescriptionsList: undefined;
   PrescriptionDetail: { prescriptionId?: number | string } | undefined;
   RescheduleAppointment: { appointmentId?: number | string; appointment?: any } | undefined;

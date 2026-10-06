@@ -15,7 +15,12 @@ import {
   StethoscopeIcon,
   VideoIcon,
 } from '../../../components/ui/icons';
-import { useGetApptInfo } from '../../../hooks/react-query/appointments/appointments.hooks';
+import useMeetingPermissions from '../../../hooks/commons/meeting/useMeetingPermissions';
+import useMeetingPip from '../../../hooks/commons/meeting/useMeetingPip';
+import {
+  useGetApptInfo,
+  useGetToken,
+} from '../../../hooks/react-query/appointments/appointments.hooks';
 import Header from '../../../Layout/Header';
 import SafeAreaWrapper from '../../../Layout/SafeAreaWrapper';
 import {
@@ -26,10 +31,12 @@ import {
   getInitials,
   openLocationOnMap,
 } from '../../../lib/common/common.utils';
-import { showInfoToast } from '../../../lib/common/toast.utils';
+import { showErrorToast } from '../../../lib/common/toast.utils';
 import { AppRoute } from '../../../route';
 import { appointmentDetailsStyles } from '../../../styled/AppointmentDetailsScreen.styled';
 import theme from '../../../styled/theme.styled';
+import { useLoadingStore } from '../../../zustand/stores/useLoadingStore';
+import { useMeetingStore } from '../../../zustand/stores/useMeetingStore';
 import AppointmentDetailsSkeleton from './Skeletons/AppointmentDetailsSkeleton';
 
 export const AppointmentDetailsScreen: React.FC = () => {
@@ -37,8 +44,14 @@ export const AppointmentDetailsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const apptId = route.params?.appointmentId;
-  const isComingFromNotification = route.params?.isComingFromNotification;
   const [refreshing, setRefreshing] = useState(false);
+  const { restoreToMeeting } = useMeetingPip();
+  const { requestPermissions } = useMeetingPermissions();
+  const { mutate: getToken } = useGetToken();
+  const { showLoader, hideLoader } = useLoadingStore(state => state);
+  const setCallInfo = useMeetingStore(state => state.setCallInfo);
+  const activeMeetingId = useMeetingStore(state => state.callInfo?.meetingId);
+  const activeCallAppointmentId = useMeetingStore(state => state.callInfo?.appointment?.id);
 
   const {
     data: apptInfo,
@@ -136,7 +149,70 @@ export const AppointmentDetailsScreen: React.FC = () => {
       return true;
     }
     return false;
-  }, [apptInfo?.appointment_status]);
+  }, [apptInfo?.appointment_status, apptInfo?.consultation_type]);
+
+  const isCurrentCallActive = Boolean(
+    activeMeetingId && String(activeCallAppointmentId) === String(apptInfo?.id || apptId)
+  );
+
+  const videoButtonLabel = useMemo(() => {
+    if (isCurrentCallActive) {
+      return t('appointments.returnToCall') || 'Return to Call';
+    }
+    const s = String(apptInfo?.appointment_status || '')
+      .toLowerCase()
+      .trim();
+    if (s === 'in_progress' || s === 'in-progress') {
+      return t('appointments.rejoin') || 'Re-Join';
+    }
+    return t('appointments.joinVideoCall') || 'Join Video Call';
+  }, [isCurrentCallActive, apptInfo?.appointment_status, t]);
+
+  const handleJoinVideoCall = async () => {
+    const targetId = apptInfo?.id || apptId;
+    if (!targetId) return;
+
+    if (activeMeetingId && String(activeCallAppointmentId) === String(targetId)) {
+      restoreToMeeting();
+      return;
+    }
+
+    const hasPermissions = await requestPermissions();
+    if (!hasPermissions) {
+      showErrorToast(
+        'Camera and microphone permissions are required to join the video consultation.'
+      );
+      return;
+    }
+
+    showLoader(t('appointments.joiningVideoCall'));
+    getToken(
+      {
+        appointmentId: String(targetId),
+      },
+      {
+        onSuccess: async res => {
+          if (res?.data && res?.success) {
+            setCallInfo({
+              token: res?.data?.token,
+              meeting_id: res?.data?.meeting_id,
+              appointment: res?.data?.appointment,
+              doctorInfo: {
+                name: apptInfo?.doctor?.name,
+                specialty: apptInfo?.doctor?.specialization || apptInfo?.specialization,
+                profileImage: apptInfo?.doctor?.profile_image,
+                clinicName: apptInfo?.clinic?.name,
+              },
+            });
+            navigation.navigate(AppRoute.MEETING);
+          }
+        },
+        onSettled: () => {
+          hideLoader();
+        },
+      }
+    );
+  };
 
   const handleOpenClinicMap = () => {
     if (!apptInfo?.clinic) return;
@@ -252,12 +328,10 @@ export const AppointmentDetailsScreen: React.FC = () => {
                   appointmentDetailsStyles.actionCtaVideo,
                 ]}
                 activeOpacity={0.75}
-                onPress={() => {
-                  showInfoToast('In Development');
-                }}
+                onPress={handleJoinVideoCall}
               >
                 <VideoIcon size={18} color={theme.colors.textInverted} />
-                <Text style={appointmentDetailsStyles.actionCtaText}>Join Video Call</Text>
+                <Text style={appointmentDetailsStyles.actionCtaText}>{videoButtonLabel}</Text>
               </TouchableOpacity>
             )}
           </View>

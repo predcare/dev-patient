@@ -45,13 +45,13 @@ export const appointmentsStyles = StyleSheet.create({
     elevation: 2,
   },
   segmentTxt: {
-    fontSize: 14,
+    fontSize: 12,
     color: theme.colors.textMuted,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   segmentTxtActive: {
     color: theme.colors.primaryDark,
-    fontWeight: '700',
+    fontWeight: '600',
   },
 
   // Scrollable Content
@@ -158,20 +158,20 @@ export const appointmentsStyles = StyleSheet.create({
     paddingRight: 4,
   },
   drName: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '600',
     color: theme.colors.textPrimary,
     marginBottom: 2,
   },
   clinic: {
-    fontSize: 11,
+    fontSize: 10,
     color: theme.colors.textMuted,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: 0.4,
     marginBottom: 2,
   },
   aptId: {
-    fontSize: 12,
+    fontSize: 10,
     color: theme.colors.textSecondary,
     fontWeight: '600',
   },
@@ -188,8 +188,6 @@ export const appointmentsStyles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
   },
-
-  // 2x2 Grid
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -223,8 +221,8 @@ export const appointmentsStyles = StyleSheet.create({
     marginBottom: 2,
   },
   gridVal: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '500',
     color: theme.colors.textPrimary,
   },
 
@@ -243,9 +241,9 @@ export const appointmentsStyles = StyleSheet.create({
     gap: 2,
   },
   locClinic: {
-    fontSize: 13,
+    fontSize: 11,
     color: theme.colors.primary,
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: 0.3,
   },
   locAddress: {
@@ -283,8 +281,8 @@ export const appointmentsStyles = StyleSheet.create({
   },
   btnViewDetailsTxt: {
     color: theme.colors.primaryDark,
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '600',
   },
   btnJoin: {
     flexDirection: 'row',
@@ -301,8 +299,8 @@ export const appointmentsStyles = StyleSheet.create({
   },
   btnJoinTxt: {
     color: theme.colors.surface,
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 13,
+    fontWeight: '600',
   },
   bRow: {
     flexDirection: 'row',
@@ -320,8 +318,8 @@ export const appointmentsStyles = StyleSheet.create({
   },
   btnOutlineTxt: {
     color: theme.colors.primaryDark,
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '600',
   },
   btnCancel: {
     flex: 1,
@@ -333,8 +331,8 @@ export const appointmentsStyles = StyleSheet.create({
   },
   btnCancelTxt: {
     color: theme.colors.danger,
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '600',
   },
 
   // Book New Session Card

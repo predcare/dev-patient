@@ -39,8 +39,8 @@ export const dashboardStyles = StyleSheet.create({
   },
   memberBannerText: {
     flex: 1,
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12.5,
+    fontWeight: '500',
     color: theme.colors.primaryDark,
   },
   memberBannerBack: {
@@ -52,8 +52,8 @@ export const dashboardStyles = StyleSheet.create({
     borderColor: theme.colors.mintBdr,
   },
   memberBannerBackText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 11.5,
+    fontWeight: '600',
     color: theme.colors.primary,
   },
 
@@ -66,12 +66,12 @@ export const dashboardStyles = StyleSheet.create({
     marginTop: 8,
   },
   sectionTitle: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
     color: theme.colors.textPrimary,
   },
   sectionSeeAll: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '600',
     color: theme.colors.primary,
   },
@@ -97,13 +97,13 @@ export const dashboardStyles = StyleSheet.create({
     marginBottom: 8,
   },
   completionTitle: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 14.5,
+    fontWeight: '600',
     color: theme.colors.textPrimary,
   },
   completionPercent: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 13.5,
+    fontWeight: '600',
     color: theme.colors.primary,
   },
   progressBarBg: {
@@ -208,16 +208,16 @@ export const dashboardStyles = StyleSheet.create({
     paddingRight: 12,
   },
   specialistTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
     color: theme.colors.surface,
     marginBottom: 4,
   },
   specialistSubtitle: {
-    fontSize: 13,
+    fontSize: 12.5,
     color: 'rgba(255, 255, 255, 0.85)',
     marginBottom: 14,
-    lineHeight: 18,
+    lineHeight: 17,
   },
   specialistBtn: {
     backgroundColor: theme.colors.surface,
@@ -227,8 +227,8 @@ export const dashboardStyles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   specialistBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 12.5,
+    fontWeight: '600',
     color: theme.colors.primary,
   },
   specialistIconCircle: {
@@ -273,7 +273,7 @@ export const dashboardStyles = StyleSheet.create({
   },
   quickItemLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     color: theme.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 14,
@@ -311,14 +311,14 @@ export const dashboardStyles = StyleSheet.create({
     borderColor: theme.colors.tealBdr,
   },
   typeBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 10.5,
+    fontWeight: '600',
     color: theme.colors.primary,
     textTransform: 'uppercase',
   },
   upcomingDateText: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11.5,
+    fontWeight: '500',
     color: theme.colors.textSlate,
   },
   upcomingDocRow: {
@@ -336,13 +336,13 @@ export const dashboardStyles = StyleSheet.create({
     marginRight: 12,
   },
   upcomingAvatarText: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '600',
     color: theme.colors.surface,
   },
   upcomingDocName: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 14.5,
+    fontWeight: '600',
     color: theme.colors.textPrimary,
   },
   upcomingDocSpec: {
@@ -366,8 +366,8 @@ export const dashboardStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   upcomingPrimaryBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 12.5,
+    fontWeight: '600',
     color: theme.colors.surface,
   },
   upcomingSecondaryBtn: {
@@ -381,8 +381,8 @@ export const dashboardStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   upcomingSecondaryBtnText: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12.5,
+    fontWeight: '500',
     color: theme.colors.textSecondary,
   },
 
@@ -412,21 +412,21 @@ export const dashboardStyles = StyleSheet.create({
     marginBottom: 8,
   },
   tipTagText: {
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: 9.5,
+    fontWeight: '600',
     color: theme.colors.accent,
     letterSpacing: 0.5,
   },
   tipTitle: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 14.5,
+    fontWeight: '600',
     color: theme.colors.textPrimary,
     marginBottom: 4,
   },
   tipDesc: {
-    fontSize: 13,
+    fontSize: 12.5,
     color: theme.colors.textSlate,
-    lineHeight: 18,
+    lineHeight: 17,
   },
 
   // Empty Card Placeholder
@@ -839,8 +839,8 @@ export const UpcomingApptStyles = StyleSheet.create({
     gap: 8,
   },
   sectionTitle: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '500',
     color: theme.colors.textPrimary,
     letterSpacing: -0.3,
   },
@@ -853,8 +853,8 @@ export const UpcomingApptStyles = StyleSheet.create({
     borderColor: theme.colors.mintBdr,
   },
   countBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 10,
+    fontWeight: '600',
     color: theme.colors.primary,
   },
   seeAllButton: {
@@ -869,8 +869,8 @@ export const UpcomingApptStyles = StyleSheet.create({
     borderColor: 'rgba(15, 118, 110, 0.1)',
   },
   seeAllText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '500',
     color: theme.colors.primary,
   },
 
@@ -984,13 +984,13 @@ export const UpcomingApptStyles = StyleSheet.create({
     borderColor: theme.colors.mintBdr,
   },
   emptyTitle: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 14.5,
+    fontWeight: '600',
     color: theme.colors.textPrimary,
     marginBottom: 4,
   },
   emptyText: {
-    fontSize: 13,
+    fontSize: 12.5,
     color: theme.colors.textSlate,
     textAlign: 'center',
     lineHeight: 18,
@@ -1009,8 +1009,8 @@ export const UpcomingApptStyles = StyleSheet.create({
     elevation: 3,
   },
   emptyBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 12.5,
+    fontWeight: '600',
     color: '#FFFFFF',
   },
 
@@ -1058,9 +1058,9 @@ export const UpcomingApptStyles = StyleSheet.create({
     borderColor: '#BAE6FD',
   },
   typePillText: {
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.4,
+    fontSize: 9.5,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
   typePillTextVideo: {
     color: theme.colors.primary,
@@ -1082,8 +1082,8 @@ export const UpcomingApptStyles = StyleSheet.create({
     borderRadius: 6,
   },
   todayBadgeText: {
-    fontSize: 10,
-    fontWeight: '800',
+    fontSize: 9.5,
+    fontWeight: '600',
     color: '#B45309',
     letterSpacing: 0.3,
   },
@@ -1097,8 +1097,8 @@ export const UpcomingApptStyles = StyleSheet.create({
     borderWidth: 1,
   },
   statusBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: 9.5,
+    fontWeight: '600',
   },
   livePulsingDot: {
     width: 7,
@@ -1141,8 +1141,8 @@ export const UpcomingApptStyles = StyleSheet.create({
     backgroundColor: theme.colors.accent,
   },
   avatarInitials: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '600',
     color: '#FFFFFF',
   },
   activeDot: {
@@ -1160,10 +1160,10 @@ export const UpcomingApptStyles = StyleSheet.create({
     flex: 1,
   },
   doctorName: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '600',
     color: theme.colors.textPrimary,
-    marginBottom: 4,
+    marginBottom: 3,
     letterSpacing: -0.2,
   },
   metaRow: {
@@ -1184,8 +1184,8 @@ export const UpcomingApptStyles = StyleSheet.create({
     borderColor: 'rgba(15, 118, 110, 0.12)',
   },
   specialtyText: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 9,
+    fontWeight: '500',
     color: theme.colors.primary,
   },
   patientChip: {
@@ -1198,8 +1198,8 @@ export const UpcomingApptStyles = StyleSheet.create({
     borderRadius: 6,
   },
   patientText: {
-    fontSize: 11,
-    fontWeight: '500',
+    fontSize: 9,
+    fontWeight: '400',
     color: theme.colors.textSlate,
   },
 
@@ -1228,7 +1228,7 @@ export const UpcomingApptStyles = StyleSheet.create({
     flex: 1,
   },
   clinicNameText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
     color: '#0369A1',
     marginBottom: 2,
@@ -1304,8 +1304,8 @@ export const UpcomingApptStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   scheduleItemText: {
-    fontSize: 11.5,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '500',
     color: theme.colors.textPrimary,
   },
   scheduleDivider: {
@@ -1342,8 +1342,8 @@ export const UpcomingApptStyles = StyleSheet.create({
     shadowColor: theme.colors.accent,
   },
   actionButtonText: {
-    fontSize: 12.5,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '500',
     color: '#FFFFFF',
   },
   detailsButton: {
@@ -1359,7 +1359,7 @@ export const UpcomingApptStyles = StyleSheet.create({
     borderColor: theme.colors.surfaceBorder,
   },
   detailsButtonText: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '600',
     color: theme.colors.textSecondary,
   },

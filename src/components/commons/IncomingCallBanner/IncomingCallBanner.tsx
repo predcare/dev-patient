@@ -1,12 +1,15 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Text, TouchableOpacity, Vibration, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Sound from 'react-native-sound';
+let Sound: any = null;
+try {
+  Sound = require('react-native-sound');
+} catch {}
 import { incomingCallStyles } from '../../../styled/IncomingCallBanner.styled';
 import { theme } from '../../../styled/theme.styled';
 import useIncomingCallStore from '../../../zustand/stores/useIncomingCallStore';
 import { VideoIcon } from '../../ui/icons';
 import CrossIcon from '../../ui/icons/CrossIcon';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export interface IncomingCallBannerProps {
   visible?: boolean;
@@ -83,7 +86,7 @@ export const IncomingCallBanner: React.FC<IncomingCallBannerProps> = ({
   }, [visible, pulseAnim]);
 
   useEffect(() => {
-    let sound: Sound | null = null;
+    let sound: any | null = null;
 
     if (visible) {
       Vibration.vibrate(CALL_VIBRATION_PATTERN, true);

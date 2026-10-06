@@ -16,7 +16,7 @@ export const EMR_Record_Category = [
 export const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 // App Version Details (Synced with iOS project.pbxproj & Android build.gradle)
-export const APP_VERSION = '1.0';
+export const APP_VERSION = '1.0.0';
 export const APP_BUILD = '1';
 export const APP_DISPLAY_VERSION = `VERSION ${APP_VERSION} (BUILD ${APP_BUILD})`;
 

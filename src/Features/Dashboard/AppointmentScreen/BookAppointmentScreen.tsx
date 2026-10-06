@@ -11,7 +11,14 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { CalendarIcon, VideoIcon } from '../../../components/ui/icons';
+import {
+    BriefcaseIcon,
+    CalendarIcon,
+    CheckBadgeIcon,
+    ClinicIcon,
+    StethoscopeIcon,
+    VideoIcon,
+} from '../../../components/ui/icons';
 import { useCommisionSlabs } from '../../../hooks/react-query/common/common.hooks';
 import {
     useDoctorAvailDates,
@@ -243,6 +250,8 @@ export const BookAppointmentScreen: React.FC = () => {
                     isBackBtn={true}
                     title={t('bookAppointmentScreen.title')}
                     onBackPress={() => navigation.goBack()}
+                    isNotifyShow={false}
+                    isLang={false}
                 />
             }
         >
@@ -256,31 +265,73 @@ export const BookAppointmentScreen: React.FC = () => {
                     <BookingCardSkeleton />
                 ) : (
                     <View style={bookAppointmentStyles.doctorCard}>
-                        {docSummary?.doctor?.profile_image ? (
-                            <Image
-                                source={{ uri: docSummary.doctor.profile_image }}
-                                style={bookAppointmentStyles.doctorAvatarImage}
-                            />
-                        ) : (
-                            <View style={bookAppointmentStyles.doctorAvatar}>
-                                <Text style={bookAppointmentStyles.doctorAvatarText}>
-                                    {getInitials(docSummary?.doctor?.name || '')}
+                        <View style={bookAppointmentStyles.doctorCardHeader}>
+                            <View style={bookAppointmentStyles.cardHeaderLeft}>
+                                <View style={bookAppointmentStyles.cardHeaderIconBadge}>
+                                    <StethoscopeIcon size={13} color={theme.colors.primary} />
+                                </View>
+                                <Text style={bookAppointmentStyles.cardHeaderTitle}>
+                                    {t('doctorDetailsScreen.title', { defaultValue: 'Doctor Profile' })}
                                 </Text>
                             </View>
-                        )}
-                        <View style={bookAppointmentStyles.doctorDetails}>
-                            <Text style={bookAppointmentStyles.doctorName}>
-                                {docSummary?.doctor?.name || 'Doctor'}
-                            </Text>
-                            <Text style={bookAppointmentStyles.doctorSpecialization}>
-                                {docSummary?.doctor?.specialization || ''}
-                            </Text>
-                            <Text style={bookAppointmentStyles.doctorSubline}>
-                                {docSummary?.doctor?.experience_years
-                                    ? `${docSummary.doctor.experience_years} Yrs Exp • `
-                                    : ''}
-                                {docSummary?.clinic?.name || 'Clinic'}
-                            </Text>
+                            <View style={bookAppointmentStyles.verifiedBadge}>
+                                <CheckBadgeIcon size={11} color={theme.colors.primary} />
+                                <Text style={bookAppointmentStyles.verifiedBadgeText}>
+                                    {t('doctorDetailsScreen.verified', { defaultValue: 'Verified' })}
+                                </Text>
+                            </View>
+                        </View>
+
+                        <View style={bookAppointmentStyles.doctorContentRow}>
+                            <View style={bookAppointmentStyles.doctorAvatarWrapper}>
+                                {docSummary?.doctor?.profile_image ? (
+                                    <Image
+                                        source={{ uri: docSummary.doctor.profile_image }}
+                                        style={bookAppointmentStyles.doctorAvatarImage}
+                                    />
+                                ) : (
+                                    <View style={bookAppointmentStyles.doctorAvatar}>
+                                        <Text style={bookAppointmentStyles.doctorAvatarText}>
+                                            {getInitials(docSummary?.doctor?.name || '')}
+                                        </Text>
+                                    </View>
+                                )}
+                                <View style={bookAppointmentStyles.avatarVerifiedBadge}>
+                                    <CheckBadgeIcon size={8} color={theme.colors.surface} />
+                                </View>
+                            </View>
+
+                            <View style={bookAppointmentStyles.doctorDetails}>
+                                <Text style={bookAppointmentStyles.doctorName} numberOfLines={1}>
+                                    {docSummary?.doctor?.name || 'Doctor'}
+                                </Text>
+                                {docSummary?.doctor?.specialization ? (
+                                    <View style={bookAppointmentStyles.doctorSpecializationRow}>
+                                        <StethoscopeIcon size={11} color={theme.colors.primaryDark} />
+                                        <Text style={bookAppointmentStyles.doctorSpecialization} numberOfLines={1}>
+                                            {docSummary.doctor.specialization}
+                                        </Text>
+                                    </View>
+                                ) : null}
+                                <View style={bookAppointmentStyles.doctorMetaRow}>
+                                    {docSummary?.doctor?.experience_years ? (
+                                        <View style={bookAppointmentStyles.doctorMetaBadge}>
+                                            <BriefcaseIcon size={11} color={theme.colors.textMuted} />
+                                            <Text style={bookAppointmentStyles.doctorMetaText}>
+                                                {docSummary.doctor.experience_years} Yrs Exp
+                                            </Text>
+                                        </View>
+                                    ) : null}
+                                    {docSummary?.clinic?.name ? (
+                                        <View style={bookAppointmentStyles.doctorMetaBadge}>
+                                            <ClinicIcon size={11} color={theme.colors.textMuted} />
+                                            <Text style={bookAppointmentStyles.doctorMetaText} numberOfLines={1}>
+                                                {docSummary.clinic.name}
+                                            </Text>
+                                        </View>
+                                    ) : null}
+                                </View>
+                            </View>
                         </View>
                     </View>
                 )}
@@ -288,18 +339,26 @@ export const BookAppointmentScreen: React.FC = () => {
                     {t('bookAppointmentScreen.patientInfoLabel')}
                 </Text>
                 <View style={bookAppointmentStyles.patientCard}>
-                    <View style={bookAppointmentStyles.patientInfo}>
+                    <View style={bookAppointmentStyles.patientAvatarWrapper}>
                         <View style={bookAppointmentStyles.patientAvatar}>
                             <Text style={bookAppointmentStyles.patientAvatarText}>
                                 {getInitials(userData?.name || '')}
                             </Text>
                         </View>
-                        <View>
-                            <Text style={bookAppointmentStyles.patientName}>{userData?.name || 'Patient'}</Text>
-                            <Text style={bookAppointmentStyles.patientId}>
-                                Patient ID - {userData?.patient_id || 'N/A'}
+                    </View>
+                    <View style={bookAppointmentStyles.patientDetails}>
+                        <Text style={bookAppointmentStyles.patientName} numberOfLines={1}>
+                            {userData?.name || 'Patient'}
+                        </Text>
+                        <View style={bookAppointmentStyles.patientIdBadge}>
+                            <Text style={bookAppointmentStyles.patientId} numberOfLines={1}>
+                                Patient ID • {userData?.patient_id || 'N/A'}
                             </Text>
                         </View>
+                    </View>
+                    <View style={bookAppointmentStyles.patientActiveBadge}>
+                        <CheckBadgeIcon size={10} color={theme.colors.primary} />
+                        <Text style={bookAppointmentStyles.patientActiveText}>Active</Text>
                     </View>
                 </View>
                 <Text style={bookAppointmentStyles.sectionLabel}>

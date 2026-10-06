@@ -307,6 +307,8 @@ export const urduTranslations = {
     inPerson: 'روبرو',
     getDirections: 'راستہ حاصل کریں',
     joinVideoCall: 'ویڈیو کال میں شامل ہوں',
+    returnToCall: 'کال پر واپس جائیں',
+    rejoin: 'دوبارہ شامل ہوں',
     viewDetails: 'تفصیل دیکھیں',
     reschedule: 'دوبارہ شیڈول کریں',
     cancel: 'منسوخ کریں',

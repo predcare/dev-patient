@@ -4,6 +4,7 @@ import {
   cancelMyAppt,
   createAppointment,
   getApptInfo,
+  getApptToken,
   getBookingPaymentStatus,
   getMyAppointments,
 } from './appointments.funcs';
@@ -77,3 +78,11 @@ export const useGetApptInfo = (appointmentId: number | string, enabled?: boolean
     enabled: !!appointmentId,
     select: v => v.data,
   });
+
+// get Token
+export const useGetToken = () => {
+  return useMutation({
+    mutationFn: ({ appointmentId }: { appointmentId: string }) => getApptToken(appointmentId),
+    mutationKey: [AppointmemntQueryKey.GET_TOKEN],
+  });
+};

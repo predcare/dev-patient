@@ -299,6 +299,8 @@ export const kannadaTranslations = {
     inPerson: 'ಖುದ್ದಾಗಿ',
     getDirections: 'ದಿಕ್ಕುಗಳನ್ನು ಪಡೆಯಿರಿ',
     joinVideoCall: 'ವೀಡಿಯೊ ಕರೆಗೆ ಸೇರಿ',
+    returnToCall: 'ಕರೆಗೆ ಹಿಂತಿರುಗಿ',
+    rejoin: 'ಮತ್ತೆ ಸೇರಿ',
     viewDetails: 'ವಿವರಗಳನ್ನು ವೀಕ್ಷಿಸಿ',
     reschedule: 'ಮರುಹೊಂದಿಸಿ',
     cancel: 'ರದ್ದುಮಾಡಿ',

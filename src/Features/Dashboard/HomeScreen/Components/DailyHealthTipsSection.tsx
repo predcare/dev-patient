@@ -107,8 +107,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
     color: theme.colors.textPrimary,
   },
   scrollContent: {
@@ -134,15 +134,15 @@ const styles = StyleSheet.create({
     height: 22,
   },
   cardTitle: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '600',
     color: theme.colors.textPrimary,
     marginBottom: 4,
   },
   cardDescription: {
-    fontSize: 13,
+    fontSize: 12.5,
     color: theme.colors.textSecondary,
-    lineHeight: 20,
+    lineHeight: 18,
   },
   errorBox: {
     marginHorizontal: 16,

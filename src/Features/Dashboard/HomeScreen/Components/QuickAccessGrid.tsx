@@ -144,8 +144,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
     color: theme.colors.textPrimary,
   },
   grid: {
@@ -181,12 +181,12 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   label: {
-    fontSize: 12,
+    fontSize: 11.5,
     color: theme.colors.textPrimary,
     marginTop: 4,
     textAlign: 'center',
-    fontWeight: '600',
-    letterSpacing: 0.2,
+    fontWeight: '500',
+    letterSpacing: 0.1,
   },
 });
 

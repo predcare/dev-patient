@@ -57,20 +57,20 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   title: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '600',
     color: theme.colors.textPrimary,
   },
   percent: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '600',
     color: theme.colors.primary,
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 12.5,
     color: theme.colors.textSecondary,
     marginBottom: 14,
-    lineHeight: 18,
+    lineHeight: 17,
   },
   track: {
     height: 8,
@@ -94,8 +94,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   buttonText: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '600',
     color: theme.colors.surface,
   },
 });

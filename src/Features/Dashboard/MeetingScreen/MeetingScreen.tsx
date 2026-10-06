@@ -1,59 +1,66 @@
-import React, { useState } from 'react';
-import { StatusBar, Text, View } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import React, { useCallback, useEffect } from 'react';
+import { StatusBar, View } from 'react-native';
 import SafeAreaWrapper from '../../../Layout/SafeAreaWrapper';
-import { resetRoot } from '../../../navigation/navigationRef';
-import { AppRoute } from '../../../route';
+import useMeetingPip from '../../../hooks/commons/meeting/useMeetingPip';
 import meetingStyles from '../../../styled/MeetingScreen.styled';
-import theme from '../../../styled/theme.styled';
-import MeetingController from './Components/MeetingController';
+import useMeetingStore from '../../../zustand/stores/useMeetingStore';
 
 export const MeetingScreen: React.FC = () => {
-    const [isMuted, setIsMuted] = useState(false);
-    const [isCamOn, setIsCamOn] = useState(true);
+  const navigation = useNavigation<any>();
+  const { enterInAppPip } = useMeetingPip();
 
-    const handleEndCall = () => {
-        resetRoot(AppRoute.CONSULTATION_COMPLETED);
-    };
+  const setPipMode = useMeetingStore(state => state.setPipMode);
+  const callState = useMeetingStore(state => state.callState);
+  const hasToken = useMeetingStore(state => Boolean(state.callInfo?.token));
 
-    return (
-        <SafeAreaWrapper style={meetingStyles.container}>
-            <StatusBar barStyle={'light-content'} />
-            <View style={meetingStyles.videoContainer}>
-                <View style={meetingStyles.videoPlaceholder}>
-                    <View style={meetingStyles.doctorAvatarCircle}>
-                        <Text style={meetingStyles.doctorAvatarTxt}>S</Text>
-                    </View>
-                </View>
+  // On screen focus, ensure pipMode is NORMAL, unless the system PiP window is what brought
+  // us back here and is still open.
+  useFocusEffect(
+    useCallback(() => {
+      if (useMeetingStore.getState().pipMode !== 'NATIVE_PIP') {
+        setPipMode('NORMAL');
+      }
+    }, [setPipMode])
+  );
 
-                <View style={meetingStyles.headerBar}>
-                    <View style={meetingStyles.doctorInfoCol}>
-                        <Text style={meetingStyles.doctorName}>Sahil Mallick</Text>
-                        <Text style={meetingStyles.statusText}>WAITING FOR DOCTOR...</Text>
-                    </View>
+  // If call ended or no active session, go back
+  useEffect(() => {
+    if (!hasToken || callState === 'ENDED') {
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      }
+    }
+  }, [hasToken, callState, navigation]);
 
-                    <View style={meetingStyles.timersCol}>
-                        <View style={meetingStyles.leftBadgeRow}>
-                            <Text style={meetingStyles.leftLbl}>LEFT</Text>
-                            <Text style={meetingStyles.leftValue}>30:00</Text>
-                        </View>
-                    </View>
-                </View>
-                <View style={meetingStyles.localContainer}>
-                    <View style={meetingStyles.localVideoMock}>
-                        <Text style={{ color: theme.colors.surface, fontSize: 16, fontWeight: '700' }}>👤</Text>
-                    </View>
-                </View>
+  // Intercept back button / swipe back to enter In-App PiP rather than dropping the call
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e: any) => {
+      const { callState: currentState, callInfo, pipMode } = useMeetingStore.getState();
+      if (currentState === 'ENDED' || currentState === 'IDLE' || !callInfo?.token) {
+        return;
+      }
 
-                <MeetingController
-                    isMuted={isMuted}
-                    isCamOn={isCamOn}
-                    handleEndCall={handleEndCall}
-                    setIsMuted={setIsMuted}
-                    setIsCamOn={setIsCamOn}
-                />
-            </View>
-        </SafeAreaWrapper>
-    );
+      // The system PiP window is already showing the call, so leave it alone.
+      if (pipMode === 'NATIVE_PIP') {
+        return;
+      }
+
+      // User pressed back or swiped back during active call -> minimize to In-App PIP
+      e.preventDefault();
+      enterInAppPip();
+      navigation.dispatch(e.data.action);
+    });
+
+    return unsubscribe;
+  }, [navigation, enterInAppPip]);
+
+  return (
+    <SafeAreaWrapper style={meetingStyles.container} backgroundColor="#0F172A">
+      <StatusBar barStyle="light-content" />
+      <View style={meetingStyles.videoContainer} />
+    </SafeAreaWrapper>
+  );
 };
 
 export default MeetingScreen;

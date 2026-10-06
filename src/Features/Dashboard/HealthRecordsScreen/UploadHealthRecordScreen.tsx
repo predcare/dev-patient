@@ -25,7 +25,7 @@ export const UploadHealthRecordScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const { hideLoader, showLoader } = useLoadingStore();
-  const { appointmentId } = useMeetingStore(state => state);
+  const appointmentId = useMeetingStore(state => state.appointmentId);
   const { mutate: uploadEmrMutation, isPending: isUploading } = useUploadEMR();
 
   const {
@@ -79,7 +79,7 @@ export const UploadHealthRecordScreen: React.FC = () => {
 
   const handleHeaderBack = () => {
     if (currentStep === 1) {
-      navigation.goBack();
+      navigation.navigate(AppRoute.HEALTH_RECORDS);
     } else if (currentStep === 2) {
       setCurrentStep(1);
     } else {

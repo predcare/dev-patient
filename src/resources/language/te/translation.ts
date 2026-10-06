@@ -302,6 +302,8 @@ export const teluguTranslations = {
     inPerson: 'ప్రత్యక్షంగా',
     getDirections: 'దిశలను పొందండి',
     joinVideoCall: 'వీడియో కాల్‌లో చేరండి',
+    returnToCall: 'కాల్‌కి తిరిగి వెళ్లండి',
+    rejoin: 'మళ్ళీ చేరండి',
     viewDetails: "వివరాలను చూడండి",
     reschedule: 'రీషెడ్యూల్ చేయండి',
     cancel: 'రద్దు చేయి',
