@@ -37,14 +37,14 @@ export const consultationCompletedStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   heading: {
-    fontSize: 22,
-    fontWeight: '800',
+    fontSize: 15,
+    fontWeight: '600',
     color: theme.colors.textPrimary,
     textAlign: 'center',
     marginBottom: 4,
   },
   subheading: {
-    fontSize: 13,
+    fontSize: 11,
     color: theme.colors.textSecondary,
     textAlign: 'center',
     paddingHorizontal: 20,
@@ -85,8 +85,8 @@ export const consultationCompletedStyles = StyleSheet.create({
   },
   doctorAvatarTxt: {
     color: theme.colors.surface,
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '600',
   },
   verifiedBadge: {
     position: 'absolute',
@@ -99,15 +99,15 @@ export const consultationCompletedStyles = StyleSheet.create({
     flex: 1,
   },
   doctorName: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '600',
     color: theme.colors.textPrimary,
     marginBottom: 2,
   },
   doctorSpecialty: {
-    fontSize: 13,
+    fontSize: 12,
     color: theme.colors.primary,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 2,
   },
   doctorClinic: {
@@ -211,13 +211,13 @@ export const consultationCompletedStyles = StyleSheet.create({
   },
   gridLabel: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '500',
     color: theme.colors.textMuted,
     letterSpacing: 0.5,
   },
   gridValue: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '500',
     color: theme.colors.textPrimary,
   },
 
@@ -321,13 +321,13 @@ export const consultationCompletedStyles = StyleSheet.create({
     flex: 1,
   },
   rxTitle: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '500',
     color: theme.colors.textPrimary,
     marginBottom: 2,
   },
   rxSubtitle: {
-    fontSize: 12,
+    fontSize: 10,
     color: theme.colors.textSecondary,
   },
   rxActionChip: {
@@ -344,7 +344,7 @@ export const consultationCompletedStyles = StyleSheet.create({
   rxActionChipText: {
     color: theme.colors.primary,
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '500',
   },
 
   // Action Buttons
@@ -361,8 +361,8 @@ export const consultationCompletedStyles = StyleSheet.create({
   },
   primaryBtnTxt: {
     color: theme.colors.surface,
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '500',
   },
   secondaryBtn: {
     width: '100%',
@@ -379,8 +379,8 @@ export const consultationCompletedStyles = StyleSheet.create({
   },
   secondaryBtnTxt: {
     color: theme.colors.primary,
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '500',
   },
 });
 

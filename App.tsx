@@ -3,6 +3,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import BackdropLoader from './src/components/commons/BackdropLoader/BackdropLoader';
 import EventListener from './src/components/commons/EventListener/EventListener';
 import GlobalIncomingCallBanner from './src/components/commons/IncomingCallBanner/GlobalIncomingCallBanner';
+import GlobalNoInternetBlocker from './src/components/commons/Network/GlobalNoInternetBlocker';
+import GlobalOfflineBanner from './src/components/commons/Network/GlobalOfflineBanner';
+import NetworkEventListener from './src/components/commons/Network/NetworkEventListener';
 import GlobalPopupAlert from './src/components/commons/PopupAlert/GlobalPopupAlert';
 import SocketListeners from './src/components/commons/Sockets/SocketListeners';
 import SocketProvider from './src/components/commons/Sockets/SocketProvider';
@@ -20,6 +23,7 @@ function App() {
       <SafeAreaProvider>
         <LanguageProvider>
           <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+          <NetworkEventListener />
           <SocketProvider />
           <SocketListeners />
           <AppNavigator />
@@ -27,9 +31,11 @@ function App() {
           <EventListener />
           <NotificationEventListener />
           <GlobalIncomingCallBanner />
+          <GlobalOfflineBanner />
           <GlobalToast />
           <GlobalPopupAlert />
           <BackdropLoader />
+          <GlobalNoInternetBlocker />
         </LanguageProvider>
       </SafeAreaProvider>
     </ReactQueryProvider>

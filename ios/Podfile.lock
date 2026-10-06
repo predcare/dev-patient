@@ -1293,6 +1293,28 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - react-native-netinfo (12.0.1):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-bridging
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - react-native-razorpay (3.0.0):
     - hermes-engine
     - razorpay-pod
@@ -1954,6 +1976,7 @@ DEPENDENCIES:
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
   - React-mutationobservernativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/mutationobserver`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
+  - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-razorpay (from `../node_modules/react-native-razorpay`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-webrtc (from `../node_modules/@videosdk.live/react-native-webrtc`)"
@@ -2112,6 +2135,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/mutationobserver"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
+  react-native-netinfo:
+    :path: "../node_modules/@react-native-community/netinfo"
   react-native-razorpay:
     :path: "../node_modules/react-native-razorpay"
   react-native-safe-area-context:
@@ -2265,6 +2290,7 @@ SPEC CHECKSUMS:
   React-microtasksnativemodule: 269f81deee27a2a9bedb6b2d1088c1ae93de9bd3
   React-mutationobservernativemodule: 877e9f730e0d8175c2e952901b55c170fc3d372f
   react-native-image-picker: 870b31525256975a2d4b6b20a54db9b380cd725d
+  react-native-netinfo: 58601963060e4df0c1b6b6980d4f24ce2751e64c
   react-native-razorpay: e34b010d462fdbf2cba24ac6484c0ade76545e74
   react-native-safe-area-context: f2bf5d3db254014a48910436c4a58ab0c4e2fe1f
   react-native-webrtc: ff48005960f5d078ed65ff0160034b312746f42d
@@ -2320,4 +2346,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: d1a6cabc7a2ea2d802252e47491fa11dbfb8f049
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.17.0

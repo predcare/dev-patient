@@ -5,7 +5,6 @@ import Header from '../../../Layout/Header';
 import SafeAreaWrapper from '../../../Layout/SafeAreaWrapper';
 import {
     CalendarIcon,
-    CheckBadgeIcon,
     CheckIcon,
     ClockIcon,
     HomeIcon,
@@ -67,6 +66,7 @@ export const ConsultationCompletedScreen: React.FC = () => {
             <ScrollView
                 contentContainerStyle={consultationCompletedStyles.content}
                 showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps='handled'
             >
                 <View style={consultationCompletedStyles.heroSection}>
                     <View style={consultationCompletedStyles.checkCircleOuter}>
@@ -81,17 +81,6 @@ export const ConsultationCompletedScreen: React.FC = () => {
                 </View>
                 <View style={consultationCompletedStyles.card}>
                     <View style={consultationCompletedStyles.doctorRow}>
-                        <View style={consultationCompletedStyles.doctorAvatarWrap}>
-                            <View style={consultationCompletedStyles.doctorAvatar}>
-                                <Text style={consultationCompletedStyles.doctorAvatarTxt}>
-                                    {STATIC_CONSULTATION.doctorInitial}
-                                </Text>
-                            </View>
-                            <View style={consultationCompletedStyles.verifiedBadge}>
-                                <CheckBadgeIcon size={16} color={theme.colors.primary} />
-                            </View>
-                        </View>
-
                         <View style={consultationCompletedStyles.doctorDetails}>
                             <Text style={consultationCompletedStyles.doctorName}>
                                 {STATIC_CONSULTATION.doctorName}
