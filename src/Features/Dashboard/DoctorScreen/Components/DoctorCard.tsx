@@ -12,7 +12,8 @@ export interface DoctorCardProps {
   clinicName: string;
   specialization: string;
   profile_image: string;
-  onClinicPress?: () => void
+  isAvailable?: boolean;
+  onClinicPress?: () => void;
 }
 
 export const DoctorCard: React.FC<DoctorCardProps> = ({
@@ -20,9 +21,10 @@ export const DoctorCard: React.FC<DoctorCardProps> = ({
   name,
   profile_image,
   specialization,
+  isAvailable,
   onBookPress,
   onProfilePress,
-  onClinicPress
+  onClinicPress,
 }) => {
   const { t } = useTranslation();
 
@@ -58,9 +60,7 @@ export const DoctorCard: React.FC<DoctorCardProps> = ({
               <Text style={doctorStyles.clinicName} numberOfLines={1}>
                 {clinicName}
               </Text>
-              {onClinicPress ? (
-                <ChevronRightIcon size={11} color={theme.colors.primary} />
-              ) : null}
+              {onClinicPress ? <ChevronRightIcon size={11} color={theme.colors.primary} /> : null}
             </TouchableOpacity>
           ) : null}
         </View>
@@ -111,8 +111,12 @@ export const DoctorCard: React.FC<DoctorCardProps> = ({
         >
           <Text style={doctorStyles.profileBtnTxt}>{t('commons.profile')}</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity style={doctorStyles.bookBtn} onPress={onBookPress} activeOpacity={0.85}>
+        <TouchableOpacity
+          style={[doctorStyles.bookBtn, !isAvailable && { opacity: 0.6 }]}
+          onPress={onBookPress}
+          activeOpacity={0.85}
+          disabled={!isAvailable}
+        >
           <Text style={doctorStyles.bookBtnTxt}>{t('commons.bookNow')}</Text>
         </TouchableOpacity>
       </View>

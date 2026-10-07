@@ -28,3 +28,8 @@ export const deleteEmr = async (id: number) => {
   const res = await axiosInstance.delete<ICommonRoot>(`${endpoints.emr.delete(id)}`);
   return res.data;
 };
+
+export const shareToDoctor = async (body: { document_id: number; user_ids: string[] }) => {
+  const res = await axiosInstance.post<ICommonRoot>(`${endpoints.emr.shareToDocs}`, body);
+  return res.data;
+};

@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { EMRQuerykeys } from '../query.keys';
-import { deleteEmr, getCatWiseEmrs, getEmrCategories, uploadEmr } from './emr.funcs';
+import { deleteEmr, getCatWiseEmrs, getEmrCategories, shareToDoctor, uploadEmr } from './emr.funcs';
 
 export const useGetEMRCats = () => {
   return useQuery({
@@ -34,5 +34,11 @@ export const useDeleteEMR = () => {
   return useMutation({
     mutationKey: [EMRQuerykeys.DELETE_EMR],
     mutationFn: deleteEmr,
+  });
+};
+export const useShareToDoctor = () => {
+  return useMutation({
+    mutationKey: [EMRQuerykeys.SHARE_TO_DOCTOR],
+    mutationFn: shareToDoctor,
   });
 };

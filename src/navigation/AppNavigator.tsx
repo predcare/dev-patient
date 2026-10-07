@@ -9,6 +9,7 @@ import AppointmentDetailsScreen from '../Features/Dashboard/AppointmentScreen/Ap
 import AppointmentsScreen from '../Features/Dashboard/AppointmentScreen/AppointmentsScreen';
 import BookAppointmentScreen from '../Features/Dashboard/AppointmentScreen/BookAppointmentScreen';
 import BookingSuccessScreen from '../Features/Dashboard/AppointmentScreen/BookingSuccessScreen';
+import RescheduledScreen from '../Features/Dashboard/AppointmentScreen/RescheduledScreen';
 import ClinicDetailsScreen from '../Features/Dashboard/DoctorScreen/ClinicDetailsScreen';
 import DoctorProfileScreen from '../Features/Dashboard/DoctorScreen/DoctorProfileScreen';
 import DoctorScreen from '../Features/Dashboard/DoctorScreen/DoctorScreen';
@@ -71,6 +72,7 @@ export const AppNavigator: React.FC = () => {
         <Stack.Screen name="BookingSuccess" component={BookingSuccessScreen} />
         <Stack.Screen name="Schedule" component={AppointmentsScreen} />
         <Stack.Screen name="AppointmentDetails" component={AppointmentDetailsScreen} />
+        <Stack.Screen name="RescheduleAppointment" component={RescheduledScreen} />
         <Stack.Screen name="Reports" component={ReportsScreen} />
         <Stack.Screen name="PrescriptionsList" component={PrescriptionsScreen} />
         <Stack.Screen name="PrescriptionDetail" component={PrescriptionDetailScreen} />

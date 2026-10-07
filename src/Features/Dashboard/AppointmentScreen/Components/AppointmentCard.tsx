@@ -30,6 +30,7 @@ export interface AppointmentCardProps {
   onCancelPress: () => void;
   onOpenDirections?: () => void;
   onView?: () => void;
+  isApptExpired?: boolean;
 }
 
 export const AppointmentCard: React.FC<AppointmentCardProps> = ({
@@ -49,6 +50,7 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
   onReschedule,
   onOpenDirections,
   onView,
+  isApptExpired,
 }) => {
   const { t } = useTranslation();
 
@@ -64,6 +66,7 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
     }
     return t('appointments.joinVideoCall');
   }, [isCurrentCallActive, apptStatus, t]);
+
 
   const statusConfig = useMemo(() => {
     const s = String(apptStatus || '')

@@ -206,6 +206,7 @@ export const PrescriptionsScreen: React.FC = () => {
                     isBackBtn={false}
                     title={t('prescriptionsScreen.title')}
                     subTitle={t('prescriptionsScreen.subTitle')}
+                    isLang={false}
                 />
             }
         >

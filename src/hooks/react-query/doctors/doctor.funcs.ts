@@ -64,6 +64,21 @@ export const getDoctorAvailDates = async (params?: {
   return res.data;
 };
 
+export const getDoctorRescheduledAvailDates = async (params?: {
+  doctor_id: number;
+  consultation_type: string;
+  clinic_id: number;
+  slot_duration: number;
+}) => {
+  const res = await axiosInstance.get<IRootResponse<string[]>>(
+    `${endpoints.doctors.rescheduleAvailDates}`,
+    {
+      params,
+    }
+  );
+  return res.data;
+};
+
 export const getDoctorTimingsByDate = async (params?: {
   doctor_id: number;
   date: string;

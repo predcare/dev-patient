@@ -131,9 +131,10 @@ export const MyDoctorsSection: React.FC = () => {
                 </View>
 
                 <TouchableOpacity
-                  style={styles.consultBtn}
+                  style={[styles.consultBtn, !doc?.next_available_date && { opacity: 0.6 }]}
                   onPress={() => handleDoctorPress(Number(doc?.user_id), Number(doc?.clinic?.id))}
                   activeOpacity={0.85}
+                  disabled={!doc?.next_available_date}
                 >
                   <Text style={styles.consultBtnText}>{t('commons.consult')}</Text>
                 </TouchableOpacity>

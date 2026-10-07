@@ -5,6 +5,7 @@ import {
   getDoctorAvailDates,
   getDoctorClinicSummary,
   getDoctorDetails,
+  getDoctorRescheduledAvailDates,
   getDoctorTimingsByDate,
   getMyDoctors,
   IGetDoctorsQueryParams,
@@ -102,4 +103,24 @@ export const useGetMyDoctors = () =>
     queryKey: [DoctorQueryKeys.MY_DOCS],
     queryFn: () => getMyDoctors(),
     select: v => v,
+  });
+
+// Doctor Rescheduled Available Dates
+export const useDoctorRescheduledAvailDates = (params: {
+  doctorId: number;
+  consultation_type: string;
+  clinicId: number;
+  slot_duration: number;
+}) =>
+  useQuery({
+    queryKey: [DoctorQueryKeys.GET_RESCHEDULED_AVAIL_DATES, params],
+    queryFn: () =>
+      getDoctorRescheduledAvailDates({
+        doctor_id: params?.doctorId,
+        consultation_type: params?.consultation_type,
+        clinic_id: params?.clinicId,
+        slot_duration: params?.slot_duration,
+      }),
+    select: v => v.data,
+    enabled: Boolean(params?.doctorId && params?.slot_duration),
   });

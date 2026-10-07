@@ -8,6 +8,7 @@ import {
   getFamilyMemberInfo,
   getFamilyMembers,
   getProfile,
+  switchAccount,
   updateProfile,
 } from './profile.funcs';
 
@@ -82,5 +83,12 @@ export const useEditFamilyMember = () => {
         date_of_birth: string;
       };
     }) => editFamilyMember(id, body),
+  });
+};
+
+// Switch Account
+export const useSwitchAccount = () => {
+  return useMutation({
+    mutationFn: switchAccount,
   });
 };

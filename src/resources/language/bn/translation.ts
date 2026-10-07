@@ -76,7 +76,7 @@ export const banglaTranslations = {
     cancel: 'বাতিল করুন',
   },
   dashboard: {
-    viewingMember: '{{name}}{{relation}} দেখছেন',
+    viewingMember: '{{name}} দেখছেন',
     completeProfileTitle: 'আপনার প্রোফাইল সম্পূর্ণ করুন',
     completeProfileSubtitle: 'আপনার সেবার অভিজ্ঞতাকে আরও উন্নত করতে আমাদের সাহায্য করুন।',
     finishSetup: 'সেটআপ সম্পূর্ণ করুন',

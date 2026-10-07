@@ -37,6 +37,7 @@ export const endpoints = {
     getFamilyMemberInfo: (id: number) => `/users/patient/family-members/${id}`,
     familyMemberDelete: (id: number) => `/users/patient/family-members/${id}`,
     familyMemberEdit: (id: number) => `/users/patient/family-members/${id}`,
+    switchAccount: '/users/switch-account',
   },
   doctors: {
     getAll: '/patients/doctors',
@@ -46,6 +47,7 @@ export const endpoints = {
     doctorAvailDates: '/doctor-availabilities/available-dates',
     getSlotsByDate: '/doctor-availabilities/slots-by-date',
     myDocs: '/patients/my-doctors',
+    rescheduleAvailDates: '/doctor-availabilities/reschedule/available-dates',
   },
   clinics: {
     getInfo: (clinicId: string | number) => `/clinics/${clinicId}`,
@@ -58,6 +60,7 @@ export const endpoints = {
     myAppointments: '/appointments/my-appointments',
     getToken: (appointmentId: number | string) => `/appointments/${appointmentId}/video-token`,
     cancelAppt: (appointmentId: number | string) => `/appointments/${appointmentId}/cancel`,
+    rescheduleAppt: (appointmentId: number | string) => `/appointments/${appointmentId}/reschedule`,
   },
   prescriptions: {
     getAll: '/prescriptions/patient-my-prescriptions',
@@ -69,6 +72,7 @@ export const endpoints = {
     catWiseEmrs: '/emr/patient/documents',
     uploadEMr: '/emr/upload',
     delete: (id: number) => `/emr/patient/documents/${id}`,
+    shareToDocs: '/emr/patient/documents/share',
   },
   payments: {
     verifyPayment: '/payments/verify-payment',

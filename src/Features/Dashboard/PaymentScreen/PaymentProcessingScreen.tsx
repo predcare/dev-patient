@@ -221,6 +221,7 @@ export const PaymentProcessingScreen: React.FC = () => {
           successTimeoutRef.current = setTimeout(() => {
             isAllowedNavigationRef.current = true;
             navigation.replace(AppRoute.BOOKING_SUCCESS, {
+              appointmentId: statusData?.appointment_id,
               bookingData: {
                 ...bookingData,
                 ...statusData,

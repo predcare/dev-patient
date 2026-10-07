@@ -295,6 +295,11 @@ export const bookAppointmentStyles = StyleSheet.create({
     backgroundColor: theme.colors.primarySoft,
     borderColor: theme.colors.primary,
   },
+  consultationChipDisabled: {
+    opacity: 0.5,
+    backgroundColor: theme.colors.primarySoft,
+    borderColor: theme.colors.primaryLight,
+  },
   consultationChipText: {
     fontSize: 12,
     fontWeight: '500',

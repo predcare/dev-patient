@@ -78,7 +78,7 @@ export const tamilTranslations = {
     cancel: 'ரத்துசெய்',
   },
   dashboard: {
-    viewingMember: '{{name}}{{relation}} பார்க்கப்படுகின்றது',
+    viewingMember: '{{name}} பார்க்கப்படுகின்றது',
     completeProfileTitle: 'உங்கள் சுயவிவரத்தை முழுமையாக்கவும்',
     completeProfileSubtitle: 'உங்கள் சிகிச்சை அனுபவத்தை மேம்படுத்த எங்களுக்கு உதவுங்கள்.',
     finishSetup: 'அமைப்பை முடிக்கவும்',

@@ -8,4 +8,5 @@ export enum SocketEvents {
   INCOMING_CALL = 'incoming_call',
   CALL_CONNECTED = 'call_connected',
   TIME_UP_VIDEO_CALL_ENDED = 'time_up_video_call_ended',
+  PAYMENT_CANCEL_USER = 'payment_cancel_user',
 }

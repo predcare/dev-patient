@@ -77,7 +77,7 @@ export const teluguTranslations = {
     cancel: 'రద్దు చేయి',
   },
   dashboard: {
-    viewingMember: '{{name}}{{relation}} చూస్తున్నారు',
+    viewingMember: '{{name}} చూస్తున్నారు',
     completeProfileTitle: 'మీ ప్రొఫైల్‌ను పూర్తి చేయండి',
     completeProfileSubtitle: 'మీ సంరక్షణ అనుభవాన్ని వ్యక్తిగతీకరించడంలో మాకు సహాయపడండి.',
     finishSetup: 'సెటప్ పూర్తి చేయండి',
@@ -163,7 +163,8 @@ export const teluguTranslations = {
     closed: 'మూసివేయబడింది',
     invalidTicketId: 'చెల్లని టిక్కెట్ ID',
     deleteTicketTitle: 'టిక్కెట్‌ను తొలగించు',
-    deleteTicketConfirm: 'మీరు ఖచ్చితంగా #{{ticketNo}} టిక్కెట్‌ను తొలగించాలనుకుంటున్నారా? ఈ చర్యను రద్దు చేయడం సాధ్యపడదు.',
+    deleteTicketConfirm:
+      'మీరు ఖచ్చితంగా #{{ticketNo}} టిక్కెట్‌ను తొలగించాలనుకుంటున్నారా? ఈ చర్యను రద్దు చేయడం సాధ్యపడదు.',
     yesDelete: 'అవును, తొలగించు',
     deletingTicket: 'టిక్కెట్ తొలగించబడుతోంది...',
     ticketDeletedSuccess: 'మద్దతు టిక్కెట్ విజయవంతంగా తొలగించబడింది',
@@ -174,13 +175,17 @@ export const teluguTranslations = {
     tryAgain: 'మళ్లీ ప్రయత్నించండి',
     goBack: 'వెనక్కి వెళ్లండి',
     noOpenTicketsTitle: 'ఓపెన్ టిక్కెట్లు ఏవీ లేవు',
-    noOpenTicketsDesc: 'ప్రశ్న ఉందా లేదా సమస్యను ఎదుర్కొంటున్నారా? మద్దతు టిక్కెట్‌ను సమర్పించండి మరియు మా బృందం త్వరలో మిమ్మల్ని సంప్రదిస్తుంది.',
+    noOpenTicketsDesc:
+      'ప్రశ్న ఉందా లేదా సమస్యను ఎదుర్కొంటున్నారా? మద్దతు టిక్కెట్‌ను సమర్పించండి మరియు మా బృందం త్వరలో మిమ్మల్ని సంప్రదిస్తుంది.',
     noResolvedTicketsTitle: 'పరిష్కరించబడిన టిక్కెట్లు లేవు',
-    noResolvedTicketsDesc: 'మీ పరిష్కరించబడిన మరియు మూసివేయబడిన అన్ని అభ్యర్థనలు ఇక్కడ ఆర్కైవ్ చేయబడతాయి.',
+    noResolvedTicketsDesc:
+      'మీ పరిష్కరించబడిన మరియు మూసివేయబడిన అన్ని అభ్యర్థనలు ఇక్కడ ఆర్కైవ్ చేయబడతాయి.',
     raiseTicket: 'టిక్కెట్‌ను సమర్పించండి',
     unableToLoadTicketDetails: 'టిక్కెట్ వివరాలను లోడ్ చేయడం సాధ్యపడలేదు',
-    errorLoadingTicketDetails: 'ఈ టిక్కెట్‌ను పొందడంలో సమస్య ఏర్పడింది. దయచేసి మీ కనెక్షన్‌ను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.',
-    introText: 'ఈరోజు మేము మీకు ఎలా సహాయపడగలము? మా మద్దతు బృందం సాధారణంగా పని వేళల్లో 2 గంటల్లో ప్రతిస్పందిస్తుంది.',
+    errorLoadingTicketDetails:
+      'ఈ టిక్కెట్‌ను పొందడంలో సమస్య ఏర్పడింది. దయచేసి మీ కనెక్షన్‌ను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.',
+    introText:
+      'ఈరోజు మేము మీకు ఎలా సహాయపడగలము? మా మద్దతు బృందం సాధారణంగా పని వేళల్లో 2 గంటల్లో ప్రతిస్పందిస్తుంది.',
     categoryLabel: 'వర్గం',
     loadingCategories: 'వర్గాలు లోడ్ అవుతున్నాయి...',
     selectCategory: 'ఒక వర్గాన్ని ఎంచుకోండి',
@@ -189,7 +194,8 @@ export const teluguTranslations = {
     attachScreenshotsTitle: 'స్క్రీన్‌షాట్‌లు లేదా పత్రాలను జత చేయండి (ఐచ్ఛికం)',
     attachmentsCounter: 'గరిష్టంగా {{max}} చిత్రాలు • {{count}}/{{max}} ఎంచుకోబడ్డాయి',
     maxAttachmentsWarning: 'మీరు {{count}} చిత్రాలను మాత్రమే అప్‌లోడ్ చేయగలరు',
-    privacyNotice: 'దయచేసి పూర్తి ప్రిస్క్రిప్షన్ వివరాలు లేదా పాస్‌వర్డ్‌ల వంటి సున్నితమైన వైద్య సమాచారాన్ని చేర్చకుండా చూసుకోండి.',
+    privacyNotice:
+      'దయచేసి పూర్తి ప్రిస్క్రిప్షన్ వివరాలు లేదా పాస్‌వర్డ్‌ల వంటి సున్నితమైన వైద్య సమాచారాన్ని చేర్చకుండా చూసుకోండి.',
     submitTicket: 'టిక్కెట్‌ను సమర్పించండి',
     pleaseSelectCategory: 'దయచేసి ఒక వర్గాన్ని ఎంచుకోండి',
     categoryRequired: 'వర్గం అవసరం',
@@ -205,12 +211,14 @@ export const teluguTranslations = {
     adminReplies: 'నిర్వాహక ప్రతిస్పందనలు',
     supportTeam: 'మద్దతు బృందం',
     noRepliesYetTitle: 'ఇంకా సమాధానాలు లేవు',
-    noRepliesYetDesc: 'మా మద్దతు బృందం మీ టిక్కెట్‌ను సమీక్షిస్తోంది మరియు త్వరలో ప్రతిస్పందిస్తుంది.',
+    noRepliesYetDesc:
+      'మా మద్దతు బృందం మీ టిక్కెట్‌ను సమీక్షిస్తోంది మరియు త్వరలో ప్రతిస్పందిస్తుంది.',
   },
   addNewMember: {
     addFamilyMemberTitle: 'కుటుంబ సభ్యుడిని జోడించండి',
     editFamilyMemberTitle: 'కుటుంబ సభ్యుడిని సవరించండి',
-    inheritedInfoBanner: 'పొందబడిన సంప్రదింపు సమాచారం: ఫోన్, ఇమెయిల్ మరియు చిరునామా మీ ప్రాథమిక ఖాతా నుండి స్వయంచాలకంగా లింక్ చేయబడతాయి.',
+    inheritedInfoBanner:
+      'పొందబడిన సంప్రదింపు సమాచారం: ఫోన్, ఇమెయిల్ మరియు చిరునామా మీ ప్రాథమిక ఖాతా నుండి స్వయంచాలకంగా లింక్ చేయబడతాయి.',
     memberDetailsHeader: 'సభ్యుని వివరాలు',
     memberDetailsSub: 'సభ్యుని వ్యక్తిగత వివరాలను నమోదు చేయండి',
     fullName: 'పూర్తి పేరు',
@@ -267,7 +275,8 @@ export const teluguTranslations = {
     subTitle: 'షెడ్యూల్ & సందర్శనలు',
     upcoming: 'రాబోయేవి',
     completed: 'పూర్తయినవి',
-    activeCallToast: 'మీరు ప్రస్తుతం క్రియాశీల సంప్రదింపుల్లో ఉన్నారు. దయచేసి ముందుగా ఆ కాల్‌ను ముగించండి.',
+    activeCallToast:
+      'మీరు ప్రస్తుతం క్రియాశీల సంప్రదింపుల్లో ఉన్నారు. దయచేసి ముందుగా ఆ కాల్‌ను ముగించండి.',
     activeCallOngoing: 'యాక్టివ్ కాల్ కొనసాగుతోంది',
     permissionsRequired: 'సంప్రదింపులో చేరడానికి కెమెరా మరియు మైక్రోఫోన్ అనుమతులు అవసరం.',
     noApptId: 'టోకెన్ పొందడానికి చెల్లుబాటు అయ్యే అపాయింట్‌మెంట్ ID కనుగొనబడలేదు',
@@ -277,7 +286,8 @@ export const teluguTranslations = {
     doctorDefault: 'వైద్యులు',
     scheduledDate: 'షెడ్యూల్ చేసిన తేదీ',
     cancelAppointmentTitle: 'అపాయింట్‌మెంట్ రద్దు చేయండి',
-    cancelAppointmentConfirm: 'మీరు ఖచ్చితంగా {{date}}{{time}} నాడు {{doctorName}} తో మీ అపాయింట్‌మెంట్‌ను రద్దు చేయాలనుకుంటున్నారా?',
+    cancelAppointmentConfirm:
+      'మీరు ఖచ్చితంగా {{date}}{{time}} నాడు {{doctorName}} తో మీ అపాయింట్‌మెంట్‌ను రద్దు చేయాలనుకుంటున్నారా?',
     yesCancel: 'అవును, రద్దు చేయి',
     noKeep: 'వద్దు, ఉంచండి',
     cancellingAppointment: 'అపాయింట్‌మెంట్ రద్దు చేయబడుతోంది...',
@@ -304,7 +314,7 @@ export const teluguTranslations = {
     joinVideoCall: 'వీడియో కాల్‌లో చేరండి',
     returnToCall: 'కాల్‌కి తిరిగి వెళ్లండి',
     rejoin: 'మళ్ళీ చేరండి',
-    viewDetails: "వివరాలను చూడండి",
+    viewDetails: 'వివరాలను చూడండి',
     reschedule: 'రీషెడ్యూల్ చేయండి',
     cancel: 'రద్దు చేయి',
     statusOnline: 'ఆన్‌లైన్',
@@ -382,7 +392,8 @@ export const teluguTranslations = {
     morning: 'ఉదయం',
     afternoon: 'మధ్యాహ్నం',
     evening: 'సాయంత్రం',
-    unselectEdgeSlotsOnly: 'మీరు మీ ఎంపిక యొక్క ప్రారంభం లేదా ముగింపు నుండి మాత్రమే స్లాట్‌లను రద్దు చేయగలరు.',
+    unselectEdgeSlotsOnly:
+      'మీరు మీ ఎంపిక యొక్క ప్రారంభం లేదా ముగింపు నుండి మాత్రమే స్లాట్‌లను రద్దు చేయగలరు.',
     selectConsecutiveSlotsOnly: 'దయచేసి వరుస సమయ స్లాట్‌లను మాత్రమే ఎంచుకోండి.',
     noSlotsAvailable: 'ఈ తేదీన ఈ సంప్రదింపు రకానికి ఎటువంటి స్లాట్‌లు అందుబాటులో లేవు.',
   },
@@ -406,7 +417,8 @@ export const teluguTranslations = {
   reportsScreen: {
     title: 'నివేదికలు',
     unableToLoadReports: 'నివేదికలను లోడ్ చేయడం సాధ్యపడలేదు',
-    unableToLoadReportsMessage: 'మీ నివేదికలు మరియు గణాంకాలను లోడ్ చేయడం సాధ్యపడలేదు. దయచేసి మళ్లీ ప్రయత్నించండి.',
+    unableToLoadReportsMessage:
+      'మీ నివేదికలు మరియు గణాంకాలను లోడ్ చేయడం సాధ్యపడలేదు. దయచేసి మళ్లీ ప్రయత్నించండి.',
     appointmentBreakdown: 'అపాయింట్‌మెంట్ వివరాలు',
     completed: 'పూర్తయినవి',
     inPerson: 'నేరుగా',

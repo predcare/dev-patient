@@ -76,7 +76,7 @@ export const urduTranslations = {
     cancel: 'منسوخ کریں',
   },
   dashboard: {
-    viewingMember: '{{name}}{{relation}} دیکھ رہے ہیں',
+    viewingMember: '{{name}} دیکھ رہے ہیں',
     completeProfileTitle: 'اپنا پروفائل مکمل کریں',
     completeProfileSubtitle: 'اپنے علاج کے تجربے کو بہتر بنانے میں ہماری مدد کریں۔',
     finishSetup: 'سیٹ اپ مکمل کریں',
@@ -411,7 +411,8 @@ export const urduTranslations = {
   reportsScreen: {
     title: 'رپورٹس',
     unableToLoadReports: 'رپورٹس لوڈ کرنے میں ناکام',
-    unableToLoadReportsMessage: 'آپ کی رپورٹس اور اعداد و شمار لوڈ کرنے میں ناکام۔ براہ کرم دوبارہ کوشش کریں۔',
+    unableToLoadReportsMessage:
+      'آپ کی رپورٹس اور اعداد و شمار لوڈ کرنے میں ناکام۔ براہ کرم دوبارہ کوشش کریں۔',
     appointmentBreakdown: 'ملاقاتوں کی تفصیل',
     completed: 'مکمل',
     inPerson: 'روبرو',

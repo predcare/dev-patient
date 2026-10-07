@@ -2,14 +2,27 @@ import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, Text, TouchableOpacity, View } from 'react-native';
+import { queryClient } from '../../../../components/providers/ReactQueryProvider';
 import { AlertIcon } from '../../../../components/ui/icons';
-import { useGetFamilyMembers, useRevokeFamilyMember } from '../../../../hooks/react-query/profile/profile.hooks';
+import {
+  fetchProfileQuery,
+  useGetFamilyMembers,
+  useRevokeFamilyMember,
+  useSwitchAccount,
+} from '../../../../hooks/react-query/profile/profile.hooks';
+import { setItem, STORAGE_KEYS } from '../../../../lib/common/asyncStorage';
 import { capitalize, getInitials } from '../../../../lib/common/common.utils';
-import { showErrorToast, showInfoToast } from '../../../../lib/common/toast.utils';
+import { resetAndNavigate } from '../../../../lib/common/navigation.utils';
+import {
+  showErrorToast,
+  showInfoToast,
+  showSuccessToast,
+} from '../../../../lib/common/toast.utils';
 import { AppRoute } from '../../../../route';
 import settingStyles from '../../../../styled/SettingScreen.styled';
 import theme from '../../../../styled/theme.styled';
 import { useAlertStore } from '../../../../zustand/stores/useAlertStore';
+import { useAuthStore } from '../../../../zustand/stores/useAuthStore';
 import { useLoadingStore } from '../../../../zustand/stores/useLoadingStore';
 import FamilyMembersSkeleton from '../Skeletons/FamilyMembersSkeleton';
 
@@ -26,6 +39,8 @@ export interface FamilyMemberItemData {
 export const FamilyMembersCard: React.FC = () => {
   const navigation = useNavigation();
   const { t } = useTranslation();
+  const setUserData = useAuthStore(state => state.setUserData);
+  const currentUserId = useAuthStore(state => state.userData?.id);
   const { hideLoader, showLoader } = useLoadingStore(state => state);
   const { showConfirm } = useAlertStore(state => state);
   const {
@@ -36,6 +51,7 @@ export const FamilyMembersCard: React.FC = () => {
     refetch: refetchFamilyMembers,
   } = useGetFamilyMembers();
   const { mutate: revokeMember } = useRevokeFamilyMember();
+  const { mutate: switchAccount } = useSwitchAccount();
 
   const handleNewMember = (type: string, options?: { userId: number }) => {
     if (type === 'new') {
@@ -59,7 +75,7 @@ export const FamilyMembersCard: React.FC = () => {
         revokeMember(id, {
           onSuccess: async res => {
             if (res?.success) {
-              showErrorToast(res?.message || 'Member deleted successfully');
+              showSuccessToast(res?.message || 'Member deleted successfully');
               await refetchFamilyMembers();
               hideLoader();
             }
@@ -67,10 +83,54 @@ export const FamilyMembersCard: React.FC = () => {
           onError: () => {
             hideLoader();
           },
-          onSettled: () => {
-            hideLoader();
-          },
         });
+      },
+    });
+  };
+
+  const handleSwitchAccount = (id: string, name?: string) => {
+    if (!id) return showErrorToast('Invalid member ID');
+    if (String(id) === String(currentUserId)) {
+      return;
+    }
+
+    showConfirm({
+      title: `Switch to ${name ? capitalize(name) : 'this account'}`,
+      message: `Are you sure you want to switch to ${name ? name : 'this account'}?`,
+      buttonText: 'Switch',
+      cancelText: 'Cancel',
+      onConfirm: () => {
+        showLoader('Switching account...');
+        switchAccount(
+          { target_user_id: String(id) },
+          {
+            onSuccess: async res => {
+              if (res?.success && res?.data?.token) {
+                try {
+                  const token = res.data.token;
+                  await setItem(STORAGE_KEYS.AUTH_TOKEN, token);
+                  queryClient.clear();
+                  const profileRes = await fetchProfileQuery(true);
+                  if (profileRes?.data) {
+                    setUserData(profileRes.data);
+                  }
+
+                  showSuccessToast(res?.message || 'Account switched successfully');
+                  hideLoader();
+                  resetAndNavigate(navigation, AppRoute.SPLASH);
+                } catch (error) {
+                  hideLoader();
+                }
+              } else {
+                hideLoader();
+                showErrorToast(res?.message || 'Failed to switch account');
+              }
+            },
+            onSettled: () => {
+              hideLoader();
+            },
+          }
+        );
       },
     });
   };
@@ -115,7 +175,14 @@ export const FamilyMembersCard: React.FC = () => {
                 index < memberLists.length - 1 && settingStyles.memberRowBorder,
               ]}
             >
-              <TouchableOpacity style={settingStyles.memberMainPress} activeOpacity={0.7}>
+              <TouchableOpacity
+                style={settingStyles.memberMainPress}
+                activeOpacity={active ? 1 : 0.7}
+                onPress={() => {
+                  if (active) return;
+                  handleSwitchAccount(String(member?.user_id), member?.name);
+                }}
+              >
                 {member.profile_image ? (
                   <Image
                     source={{ uri: member.profile_image }}

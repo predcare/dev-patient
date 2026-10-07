@@ -76,7 +76,7 @@ export const englishTranslations = {
     cancel: 'Cancel',
   },
   dashboard: {
-    viewingMember: 'Viewing {{name}}{{relation}}',
+    viewingMember: 'Viewing {{name}}',
     completeProfileTitle: 'Complete Your Profile',
     completeProfileSubtitle: 'Help us personalize your care experience.',
     finishSetup: 'Finish Setup',
@@ -428,4 +428,3 @@ export const englishTranslations = {
     noInvoicesFound: 'No Invoices Found',
   },
 };
-

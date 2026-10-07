@@ -141,6 +141,7 @@ export interface MyDoctorsDoc {
   profile_image: any;
   specialization: string;
   sub_specializations: string[];
+  next_available_date: string;
   clinic: {
     id: string;
     name: string;

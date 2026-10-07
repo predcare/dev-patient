@@ -163,7 +163,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
                   renderItem={({ item }) => {
                     const meta = parseMetadata(item.metadata);
                     const title = formatActionTitle(item.event_action, item.event_category);
-                    const appointmentRef = meta.appointment_id;
+                    const appointmentRef = meta.appointment_ref;
                     const changedBy = meta.changed_by || meta.doctor_name;
                     const newStatus = meta.new_status;
                     return (
@@ -207,8 +207,8 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
                                     newStatus === 'completed'
                                       ? NotifificationModalStyles.successChip
                                       : newStatus === 'cancelled'
-                                      ? NotifificationModalStyles.dangerChip
-                                      : NotifificationModalStyles.accentChip,
+                                        ? NotifificationModalStyles.dangerChip
+                                        : NotifificationModalStyles.accentChip,
                                   ]}
                                 >
                                   <Text
@@ -217,8 +217,8 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
                                       newStatus === 'completed'
                                         ? NotifificationModalStyles.successChipText
                                         : newStatus === 'cancelled'
-                                        ? NotifificationModalStyles.dangerChipText
-                                        : NotifificationModalStyles.accentChipText,
+                                          ? NotifificationModalStyles.dangerChipText
+                                          : NotifificationModalStyles.accentChipText,
                                     ]}
                                   >
                                     {newStatus.replace('_', ' ')}

@@ -31,6 +31,7 @@ export interface IMyAppointmentDoc {
   meeting_id?: string;
   call_duration_seconds?: number;
   is_active: boolean;
+  appointment_duration: number;
   created_at: string;
   updated_at: string;
   doctorInfo: DoctorInfo;
@@ -143,6 +144,7 @@ export interface IApptInfoDoc {
   reminder_sent_at: any;
   created_at: string;
   updated_at: string;
+  appointment_duration: number;
   doctor: IApptInfoDoctor;
   patient: IApptInfoPatient;
   clinic: IApptInfoClinic;
@@ -272,4 +274,3 @@ export interface IBookingData {
   hideFee?: boolean;
   hide_fee?: boolean;
 }
-

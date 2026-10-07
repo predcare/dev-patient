@@ -32,6 +32,7 @@ import {
   openLocationOnMap,
 } from '../../../lib/common/common.utils';
 import { showErrorToast } from '../../../lib/common/toast.utils';
+import { replace } from '../../../navigation/navigationRef';
 import { AppRoute } from '../../../route';
 import { appointmentDetailsStyles } from '../../../styled/AppointmentDetailsScreen.styled';
 import theme from '../../../styled/theme.styled';
@@ -239,7 +240,7 @@ export const AppointmentDetailsScreen: React.FC = () => {
         <Header
           isBackBtn={true}
           title="Appointment Details"
-          onBackPress={() => navigation.goBack()}
+          onBackPress={() => replace(AppRoute.SCHEDULE)}
           isLang={false}
         />
       }
@@ -585,7 +586,7 @@ export const AppointmentDetailsScreen: React.FC = () => {
                     <Text
                       style={[
                         appointmentDetailsStyles.detailValue,
-                        { marginTop: 4, fontWeight: '500' },
+                        { marginTop: 4, fontWeight: '400' },
                       ]}
                     >
                       {typeof apptInfo.reason === 'string'

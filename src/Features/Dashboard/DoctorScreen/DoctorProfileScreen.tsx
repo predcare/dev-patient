@@ -46,6 +46,7 @@ export const DoctorProfileScreen: React.FC = () => {
             header={
                 <Header
                     isBackBtn={true}
+                    isLang={false}
                     title={t('doctorDetailsScreen.title')}
                     onBackPress={() => navigation.goBack()}
                 />
@@ -110,7 +111,7 @@ export const DoctorProfileScreen: React.FC = () => {
                                     ? t('doctorDetailsScreen.experienceYrs', {
                                         count: doctorDetailsData.experience_years,
                                     })
-                                    : t('commons.na')}
+                                    : 0}
                             </Text>
                             <Text style={doctorDetailsStyles.statLabel}>
                                 {t('doctorDetailsScreen.experience')}

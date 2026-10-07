@@ -469,13 +469,27 @@ export const PrescriptionDetailScreen: React.FC = () => {
 
           {/* Referral Specialist Card */}
           {Boolean(
-            rxInfo.referral_specialist || rxInfo.referral_doctor_hospital || rxInfo.referral_reason
+            rxInfo.referral_doctor_name ||
+            rxInfo.referral_specialist ||
+            rxInfo.referral_doctor_hospital ||
+            rxInfo.referral_reason
           ) && (
               <>
                 <SectionLabel title="REFERRAL SPECIALIST" />
                 <View style={prescriptionsStyles.detailCard}>
+                  {rxInfo.referral_doctor_name ? (
+                    <Text style={prescriptionsStyles.doctorName}>{rxInfo.referral_doctor_name}</Text>
+                  ) : null}
                   {rxInfo.referral_specialist ? (
-                    <Text style={prescriptionsStyles.doctorName}>{rxInfo.referral_specialist}</Text>
+                    <Text
+                      style={
+                        rxInfo.referral_doctor_name
+                          ? prescriptionsStyles.doctorSpec
+                          : prescriptionsStyles.doctorName
+                      }
+                    >
+                      {rxInfo.referral_specialist}
+                    </Text>
                   ) : null}
                   {rxInfo.referral_doctor_hospital ? (
                     <Text style={prescriptionsStyles.clinicName}>

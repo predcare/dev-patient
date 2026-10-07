@@ -6,6 +6,7 @@ import {
   TGetApptTokenRoot,
 } from '../../../typescripts/interfaces/appointments.interfaces';
 import { ICommonRoot } from '../../../typescripts/interfaces/common.interfaces';
+import { IRescheduleAppointment } from './payload.interfaces';
 
 export const createAppointment = async (body: any) => {
   const res = await axiosInstance.post<ICommonRoot>(endpoints.appointments.bookPatient, body);
@@ -28,6 +29,7 @@ export const getMyAppointments = async (params: {
   page?: number;
   limit?: number;
   search?: string;
+  consultation_type?: string;
 }) => {
   const res = await axiosInstance.get<MyAppointmentListRoot>(
     endpoints.appointments.myAppointments,
@@ -63,6 +65,16 @@ export const cancelMyAppt = async (body: {
 export const getApptInfo = async (appointmentId: number | string) => {
   const res = await axiosInstance.get<TApptInfoRoot>(
     `${endpoints.appointments.getInfo(appointmentId)}`
+  );
+  return res.data;
+};
+
+// Reschedule Appointments
+export const rescheduleMyAppt = async (body: IRescheduleAppointment) => {
+  const { appointment_id, ...rest } = body;
+  const res = await axiosInstance.patch<ICommonRoot>(
+    `${endpoints.appointments.rescheduleAppt(appointment_id)}`,
+    rest
   );
   return res.data;
 };

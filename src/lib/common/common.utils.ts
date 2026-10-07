@@ -238,3 +238,8 @@ export const formatFileSize = (sizeBytes?: number | string) => {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
+export const _isApptExpired = (apptDate: string, startTime: string) => {
+  const apptDateObj = new Date(`${apptDate} ${startTime}`);
+  const currentDate = new Date();
+  return apptDateObj < currentDate ? true : false;
+};

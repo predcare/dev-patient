@@ -294,4 +294,38 @@ export const headerStyles = StyleSheet.create({
     fontWeight: theme.fontWeight.bold,
     lineHeight: 12,
   },
+  memberBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.mintBg,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: theme.colors.mintBdr,
+  },
+  memberBannerIcon: {
+    fontSize: 16,
+    marginRight: 8,
+  },
+  memberBannerText: {
+    flex: 1,
+    fontSize: 12.5,
+    fontWeight: '500',
+    color: theme.colors.primaryDark,
+  },
+  memberBannerBack: {
+    backgroundColor: theme.colors.surface,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.mintBdr,
+  },
+  memberBannerBackText: {
+    fontSize: 11.5,
+    fontWeight: '600',
+    color: theme.colors.primary,
+  },
 });

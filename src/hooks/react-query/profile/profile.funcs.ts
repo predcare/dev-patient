@@ -60,3 +60,11 @@ export const getFamilyMemberInfo = async (id: number) => {
   );
   return res.data;
 };
+
+export const switchAccount = async (body: { target_user_id: string }) => {
+  const res = await axiosInstance.post<IRootResponse<{ user_id: string; token: string }>>(
+    endpoints.profile.switchAccount,
+    body
+  );
+  return res.data;
+};

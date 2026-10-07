@@ -76,7 +76,7 @@ export const hindiTranslations = {
     cancel: 'रद्द करें',
   },
   dashboard: {
-    viewingMember: '{{name}}{{relation}} को देख रहे हैं',
+    viewingMember: '{{name}} को देख रहे हैं',
     completeProfileTitle: 'अपनी प्रोफ़ाइल पूरी करें',
     completeProfileSubtitle: 'आपकी देखभाल के अनुभव को बेहतर बनाने में हमारी मदद करें।',
     finishSetup: 'सेटअप पूरा करें',

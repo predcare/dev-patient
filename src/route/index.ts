@@ -76,7 +76,13 @@ export type RootStackParamList = {
   BookingSuccess: { appointmentId?: string | number; bookingData?: any } | undefined;
   PrescriptionsList: undefined;
   PrescriptionDetail: { prescriptionId?: number | string } | undefined;
-  RescheduleAppointment: { appointmentId?: number | string; appointment?: any } | undefined;
+  RescheduleAppointment:
+    | {
+        appointmentId?: number | string;
+        doctorId?: number | string;
+        clinicId?: number | string;
+      }
+    | undefined;
   Meeting: { appointmentId?: number | string } | undefined;
   ConsultationCompleted: undefined;
   MainTabs?: { screen?: string } | undefined;

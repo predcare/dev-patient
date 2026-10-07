@@ -91,21 +91,22 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation, onFinish
 
     const startAuthentication = async () => {
       if (!isMounted) return;
-      const doctorData = await authenticateAndLoad();
-      // Move immediately after authentication/API completes
+      const patientData = await authenticateAndLoad();
       if (onFinish) {
         onFinish();
       } else if (navigation) {
-        if (doctorData) {
-          if (doctorData.has_accepted_policies) {
+        if (patientData) {
+          if (!patientData?.email_verified_at) {
+            resetAndNavigate(navigation, AppRoute.EMAIL_VERIFY);
+          } else if (patientData?.email_verified_at && !patientData.has_accepted_policies) {
+            resetAndNavigate(navigation, AppRoute.POLICY_ACCEPTANCE);
+          } else {
             const target = consumeTargetRoute();
             if (target && target.name !== AppRoute.HOME) {
               navigation?.reset({ index: 0, routes: [target as any] });
             } else {
               resetToMainTabs(navigation);
             }
-          } else {
-            resetAndNavigate(navigation, AppRoute.POLICY_ACCEPTANCE);
           }
         } else {
           resetToLogin(navigation);
@@ -125,7 +126,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation, onFinish
   }, [fadeAnim, scaleAnim, pulseAnim, navigation, onFinish, setUserData, logout]);
 
   return (
-    <SafeAreaWrapper backgroundColor="#FFFFFF" barStyle="dark-content" fullBleed={true}>
+    <SafeAreaWrapper backgroundColor="#FFFFFF" fullBleed={true}>
       <View style={Splashstyles.container}>
         <View style={Splashstyles.circleContainer}>
           <View style={[Splashstyles.circle, Splashstyles.circle1]} />

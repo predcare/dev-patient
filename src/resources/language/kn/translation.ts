@@ -77,7 +77,7 @@ export const kannadaTranslations = {
     cancel: 'ರದ್ದುಮಾಡಿ',
   },
   dashboard: {
-    viewingMember: '{{name}}{{relation}} ವೀಕ್ಷಿಸಲಾಗುತ್ತಿದೆ',
+    viewingMember: '{{name}} ವೀಕ್ಷಿಸಲಾಗುತ್ತಿದೆ',
     completeProfileTitle: 'ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಪೂರ್ಣಗೊಳಿಸಿ',
     completeProfileSubtitle: 'ನಿಮ್ಮ ಆರೈಕೆಯ ಅನುಭವವನ್ನು ಉತ್ತಮಗೊಳಿಸಲು ನಮಗೆ ಸಹಾಯ ಮಾಡಿ.',
     finishSetup: 'ಸೆಟಪ್ ಪೂರ್ಣಗೊಳಿಸಿ',

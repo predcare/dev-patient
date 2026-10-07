@@ -152,6 +152,7 @@ export const UpcomingAppointmentsCard: React.FC = () => {
     status: 'pending,confirmed,in_progress',
     limit: 3,
     page: 1,
+    consultation_type: "video,in-person"
   });
 
   const appointmentsList = upcomingAppts?.data || [];

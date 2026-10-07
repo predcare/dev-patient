@@ -3,12 +3,12 @@ import { Control, Controller, FieldErrors } from 'react-hook-form';
 import {
   ActivityIndicator,
   ScrollView,
-  Switch,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import CustomSwitch from '../../../../components/ui/CustomSwitch/CustomSwitch';
 import {
   CheckIcon,
   EditIcon,
@@ -206,11 +206,9 @@ export const StepDocumentDetails: React.FC<StepDocumentDetailsProps> = ({
                       </Text>
                     </View>
                   </View>
-                  <Switch
+                  <CustomSwitch
                     value={isShared}
                     onValueChange={() => onToggleDoctor(docId)}
-                    trackColor={{ false: '#E2E8F0', true: theme.colors.primaryLight }}
-                    thumbColor={isShared ? theme.colors.primary : '#FFFFFF'}
                   />
                 </View>
               );

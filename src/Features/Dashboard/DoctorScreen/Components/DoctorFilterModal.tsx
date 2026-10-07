@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
+  Keyboard,
   Modal,
   ScrollView,
   StyleSheet,
@@ -10,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   CheckIcon,
   ChevronDownIcon,
@@ -65,6 +67,8 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
   onApply,
 }) => {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const prevVisibleRef = useRef<boolean>(false);
   const [filters, setFilters] = useState<DoctorFilterValues>({
     ...defaultDoctorFilters,
     ...initialValues,
@@ -99,12 +103,14 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
   };
 
   const handleSelectCity = (cityName: string) => {
+    Keyboard.dismiss();
     setCityInput(cityName);
     setFilters(f => ({ ...f, selectedCity: cityName }));
     setShowCitySuggestions(false);
   };
 
   const handleClearCity = () => {
+    Keyboard.dismiss();
     setCityInput('');
     setFilters(f => ({ ...f, selectedCity: null }));
     setShowCitySuggestions(false);
@@ -147,7 +153,7 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
   );
 
   useEffect(() => {
-    if (visible) {
+    if (visible && !prevVisibleRef.current) {
       setFilters({
         ...defaultDoctorFilters,
         ...initialValues,
@@ -155,11 +161,12 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
       setCityInput(initialValues?.selectedCity || '');
       setShowCitySuggestions(false);
     }
+    prevVisibleRef.current = visible;
   }, [visible, initialValues]);
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View style={styles.container}>
+      <View style={[styles.container, { paddingTop: Math.max(insets.top, 16) }]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.headerBtn} activeOpacity={0.7}>
             <CircleXIcon size={22} color={theme.colors.textPrimary} />
@@ -170,9 +177,12 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
           </TouchableOpacity>
         </View>
         <ScrollView
-          contentContainerStyle={styles.scroll}
+          contentContainerStyle={[
+            styles.scroll,
+            { paddingBottom: Math.max(insets.bottom + 20, 40) },
+          ]}
           showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+          keyboardShouldPersistTaps="always"
         >
           <Text style={styles.sectionTitle}>{t('commons.city') || 'City'}</Text>
           <View style={styles.searchBox}>
@@ -208,20 +218,31 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
             ) : null}
           </View>
           {showCitySuggestions && debouncedCity.trim().length >= 3 && (
-            <View style={styles.suggestionsContainer}>
+            <ScrollView
+              style={styles.suggestionsContainer}
+              nestedScrollEnabled={true}
+              keyboardShouldPersistTaps="always"
+              showsVerticalScrollIndicator={true}
+            >
               {isCityFetching && (!citiesQuery || citiesQuery?.length === 0) ? (
                 <View style={styles.suggestionStateBox}>
                   <Text style={styles.suggestionStateText}>Searching cities...</Text>
                 </View>
               ) : citiesQuery && citiesQuery?.length > 0 ? (
-                citiesQuery?.map((city: { id: number | string; name: string }) => {
+                citiesQuery?.map((city: any, idx: number) => {
+                  const cityName =
+                    typeof city === 'string'
+                      ? city
+                      : city?.name || city?.city_name || city?.city || '';
+                  const cityKey = city?.id != null ? String(city.id) : `${cityName}-${idx}`;
                   const isSelected =
-                    filters.selectedCity?.toLowerCase() === city.name.toLowerCase();
+                    Boolean(cityName) &&
+                    filters.selectedCity?.toLowerCase() === cityName.toLowerCase();
                   return (
                     <TouchableOpacity
-                      key={city.id}
+                      key={cityKey}
                       style={[styles.suggestionItem, isSelected && styles.suggestionItemSelected]}
-                      onPress={() => handleSelectCity(city.name)}
+                      onPress={() => handleSelectCity(cityName)}
                       activeOpacity={0.7}
                     >
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
@@ -236,7 +257,7 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
                           ]}
                           numberOfLines={1}
                         >
-                          {city.name}
+                          {cityName}
                         </Text>
                       </View>
                       {isSelected && <CheckIcon size={14} color={theme.colors.primary} />}
@@ -248,7 +269,7 @@ export const DoctorFilterModal: React.FC<DoctorFilterModalProps> = ({
                   <Text style={styles.suggestionStateText}>No cities found</Text>
                 </View>
               )}
-            </View>
+            </ScrollView>
           )}
 
           {!!filters.selectedCity && (
@@ -486,7 +507,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.surface,
-    paddingTop: 16,
   },
   header: {
     flexDirection: 'row',

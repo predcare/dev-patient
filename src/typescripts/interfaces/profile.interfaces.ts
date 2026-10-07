@@ -47,6 +47,9 @@ export interface IMyProfileDoc {
   bmi: any;
   drug_allergies: any;
   verified_at: string;
+  isProfileCompleted: boolean;
+  isSwitchProfile: boolean;
+  swithParentId: string;
 }
 
 export interface IFamillyMemberDoc {

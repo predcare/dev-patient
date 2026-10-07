@@ -40,11 +40,11 @@ export const appointmentDetailsStyles = StyleSheet.create({
   apptIdLabel: {
     fontSize: 12,
     color: theme.colors.textMuted,
-    fontWeight: '500',
+    fontWeight: '400',
   },
   apptIdValue: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     color: theme.colors.textPrimary,
   },
   statusBadge: {
@@ -62,7 +62,7 @@ export const appointmentDetailsStyles = StyleSheet.create({
   },
   statusBadgeText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.3,
   },
@@ -81,7 +81,7 @@ export const appointmentDetailsStyles = StyleSheet.create({
     color: theme.colors.textSecondary,
   },
   statusInfoBold: {
-    fontWeight: '600',
+    fontWeight: '500',
     color: theme.colors.textPrimary,
   },
 
@@ -104,7 +104,7 @@ export const appointmentDetailsStyles = StyleSheet.create({
   },
   actionCtaText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     color: theme.colors.textInverted,
     letterSpacing: 0.3,
   },
@@ -135,12 +135,12 @@ export const appointmentDetailsStyles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '600',
     color: theme.colors.textPrimary,
   },
   cardHeaderLink: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
     color: theme.colors.primaryDark,
   },
 
@@ -170,7 +170,7 @@ export const appointmentDetailsStyles = StyleSheet.create({
   },
   doctorInitials: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '600',
     color: theme.colors.primaryDark,
   },
   verifiedBadge: {
@@ -185,14 +185,14 @@ export const appointmentDetailsStyles = StyleSheet.create({
     gap: 3,
   },
   doctorName: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 13,
+    fontWeight: '600',
     color: theme.colors.textPrimary,
   },
   doctorSpecialty: {
     fontSize: 13,
     color: theme.colors.primaryDark,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   doctorClinic: {
     fontSize: 12,
@@ -213,7 +213,7 @@ export const appointmentDetailsStyles = StyleSheet.create({
   },
   statValue: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: theme.colors.textPrimary,
   },
   statLabel: {
@@ -243,7 +243,7 @@ export const appointmentDetailsStyles = StyleSheet.create({
   tagPillText: {
     fontSize: 11,
     color: theme.colors.textSecondary,
-    fontWeight: '500',
+    fontWeight: '400',
   },
 
   // Schedule & Appointment Details
@@ -274,13 +274,13 @@ export const appointmentDetailsStyles = StyleSheet.create({
   detailLabel: {
     fontSize: 11,
     color: theme.colors.textMuted,
-    fontWeight: '600',
+    fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
   detailValue: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     color: theme.colors.textPrimary,
     marginTop: 2,
   },
@@ -303,7 +303,7 @@ export const appointmentDetailsStyles = StyleSheet.create({
   },
   mapActionBtnText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
     color: theme.colors.primaryDark,
   },
 
@@ -324,7 +324,7 @@ export const appointmentDetailsStyles = StyleSheet.create({
   },
   patientInfoVal: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
     color: theme.colors.textPrimary,
     maxWidth: '65%',
     textAlign: 'right',
@@ -346,7 +346,7 @@ export const appointmentDetailsStyles = StyleSheet.create({
   },
   noteTitle: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     color: theme.colors.primary,
   },
   noteText: {
@@ -367,7 +367,7 @@ export const appointmentDetailsStyles = StyleSheet.create({
   },
   billValue: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
     color: theme.colors.textPrimary,
   },
   billTotalRow: {
@@ -380,12 +380,12 @@ export const appointmentDetailsStyles = StyleSheet.create({
   },
   billTotalLabel: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '600',
     color: theme.colors.textPrimary,
   },
   billTotalValue: {
     fontSize: 17,
-    fontWeight: '800',
+    fontWeight: '700',
     color: theme.colors.primary,
   },
   paymentBadgeRow: {
@@ -408,7 +408,7 @@ export const appointmentDetailsStyles = StyleSheet.create({
   },
   paymentStatusText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
     textTransform: 'capitalize',
   },
 });

@@ -22,11 +22,12 @@ import {
 } from '../../../hooks/react-query/appointments/appointments.hooks';
 import {
     _formatTime,
+    _isApptExpired,
     formatDate,
     getDuration,
     openLocationOnMap,
 } from '../../../lib/common/common.utils';
-import { showErrorToast, showInfoToast, showSuccessToast } from '../../../lib/common/toast.utils';
+import { showErrorToast, showSuccessToast } from '../../../lib/common/toast.utils';
 import { AppRoute } from '../../../route';
 import appointmentsStyles from '../../../styled/AppointmentsScreen.styled';
 import theme from '../../../styled/theme.styled';
@@ -212,45 +213,50 @@ export const AppointmentsScreen: React.FC = () => {
                     data={appointments}
                     keyExtractor={(item, index) => String(item.id || item.appointment_id || index)}
                     keyboardShouldPersistTaps="handled"
-                    renderItem={({ item: apt }) => (
-                        <AppointmentCard
-                            apptId={apt?.appointment_id || ''}
-                            apptStatus={apt?.appointment_status || ''}
-                            clinicAddress={apt.clinicInfo?.fulladdress || ''}
-                            clinicName={apt.clinicInfo?.name || ''}
-                            date={formatDate(apt.appointment_date)}
-                            docImage={apt.doctorInfo?.profileImage}
-                            doctorName={apt.doctorInfo?.name || ''}
-                            duration={getDuration(apt?.start_time, apt?.end_time) || ''}
-                            mode={apt?.consultation_type || ''}
-                            time={_formatTime(apt?.start_time) || ''}
-                            isCurrentCallActive={Boolean(
-                                activeMeetingId && String(activeCallAppointmentId) === String(apt.id)
-                            )}
-                            onCancelPress={() => handleCancelAppt(apt)}
-                            onJoinVideo={() => {
-                                handleJoinVideoCall(apt);
-                            }}
-                            onReschedule={() =>
-                                showInfoToast(
-                                    t('appointments.rescheduleUnavailable'),
-                                    t('appointments.underDevelopment')
-                                )
-                            }
-                            onOpenDirections={() =>
-                                openLocationOnMap({
-                                    address: apt.clinicInfo?.fulladdress,
-                                    lat: apt.clinicInfo?.location?.lat,
-                                    long: apt.clinicInfo?.location?.lng,
-                                })
-                            }
-                            onView={() =>
-                                navigation.navigate(AppRoute.APPOINTMENT_DETAILS, {
-                                    appointmentId: apt.id,
-                                })
-                            }
-                        />
-                    )}
+                    renderItem={({ item: apt }) => {
+                        const isApptExpired = _isApptExpired(apt.appointment_date, apt.start_time);
+                        return (
+                            <AppointmentCard
+                                apptId={apt?.appointment_id || ''}
+                                apptStatus={apt?.appointment_status || ''}
+                                clinicAddress={apt.clinicInfo?.fulladdress || ''}
+                                clinicName={apt.clinicInfo?.name || ''}
+                                date={formatDate(apt.appointment_date)}
+                                docImage={apt.doctorInfo?.profileImage}
+                                doctorName={apt.doctorInfo?.name || ''}
+                                duration={getDuration(apt?.start_time, apt?.end_time) || ''}
+                                mode={apt?.consultation_type || ''}
+                                time={_formatTime(apt?.start_time) || ''}
+                                isCurrentCallActive={Boolean(
+                                    activeMeetingId && String(activeCallAppointmentId) === String(apt.id)
+                                )}
+                                onCancelPress={() => handleCancelAppt(apt)}
+                                onJoinVideo={() => {
+                                    handleJoinVideoCall(apt);
+                                }}
+                                onReschedule={() =>
+                                    navigation.navigate(AppRoute.RESCHEDULE_APPOINTMENT, {
+                                        appointmentId: apt.id,
+                                        doctorId: apt.doctor_id,
+                                        clinicId: apt.clinic_id,
+                                    })
+                                }
+                                onOpenDirections={() =>
+                                    openLocationOnMap({
+                                        address: apt.clinicInfo?.fulladdress,
+                                        lat: apt.clinicInfo?.location?.lat,
+                                        long: apt.clinicInfo?.location?.lng,
+                                    })
+                                }
+                                onView={() =>
+                                    navigation.navigate(AppRoute.APPOINTMENT_DETAILS, {
+                                        appointmentId: apt.id,
+                                    })
+                                }
+                                isApptExpired={isApptExpired}
+                            />
+                        )
+                    }}
                     onEndReached={() => {
                         if (hasNextPage && !isFetchingNextPage) {
                             fetchNextPage();

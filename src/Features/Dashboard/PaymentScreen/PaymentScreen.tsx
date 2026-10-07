@@ -12,21 +12,25 @@ import {
     StethoscopeIcon,
     VideoIcon,
 } from '../../../components/ui/icons';
+import { SocketEvents } from '../../../config/socket.constants';
 import { useRazorpay } from '../../../hooks/commons/useRazorpay';
 import { useCreateAppointment } from '../../../hooks/react-query/appointments/appointments.hooks';
 import Header from '../../../Layout/Header';
 import SafeAreaWrapper from '../../../Layout/SafeAreaWrapper';
 import { getInitials } from '../../../lib/common/common.utils';
 import { showErrorToast, showInfoToast, showSuccessToast } from '../../../lib/common/toast.utils';
+import { AppRoute } from '../../../route';
 import paymentStyles from '../../../styled/PaymentScreen.styled';
 import theme from '../../../styled/theme.styled';
 import { IBookingData } from '../../../typescripts/interfaces/appointments.interfaces';
 import { useAuthStore } from '../../../zustand/stores/useAuthStore';
+import { useSocketStore } from '../../../zustand/stores/useSocketStore';
 
 export const PaymentScreen: React.FC = () => {
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
     const { userData } = useAuthStore(state => state);
+    const { socketConnection } = useSocketStore((state) => state)
     const bookingData: Partial<IBookingData> = route.params?.bookingData || {};
     const isFeeHidden = Boolean(
         bookingData.isFeeHidden || bookingData.hideFee || bookingData.hide_fee
@@ -52,6 +56,9 @@ export const PaymentScreen: React.FC = () => {
         onPaymentDismiss: () => {
             setIsSubmitting(false);
             showInfoToast('Payment Cancelled by User');
+            if (socketConnection) {
+                socketConnection.emit(SocketEvents.PAYMENT_CANCEL_USER, { appointment_id: bookingData.id })
+            }
         },
         onPaymentFailure: (error: unknown) => {
             setIsSubmitting(false);
@@ -78,6 +85,7 @@ export const PaymentScreen: React.FC = () => {
             onSuccess: async (res: any) => {
                 const data = res?.data;
                 const appointmentId = data?.appointment_id || data?._id || data?.id || '';
+                const bookingId = data?.appointment?.id
 
                 if (data?.requires_payment && data?.order_id) {
                     const checkoutResult = await openCheckout(
@@ -120,10 +128,11 @@ export const PaymentScreen: React.FC = () => {
                 } else {
                     setIsSubmitting(false);
                     showSuccessToast('Appointment confirmed successfully!');
-                    navigation.replace('BookingSuccess', {
+                    navigation.replace(AppRoute.BOOKING_SUCCESS, {
+                        appointmentId: bookingId,
                         bookingData: {
                             ...bookingData,
-                            appointmentId: appointmentId || data?.order_id,
+                            appointmentId: appointmentId,
                             ...data,
                         },
                     });

@@ -1,11 +1,13 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, Text, TouchableOpacity, View } from 'react-native';
 import { CommonProfileModal } from '../components/commons/CommonProfileModal/CommonProfileModal';
 import LanguageSwitcherModal, {
   LANGUAGES,
 } from '../components/commons/LanguageSwitcherModal/LanguageSwitcherModal';
 import NotificationModal from '../components/commons/NotificationModal/NotificationModal';
+import { queryClient } from '../components/providers/ReactQueryProvider';
 import {
   ArrowLeftIcon,
   BellIcon,
@@ -20,12 +22,19 @@ import {
 } from '../components/ui/icons';
 import { useLanguageContext } from '../contexts/LanguageContext';
 import { useNotificationCount } from '../hooks/react-query/notifications/notifications.hooks';
+import { fetchProfileQuery, useSwitchAccount } from '../hooks/react-query/profile/profile.hooks';
+import { setItem, STORAGE_KEYS } from '../lib/common/asyncStorage';
 import { getInitials } from '../lib/common/common.utils';
+import { resetAndNavigate } from '../lib/common/navigation.utils';
+import { showErrorToast, showSuccessToast } from '../lib/common/toast.utils';
+import { AppRoute } from '../route';
 import { mediaPaths } from '../services/api/endpoints';
 import { headerStyles } from '../styled/Header.styled';
 import { theme } from '../styled/theme.styled';
 import { TSupportedLanguage } from '../typescripts/types/i18n.types';
+import { useAlertStore } from '../zustand/stores/useAlertStore';
 import { useAuthStore } from '../zustand/stores/useAuthStore';
+import { useLoadingStore } from '../zustand/stores/useLoadingStore';
 
 const getDefaultHeaderIcon = (title?: string) => {
   if (!title) return <SettingsIcon size={20} color={theme.colors.primary} />;
@@ -85,6 +94,7 @@ export const Header: React.FC<HeaderProps> = ({
   isNotifyShow = true,
 }) => {
   const navigation = useNavigation<any>();
+  const { t } = useTranslation();
   const [isLangModalOpen, setIsLangModalOpen] = useState<boolean>(false);
   const [isNotifModalOpen, setIsNotifModalOpen] = useState<boolean>(false);
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
@@ -93,24 +103,19 @@ export const Header: React.FC<HeaderProps> = ({
   const effectiveSubTitle = subTitle || subtitle || description;
 
   const { currentLanguage, changeLanguage } = useLanguageContext();
-  const { userData } = useAuthStore(state => state);
+  const { userData, setUserData } = useAuthStore(state => state);
+  const { hideLoader, showLoader } = useLoadingStore(state => state);
+  const { showConfirm } = useAlertStore(state => state);
 
   const currentLang = LANGUAGES.find(l => l.code === currentLanguage) || LANGUAGES[0];
   const { data: notificationData, isPending: isLoadingNotificationCount } = useNotificationCount();
+  const { mutate: switchAccount } = useSwitchAccount();
 
   const effectiveUnreadCount = useMemo(() => {
     return notificationData?.data?.unread_count ?? unreadCount ?? 0;
   }, [notificationData?.data?.unread_count, unreadCount]);
 
   const hasUnread = effectiveUnreadCount > 0;
-
-  const handleAvatarPress = () => {
-    setShowProfileModal(true);
-  };
-
-  const handleNotificationPress = () => {
-    setIsNotifModalOpen(true);
-  };
 
   const nameFontSize = useMemo(() => {
     const len = (userData?.name || 'User').length;
@@ -138,6 +143,58 @@ export const Header: React.FC<HeaderProps> = ({
     if (titleFontSize <= 16) return 21;
     return 23;
   }, [titleFontSize]);
+
+  const handleAvatarPress = () => {
+    setShowProfileModal(true);
+  };
+
+  const handleNotificationPress = () => {
+    setIsNotifModalOpen(true);
+  };
+
+  const handleSwitchAccount = () => {
+    if (!userData?.swithParentId) return showErrorToast('Invalid member ID');
+
+    showConfirm({
+      title: `Switch to Parent Account`,
+      message: `Are you sure you want to switch to Parent Account?`,
+      buttonText: 'Switch',
+      cancelText: 'Cancel',
+      onConfirm: () => {
+        showLoader('Switching account...');
+        switchAccount(
+          { target_user_id: String(userData?.swithParentId) },
+          {
+            onSuccess: async res => {
+              if (res?.success && res?.data?.token) {
+                try {
+                  const token = res.data.token;
+                  await setItem(STORAGE_KEYS.AUTH_TOKEN, token);
+                  await queryClient.clear();
+                  const profileRes = await fetchProfileQuery(true);
+                  if (profileRes?.data) {
+                    setUserData(profileRes.data);
+                  }
+
+                  showSuccessToast(res?.message || 'Account switched successfully');
+                  hideLoader();
+                  resetAndNavigate(navigation, AppRoute.SPLASH);
+                } catch (error) {
+                  hideLoader();
+                }
+              } else {
+                hideLoader();
+                showErrorToast(res?.message || 'Failed to switch account');
+              }
+            },
+            onError: () => {
+              hideLoader();
+            },
+          }
+        );
+      },
+    });
+  };
 
   return (
     <View style={headerStyles.container}>
@@ -265,6 +322,24 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </View>
       </View>
+
+      {userData?.isSwitchProfile && (
+        <View style={headerStyles.memberBanner}>
+          <Text style={headerStyles.memberBannerIcon}>👨‍👩‍👧</Text>
+          <Text style={headerStyles.memberBannerText} numberOfLines={1}>
+            {t('dashboard.viewingMember', {
+              name: userData?.name || 'Member',
+            })}
+          </Text>
+          <TouchableOpacity
+            style={headerStyles.memberBannerBack}
+            onPress={handleSwitchAccount}
+            activeOpacity={0.8}
+          >
+            <Text style={headerStyles.memberBannerBackText}>{t('commons.switchToMe')}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {showProfileModal && (
         <CommonProfileModal

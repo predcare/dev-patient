@@ -36,10 +36,12 @@ import { showErrorToast, showSuccessToast } from '../../../lib/common/toast.util
 import { AppRoute } from '../../../route';
 import { healthRecordsStyles } from '../../../styled/HealthRecordsScreen.styled';
 import theme from '../../../styled/theme.styled';
+import { IEmrListDoc } from '../../../typescripts/interfaces/emr.interfaces';
 import { useAlertStore } from '../../../zustand/stores/useAlertStore';
 import { useAuthStore } from '../../../zustand/stores/useAuthStore';
 import { useLoadingStore } from '../../../zustand/stores/useLoadingStore';
 import HealthRecordItemCard from './Components/HealthRecordItemCard';
+import ShareEMRModals from './Modals/ShareEMRModals';
 import HealthRecordFolderSkeleton from './Skeletons/HealthRecordFolderSkeleton';
 
 const getCategoryVisualConfig = (idOrName: string = '') => {
@@ -109,6 +111,7 @@ export const HealthRecordFolderScreen: React.FC = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [shareDoc, setShareDoc] = useState<IEmrListDoc | null>(null);
   const { showLoader, hideLoader } = useLoadingStore(state => state);
   const { showConfirm } = useAlertStore();
   const debounceSearch = useDebounce(search.trim(), 500);
@@ -346,7 +349,9 @@ export const HealthRecordFolderScreen: React.FC = () => {
                     onDelete={() => {
                       handleDeleteEmr(Number(doc?.id));
                     }}
-                    onShare={() => { }}
+                    onShare={() => {
+                      setShareDoc(doc);
+                    }}
                     onView={() => {
                       handleView(doc?.document_url);
                     }}
@@ -365,6 +370,12 @@ export const HealthRecordFolderScreen: React.FC = () => {
       >
         <PlusIcon size={28} color="#FFFFFF" strokeWidth={2.5} />
       </TouchableOpacity>
+
+      <ShareEMRModals
+        visible={Boolean(shareDoc)}
+        document={shareDoc}
+        onClose={() => setShareDoc(null)}
+      />
     </SafeAreaWrapper>
   );
 };

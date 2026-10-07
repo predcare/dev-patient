@@ -7,6 +7,7 @@ import {
   getApptToken,
   getBookingPaymentStatus,
   getMyAppointments,
+  rescheduleMyAppt,
 } from './appointments.funcs';
 
 export const useCreateAppointment = () =>
@@ -33,6 +34,7 @@ export const useMyAppointments = (params: {
   page?: number;
   limit?: number;
   search?: string;
+  consultation_type?: string;
 }) =>
   useQuery({
     queryKey: [AppointmemntQueryKey.ALL_APPOINTMENTS, params],
@@ -84,5 +86,12 @@ export const useGetToken = () => {
   return useMutation({
     mutationFn: ({ appointmentId }: { appointmentId: string }) => getApptToken(appointmentId),
     mutationKey: [AppointmemntQueryKey.GET_TOKEN],
+  });
+};
+
+// Reschedule Appointment
+export const useRescheduleMyAppt = () => {
+  return useMutation({
+    mutationFn: rescheduleMyAppt,
   });
 };

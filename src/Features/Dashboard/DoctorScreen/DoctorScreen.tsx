@@ -85,6 +85,7 @@ export const DoctorScreen: React.FC = () => {
                                 name={item?.name}
                                 profile_image={item?.profile_image}
                                 specialization={item?.specialization}
+                                isAvailable={!!item?.next_available_date}
                                 onClinicPress={() =>
                                     navigation.navigate(AppRoute.CLINIC_DETAILS, {
                                         clinicId: Number(item?.clinic?.id),
