@@ -129,6 +129,26 @@ export const meetingStyles = StyleSheet.create({
     fontSize: 8,
     fontWeight: '800',
   },
+  networkRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 4,
+  },
+  signalBars: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 2,
+    height: 12,
+  },
+  signalBar: {
+    width: 3,
+    borderRadius: 1,
+  },
+  networkLabel: {
+    fontSize: 8,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+  },
 
   // Floating PiP Camera Preview
   localContainer: {

@@ -31,8 +31,13 @@ export const useMeetingStore = create<IMeetingStoreState>((set, get) => ({
   ...initialState,
 
   setCallInfo: ({ token, meeting_id, appointment, doctorInfo }) => {
-    // Compute default duration if provided
-    const slotSeconds = appointment.slot_duration ? appointment.slot_duration * 60 : 600;
+    const durationMinutes = Number(
+      appointment.appointment_duration || appointment.slot_duration || 0
+    );
+    const elapsedSeconds = Math.max(0, Number(appointment.call_elapsed_seconds || 0));
+    const totalSeconds = durationMinutes > 0 ? Math.floor(durationMinutes * 60) : 0;
+    const remainingSeconds = Math.max(0, totalSeconds - elapsedSeconds);
+
     set({
       callInfo: {
         token,
@@ -43,12 +48,14 @@ export const useMeetingStore = create<IMeetingStoreState>((set, get) => ({
           appointmentDate: appointment.appointment_date,
           startTime: appointment.start_time,
           endTime: appointment.end_time,
-          slotDuration: appointment.slot_duration,
+          slotDuration: appointment.slot_duration ?? null,
+          appointmentDuration: durationMinutes || null,
+          callElapsedSeconds: elapsedSeconds,
         },
       },
       appointmentId: appointment.id,
       doctorInfo: doctorInfo || get().doctorInfo,
-      remainingSeconds: slotSeconds,
+      remainingSeconds,
       callState: 'INITIALIZING',
       pipMode: 'NORMAL',
     });

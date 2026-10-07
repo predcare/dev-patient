@@ -1,17 +1,19 @@
 import { MeetingConsumer, MeetingProvider } from '@videosdk.live/react-native-sdk';
 import React, { useEffect } from 'react';
+import MeetingStageOverlay from '../../Features/Dashboard/MeetingScreen/Components/MeetingStageOverlay';
 import useMeetingAppState from '../../hooks/commons/meeting/useMeetingAppState';
+import { useMeetingCountdownTicker } from '../../hooks/commons/meeting/useMeetingCountdown';
 import useMeetingParticipants from '../../hooks/commons/meeting/useMeetingParticipants';
 import usePipRemoteTrack from '../../hooks/commons/meeting/usePipRemoteTrack';
 import NativePip from '../../native/NativePip';
 import useMeetingStore from '../../zustand/stores/useMeetingStore';
-import MeetingStageOverlay from '../../Features/Dashboard/MeetingScreen/Components/MeetingStageOverlay';
 import InAppPipWindow from './InAppPipWindow';
 
 const MeetingSessionController: React.FC = () => {
   useMeetingAppState();
   useMeetingParticipants();
   usePipRemoteTrack();
+  useMeetingCountdownTicker();
   const pipMode = useMeetingStore(state => state.pipMode);
 
   if (pipMode === 'IN_APP_PIP') {
@@ -60,6 +62,7 @@ export const MeetingSessionHost: React.FC = () => {
         webcamEnabled: isCamOn,
         name: 'Patient',
         defaultCamera: 'front',
+        maxResolution: 'hd',
         mode: 'SEND_AND_RECV',
         debugMode: false,
         notification: {

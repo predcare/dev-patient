@@ -23,6 +23,8 @@ export interface ICallAppointmentInfo {
   startTime: string | null;
   endTime: string | null;
   slotDuration: number | null;
+  appointmentDuration: number | null;
+  callElapsedSeconds: number | null;
 }
 
 export interface ICallInfo {
@@ -56,7 +58,9 @@ export interface IMeetingStoreState {
       appointment_date: string;
       start_time: string;
       end_time: string;
-      slot_duration: number;
+      slot_duration?: number;
+      appointment_duration?: number;
+      call_elapsed_seconds?: number;
     };
     doctorInfo?: IMeetingDoctorInfo;
   }) => void;

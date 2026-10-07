@@ -1,64 +1,60 @@
 import { useEffect, useMemo, useRef } from 'react';
+import { showInfoToast } from '../../../lib/common/toast.utils';
 import useMeetingStore from '../../../zustand/stores/useMeetingStore';
 
-export const useMeetingCountdown = (onTimeUp?: () => void) => {
-  const callInfo = useMeetingStore(state => state.callInfo);
-  const callState = useMeetingStore(state => state.callState);
-  const remainingSeconds = useMeetingStore(state => state.remainingSeconds);
+const TWO_MINUTES_SECONDS = 120;
+
+
+export const useMeetingCountdownTicker = (onTimeUp?: () => void) => {
+  const doctorParticipantId = useMeetingStore(state => state.doctorParticipantId);
   const setRemainingSeconds = useMeetingStore(state => state.setRemainingSeconds);
 
   const onTimeUpRef = useRef(onTimeUp);
   onTimeUpRef.current = onTimeUp;
+  const twoMinToastShown = useRef(false);
 
-  // Initialize remaining seconds based on appointment info
+  const bothConnected = Boolean(doctorParticipantId);
+
   useEffect(() => {
-    const apt = callInfo?.appointment;
-    if (!apt) return;
+    if (!bothConnected) {
+      return;
+    }
 
-    if (apt.appointmentDate && apt.endTime) {
-      try {
-        const endDateTimeStr = `${apt.appointmentDate}T${apt.endTime}`;
-        const endTimestamp = new Date(endDateTimeStr).getTime();
-        if (!isNaN(endTimestamp)) {
-          const diffSeconds = Math.max(0, Math.floor((endTimestamp - Date.now()) / 1000));
-          if (diffSeconds > 0) {
-            setRemainingSeconds(diffSeconds);
-            return;
-          }
-        }
-      } catch (e) {
-        console.warn('[useMeetingCountdown] Error parsing end time:', e);
+    const notifyTwoMinPending = (seconds: number) => {
+      if (twoMinToastShown.current || seconds <= 0 || seconds > TWO_MINUTES_SECONDS) {
+        return;
       }
-    }
+      twoMinToastShown.current = true;
+      showInfoToast('2 min pending');
+    };
 
-    if (apt.slotDuration) {
-      setRemainingSeconds(apt.slotDuration * 60);
-    } else {
-      setRemainingSeconds(600); // 10 minutes default fallback
-    }
-  }, [callInfo?.appointment, setRemainingSeconds]);
+    notifyTwoMinPending(useMeetingStore.getState().remainingSeconds);
 
-  // Active ticker
-  useEffect(() => {
-    if (callState !== 'CONNECTED' && callState !== 'WAITING_FOR_DOCTOR') {
+    if (useMeetingStore.getState().remainingSeconds <= 0) {
       return;
     }
 
     const interval = setInterval(() => {
-      setRemainingSeconds(prev => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          if (onTimeUpRef.current) {
-            onTimeUpRef.current();
-          }
-          return 0;
+      const current = useMeetingStore.getState().remainingSeconds;
+      if (current <= 1) {
+        setRemainingSeconds(0);
+        if (current > 0 && onTimeUpRef.current) {
+          onTimeUpRef.current();
         }
-        return prev - 1;
-      });
+        clearInterval(interval);
+        return;
+      }
+      const next = current - 1;
+      setRemainingSeconds(next);
+      notifyTwoMinPending(next);
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [callState, setRemainingSeconds]);
+  }, [bothConnected, setRemainingSeconds]);
+};
+
+export const useMeetingCountdown = () => {
+  const remainingSeconds = useMeetingStore(state => state.remainingSeconds);
 
   const formattedTime = useMemo(() => {
     const minutes = Math.floor(remainingSeconds / 60);
@@ -67,8 +63,8 @@ export const useMeetingCountdown = (onTimeUp?: () => void) => {
     return `${pad(minutes)}:${pad(seconds)}`;
   }, [remainingSeconds]);
 
-  const isWarning = remainingSeconds > 0 && remainingSeconds <= 300; // < 5 mins
-  const isUrgent = remainingSeconds > 0 && remainingSeconds <= 60; // < 1 min
+  const isWarning = remainingSeconds > 0 && remainingSeconds <= 300;
+  const isUrgent = remainingSeconds > 0 && remainingSeconds <= 60;
 
   return {
     formattedTime,

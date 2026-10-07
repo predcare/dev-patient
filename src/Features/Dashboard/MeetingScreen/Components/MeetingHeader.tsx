@@ -3,19 +3,39 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import { ChevronLeftIcon } from '../../../../components/ui/icons';
 import useMeetingCountdown from '../../../../hooks/commons/meeting/useMeetingCountdown';
 import useMeetingPip from '../../../../hooks/commons/meeting/useMeetingPip';
+import useNetworkStatus from '../../../../hooks/commons/useNetworkStatus';
 import { canGoBack, goBack } from '../../../../navigation/navigationRef';
 import meetingStyles from '../../../../styled/MeetingScreen.styled';
 import theme from '../../../../styled/theme.styled';
 import useMeetingStore from '../../../../zustand/stores/useMeetingStore';
+
+const SIGNAL_LABELS = ['Offline', 'Weak', 'Fair', 'Good', 'Strong'] as const;
+
+const getSignalLevel = (isOffline: boolean, connectionType: string): number => {
+  if (isOffline || connectionType === 'none') return 0;
+  if (connectionType === 'wifi' || connectionType === 'ethernet') return 4;
+  if (connectionType === 'cellular') return 3;
+  if (connectionType === 'unknown') return 2;
+  return 3;
+};
+
+const signalColor = (level: number) => {
+  if (level <= 1) return '#EF4444';
+  if (level === 2) return '#F59E0B';
+  return theme.colors.green;
+};
 
 export const MeetingHeader: React.FC = () => {
   const doctorInfo = useMeetingStore(state => state.doctorInfo);
   const callState = useMeetingStore(state => state.callState);
   const { enterInAppPip } = useMeetingPip();
   const { formattedTime, isWarning, isUrgent } = useMeetingCountdown();
+  const { isOffline, connectionType } = useNetworkStatus();
+  const signalLevel = getSignalLevel(isOffline, connectionType);
 
   const doctorName = doctorInfo?.name || 'Dr. Sahil Mallick';
   const isConnected = callState === 'CONNECTED';
+  const barsColor = signalColor(signalLevel);
 
   const handleMinimize = () => {
     enterInAppPip();
@@ -67,6 +87,25 @@ export const MeetingHeader: React.FC = () => {
             ]}
           >
             {formattedTime}
+          </Text>
+        </View>
+        <View style={meetingStyles.networkRow}>
+          <View style={meetingStyles.signalBars}>
+            {[1, 2, 3, 4].map(bar => (
+              <View
+                key={bar}
+                style={[
+                  meetingStyles.signalBar,
+                  { height: 4 + bar * 2 },
+                  {
+                    backgroundColor: bar <= signalLevel ? barsColor : 'rgba(255, 255, 255, 0.25)',
+                  },
+                ]}
+              />
+            ))}
+          </View>
+          <Text style={[meetingStyles.networkLabel, { color: barsColor }]}>
+            {SIGNAL_LABELS[signalLevel]}
           </Text>
         </View>
       </View>
