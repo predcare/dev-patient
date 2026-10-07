@@ -193,16 +193,15 @@ export const AppointmentDetailsScreen: React.FC = () => {
       },
       {
         onSuccess: async res => {
-          if (res?.data && res?.success) {
+          const videoCallData = res?.data
+          if (videoCallData && res?.success) {
             setCallInfo({
-              token: res?.data?.token,
-              meeting_id: res?.data?.meeting_id,
-              appointment: res?.data?.appointment,
+              token: videoCallData?.token,
+              meeting_id: videoCallData?.meeting_id,
+              appointment: videoCallData?.appointment,
               doctorInfo: {
-                name: apptInfo?.doctor?.name,
-                specialty: apptInfo?.doctor?.specialization || apptInfo?.specialization,
-                profileImage: apptInfo?.doctor?.profile_image,
-                clinicName: apptInfo?.clinic?.name,
+                name: videoCallData?.doctor?.name,
+                doctorId: videoCallData?.doctor?.id,
               },
             });
             navigation.navigate(AppRoute.MEETING);

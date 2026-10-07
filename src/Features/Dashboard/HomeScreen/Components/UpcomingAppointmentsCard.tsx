@@ -220,16 +220,15 @@ export const UpcomingAppointmentsCard: React.FC = () => {
         { appointmentId: String(appointment.id) },
         {
           onSuccess: async res => {
-            if (res?.data && res?.success) {
+            const videoCallData = res?.data
+            if (videoCallData && res?.success) {
               setCallInfo({
-                token: res?.data?.token,
-                meeting_id: res?.data?.meeting_id,
-                appointment: res?.data?.appointment,
+                token: videoCallData?.token,
+                meeting_id: videoCallData?.meeting_id,
+                appointment: videoCallData?.appointment,
                 doctorInfo: {
-                  name: appointment?.doctorInfo?.name,
-                  specialty: appointment?.specialization,
-                  profileImage: appointment?.doctorInfo?.profileImage,
-                  clinicName: appointment?.clinicInfo?.name,
+                  name: videoCallData?.doctor?.name,
+                  doctorId: videoCallData?.doctor?.id
                 },
               });
               navigation.navigate(AppRoute.MEETING);

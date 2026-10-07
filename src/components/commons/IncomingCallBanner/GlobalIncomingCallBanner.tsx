@@ -59,9 +59,7 @@ export const GlobalIncomingCallBanner: React.FC = () => {
         appointment: tokenRes.data.appointment || apptInfo,
         doctorInfo: {
           name: apptInfo.doctor?.name || doctorName,
-          specialty: apptInfo.doctor?.specialization || apptInfo.specialization,
-          profileImage: apptInfo.doctor?.profile_image,
-          clinicName: apptInfo.clinic?.name,
+          doctorId: apptInfo.doctor?.id,
         },
       });
 

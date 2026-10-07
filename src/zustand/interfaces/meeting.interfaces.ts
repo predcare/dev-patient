@@ -13,9 +13,7 @@ export type MeetingPipMode = 'NORMAL' | 'IN_APP_PIP' | 'NATIVE_PIP';
 
 export interface IMeetingDoctorInfo {
   name?: string;
-  specialty?: string;
-  profileImage?: string;
-  clinicName?: string;
+  doctorId?: string;
 }
 
 export interface ICallAppointmentInfo {

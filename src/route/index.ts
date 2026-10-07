@@ -84,7 +84,7 @@ export type RootStackParamList = {
       }
     | undefined;
   Meeting: { appointmentId?: number | string } | undefined;
-  ConsultationCompleted: undefined;
+  ConsultationCompleted: { appointmentId?: number | string } | undefined;
   MainTabs?: { screen?: string } | undefined;
   HealthRecords: undefined;
   HealthRecordFolder: { patientId?: string | number; folderName?: string } | undefined;
