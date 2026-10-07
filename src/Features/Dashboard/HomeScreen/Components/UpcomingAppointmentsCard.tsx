@@ -152,7 +152,7 @@ export const UpcomingAppointmentsCard: React.FC = () => {
     status: 'pending,confirmed,in_progress',
     limit: 3,
     page: 1,
-    consultation_type: "video,in-person"
+    consultation_type: 'video,in-person',
   });
 
   const appointmentsList = upcomingAppts?.data || [];
@@ -163,7 +163,9 @@ export const UpcomingAppointmentsCard: React.FC = () => {
       if (activeMeetingId && String(activeCallAppointmentId) === String(item?.id)) {
         return t('appointments.returnToCall') || 'Return to Call';
       }
-      const s = String(item?.appointment_status || '').toLowerCase().trim();
+      const s = String(item?.appointment_status || '')
+        .toLowerCase()
+        .trim();
       if (s === 'in_progress' || s === 'in-progress') {
         return t('appointments.rejoin') || 'Re-Join';
       }
@@ -215,12 +217,12 @@ export const UpcomingAppointmentsCard: React.FC = () => {
         return;
       }
 
-      showLoader(t('appointments.joiningVideoCall'));
+      showLoader('Joining Video Call...');
       getToken(
         { appointmentId: String(appointment.id) },
         {
           onSuccess: async res => {
-            const videoCallData = res?.data
+            const videoCallData = res?.data;
             if (videoCallData && res?.success) {
               setCallInfo({
                 token: videoCallData?.token,
@@ -228,7 +230,7 @@ export const UpcomingAppointmentsCard: React.FC = () => {
                 appointment: videoCallData?.appointment,
                 doctorInfo: {
                   name: videoCallData?.doctor?.name,
-                  doctorId: videoCallData?.doctor?.id
+                  doctorId: videoCallData?.doctor?.id,
                 },
               });
               navigation.navigate(AppRoute.MEETING);
@@ -482,7 +484,5 @@ export const UpcomingAppointmentsCard: React.FC = () => {
     </View>
   );
 };
-
-
 
 export default UpcomingAppointmentsCard;

@@ -1,7 +1,10 @@
 import React from 'react';
 import { queryClient } from '../../../components/providers/ReactQueryProvider';
 import useDevicePermissions from '../../../hooks/commons/useDevicePermissions';
-import { getApptInfo, getApptToken } from '../../../hooks/react-query/appointments/appointments.funcs';
+import {
+  getApptInfo,
+  getApptToken,
+} from '../../../hooks/react-query/appointments/appointments.funcs';
 import { AppointmemntQueryKey } from '../../../hooks/react-query/query.keys';
 import { showErrorToast } from '../../../lib/common/toast.utils';
 import { navigate } from '../../../navigation/navigationRef';
@@ -32,7 +35,7 @@ export const GlobalIncomingCallBanner: React.FC = () => {
     }
 
     try {
-      showLoader('Joining call...');
+      showLoader('Joining Video Call...');
 
       const apptResponse = await queryClient.fetchQuery({
         queryKey: [AppointmemntQueryKey.INFO, appointmentId],

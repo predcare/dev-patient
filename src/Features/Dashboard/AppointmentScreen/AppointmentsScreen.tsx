@@ -138,7 +138,7 @@ export const AppointmentsScreen: React.FC = () => {
             return;
         }
 
-        showLoader(t('appointments.joiningVideoCall'));
+        showLoader("Joining Video Call...");
         getToken(
             {
                 appointmentId: String(apt.id),

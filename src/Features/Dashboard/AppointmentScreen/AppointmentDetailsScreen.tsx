@@ -186,14 +186,14 @@ export const AppointmentDetailsScreen: React.FC = () => {
       return;
     }
 
-    showLoader(t('appointments.joiningVideoCall'));
+    showLoader('Joining Video Call...');
     getToken(
       {
         appointmentId: String(targetId),
       },
       {
         onSuccess: async res => {
-          const videoCallData = res?.data
+          const videoCallData = res?.data;
           if (videoCallData && res?.success) {
             setCallInfo({
               token: videoCallData?.token,
