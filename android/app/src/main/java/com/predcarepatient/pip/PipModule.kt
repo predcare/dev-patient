@@ -4,6 +4,7 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.bridge.WritableMap
 import com.facebook.react.module.annotations.ReactModule
 
 @ReactModule(name = PipModule.NAME)
@@ -16,12 +17,16 @@ class PipModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
     private const val CONTENT_READY_DELAY_MS = 120L
   }
 
-  init {
-    PipController.emitter = { event, params ->
-      if (reactApplicationContext.hasActiveReactInstance()) {
-        reactApplicationContext.emitDeviceEvent(event, params)
-      }
+  private val emitToJs: (String, WritableMap?) -> Unit = { event, params ->
+    if (reactApplicationContext.hasActiveReactInstance()) {
+      reactApplicationContext.emitDeviceEvent(event, params)
     }
+  }
+
+  private val cameraWatcher = CameraAvailabilityWatcher(reactContext, emitToJs)
+
+  init {
+    PipController.emitter = emitToJs
   }
 
   override fun getName(): String = NAME
@@ -29,6 +34,26 @@ class PipModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
   @ReactMethod
   fun setMeetingActive(active: Boolean) {
     PipController.setMeetingActive(reactApplicationContext.currentActivity, active)
+    if (active) {
+      cameraWatcher.start()
+    } else {
+      cameraWatcher.stop()
+    }
+  }
+
+  /** Blocks Home / other-activity auto-PiP (e.g. while the system camera is open). */
+  @ReactMethod
+  fun setSuppressAutoEnter(suppress: Boolean, promise: Promise) {
+    val activity = reactApplicationContext.currentActivity
+    if (activity == null) {
+      PipController.setSuppressAutoEnter(null, suppress)
+      promise.resolve(true)
+      return
+    }
+    activity.runOnUiThread {
+      PipController.setSuppressAutoEnter(activity, suppress)
+      promise.resolve(true)
+    }
   }
 
   @ReactMethod
@@ -66,6 +91,7 @@ class PipModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
   @ReactMethod fun removeListeners(count: Double) {}
 
   override fun invalidate() {
+    cameraWatcher.stop()
     PipController.emitter = null
     super.invalidate()
   }

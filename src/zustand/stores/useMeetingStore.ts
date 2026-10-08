@@ -25,6 +25,8 @@ const initialState = {
   doctorParticipantId: null,
   doctorWebcamOn: false,
   doctorMicOn: true,
+  isCameraPausedForCapture: false,
+  cameraSessionEpoch: 0,
 };
 
 export const useMeetingStore = create<IMeetingStoreState>((set, get) => ({
@@ -84,6 +86,9 @@ export const useMeetingStore = create<IMeetingStoreState>((set, get) => ({
     })),
 
   setIsCameraPausedForCapture: paused => set({ isCameraPausedForCapture: paused }),
+
+  bumpCameraSessionEpoch: () =>
+    set(state => ({ cameraSessionEpoch: state.cameraSessionEpoch + 1 })),
 
   resetCallInfo: () =>
     set({

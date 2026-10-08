@@ -46,8 +46,10 @@ export interface IMeetingStoreState {
   doctorParticipantId: string | null;
   doctorWebcamOn: boolean;
   doctorMicOn: boolean;
-  isCameraPausedForCapture?: boolean;
+  isCameraPausedForCapture: boolean;
+  cameraSessionEpoch: number;
   setIsCameraPausedForCapture: (paused: boolean) => void;
+  bumpCameraSessionEpoch: () => void;
 
   setCallInfo: (data: {
     token: string;

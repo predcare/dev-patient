@@ -1,6 +1,6 @@
 import { MediaStream, RTCView, useMeeting, useParticipant } from '@videosdk.live/react-native-sdk';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { MuteIcon } from '../../../../components/ui/icons';
 import meetingStyles from '../../../../styled/MeetingScreen.styled';
 import theme from '../../../../styled/theme.styled';
@@ -10,6 +10,7 @@ export const LocalPipCard: React.FC = () => {
   const { localParticipant } = useMeeting({});
   const isMuted = useMeetingStore(state => state.isMuted);
   const isCamOn = useMeetingStore(state => state.isCamOn);
+  const cameraSessionEpoch = useMeetingStore(state => state.cameraSessionEpoch);
 
   const localId = localParticipant?.id || '';
   const { webcamStream, webcamOn } = useParticipant(localId);
@@ -21,6 +22,7 @@ export const LocalPipCard: React.FC = () => {
       <View style={meetingStyles.localVideoMock}>
         {shouldRenderVideo ? (
           <RTCView
+            key={Platform.OS === 'android' ? cameraSessionEpoch : undefined}
             streamURL={new MediaStream([webcamStream.track]).toURL()}
             objectFit="cover"
             mirror={true}

@@ -1,6 +1,6 @@
 import { useMeeting } from '@videosdk.live/react-native-sdk';
 import { useEffect, useRef } from 'react';
-import { AppState, AppStateStatus } from 'react-native';
+import { AppState, AppStateStatus, Platform } from 'react-native';
 import NativePip from '../../../native/NativePip';
 import useMeetingStore from '../../../zustand/stores/useMeetingStore';
 
@@ -23,6 +23,10 @@ export const useMeetingAppState = () => {
     const subscription = AppState.addEventListener('change', async (nextState: AppStateStatus) => {
       const prev = appStateRef.current;
       appStateRef.current = nextState;
+
+      if (Platform.OS === 'android' && useMeetingStore.getState().isCameraPausedForCapture) {
+        return;
+      }
 
       // Moving to background
       if (prev === 'active' && nextState.match(/inactive|background/)) {

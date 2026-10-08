@@ -47,6 +47,18 @@ export const NativePip = {
     }
   },
 
+  /** Android only: stop the meeting from auto-entering system PiP (camera / gallery Activities). */
+  setSuppressAutoEnter: async (suppress: boolean): Promise<void> => {
+    if (Platform.OS !== 'android' || !PredPip?.setSuppressAutoEnter) {
+      return;
+    }
+    try {
+      await PredPip.setSuppressAutoEnter(suppress);
+    } catch (err) {
+      console.error('[NativePip] setSuppressAutoEnter error:', err);
+    }
+  },
+
   attachRemoteRenderer: (trackId?: string): void => {
     if (Platform.OS === 'ios' && trackId && PiPManager?.attachRemoteTrack) {
       PiPManager.attachRemoteTrack(trackId);
@@ -126,6 +138,20 @@ export const NativePip = {
       return null;
     }
     return androidEmitter.addListener('onAndroidPipWillEnter', listener);
+  },
+
+  addAndroidCameraUnavailableListener: (listener: () => void) => {
+    if (!androidEmitter) {
+      return null;
+    }
+    return androidEmitter.addListener('onAndroidCameraUnavailable', listener);
+  },
+
+  addAndroidCameraAvailableListener: (listener: () => void) => {
+    if (!androidEmitter) {
+      return null;
+    }
+    return androidEmitter.addListener('onAndroidCameraAvailable', listener);
   },
 
   notifyAndroidPipContentReady: (): void => {

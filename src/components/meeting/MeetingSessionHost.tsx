@@ -3,8 +3,10 @@ import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
 import MeetingStageOverlay from '../../Features/Dashboard/MeetingScreen/Components/MeetingStageOverlay';
 import useAndroidCallForegroundService from '../../hooks/commons/meeting/useAndroidCallForegroundService';
+import useAndroidPipCameraRestore from '../../hooks/commons/meeting/useAndroidPipCameraRestore';
 import useAndroidPipLifecycle from '../../hooks/commons/meeting/useAndroidPipLifecycle';
 import useMeetingAppState from '../../hooks/commons/meeting/useMeetingAppState';
+import useMeetingCaptureHandoff from '../../hooks/commons/meeting/useMeetingCaptureHandoff';
 import { useMeetingCountdownTicker } from '../../hooks/commons/meeting/useMeetingCountdown';
 import useMeetingParticipants from '../../hooks/commons/meeting/useMeetingParticipants';
 import usePipRemoteTrack from '../../hooks/commons/meeting/usePipRemoteTrack';
@@ -20,6 +22,8 @@ const MeetingSessionController: React.FC = () => {
   useMeetingCountdownTicker();
   useAndroidPipLifecycle();
   useAndroidCallForegroundService();
+  useMeetingCaptureHandoff();
+  useAndroidPipCameraRestore();
   const pipMode = useMeetingStore(state => state.pipMode);
 
   if (pipMode === 'IN_APP_PIP') {

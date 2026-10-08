@@ -11,6 +11,7 @@ const LocalPipTile: React.FC = () => {
   const { localParticipant } = useMeeting({});
   const isMuted = useMeetingStore(state => state.isMuted);
   const isCamOn = useMeetingStore(state => state.isCamOn);
+  const cameraSessionEpoch = useMeetingStore(state => state.cameraSessionEpoch);
   const { webcamStream, webcamOn } = useParticipant(localParticipant?.id || '');
 
   const showVideo = isCamOn && webcamOn && webcamStream;
@@ -19,6 +20,7 @@ const LocalPipTile: React.FC = () => {
     <View style={androidPipStyles.selfTile}>
       {showVideo ? (
         <RTCView
+          key={cameraSessionEpoch}
           streamURL={new MediaStream([webcamStream.track]).toURL()}
           objectFit="cover"
           mirror={true}

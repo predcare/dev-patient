@@ -51,6 +51,11 @@ object PipController {
   var isMeetingActive: Boolean = false
     private set
 
+  /** When true, Home / camera / gallery must not auto-enter system PiP. */
+  @Volatile
+  var suppressAutoEnter: Boolean = false
+    private set
+
   var emitter: ((String, WritableMap?) -> Unit)? = null
 
   fun isPipSupported(context: Context): Boolean {
@@ -77,6 +82,13 @@ object PipController {
 
   fun setMeetingActive(activity: Activity?, active: Boolean) {
     isMeetingActive = active
+    if (!active) suppressAutoEnter = false
+    activity?.let { applyParams(it) }
+  }
+
+  fun setSuppressAutoEnter(activity: Activity?, suppress: Boolean) {
+    suppressAutoEnter = suppress
+    Log.d(TAG, "suppressAutoEnter=$suppress")
     activity?.let { applyParams(it) }
   }
 
@@ -93,7 +105,7 @@ object PipController {
   }
 
   fun enter(activity: Activity): Boolean {
-    if (!isMeetingActive || !isPipSupported(activity)) return false
+    if (!canEnter(activity)) return false
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
     if (activity.isInPictureInPictureMode) return true
     return try {
@@ -104,7 +116,8 @@ object PipController {
     }
   }
 
-  fun canEnter(activity: Activity): Boolean = isMeetingActive && isPipSupported(activity)
+  fun canEnter(activity: Activity): Boolean =
+      isMeetingActive && !suppressAutoEnter && isPipSupported(activity)
 
   /**
    * Covers the React UI while it swaps to the compact PiP stage, so the shrinking window never
@@ -169,7 +182,7 @@ object PipController {
   private fun buildParams(): PictureInPictureParams {
     val builder = PictureInPictureParams.Builder().setAspectRatio(ASPECT_RATIO)
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-      builder.setAutoEnterEnabled(isMeetingActive)
+      builder.setAutoEnterEnabled(isMeetingActive && !suppressAutoEnter)
       builder.setSeamlessResizeEnabled(false)
     }
     return builder.build()

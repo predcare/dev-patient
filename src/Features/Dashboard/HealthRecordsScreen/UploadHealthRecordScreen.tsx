@@ -1,8 +1,8 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigation } from '@react-navigation/native';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Text, View } from 'react-native';
+import { Platform, Text, View } from 'react-native';
 import { queryClient } from '../../../components/providers/ReactQueryProvider';
 import { useUploadEMR } from '../../../hooks/react-query/emr/emr.hooks';
 import { EMRQuerykeys } from '../../../hooks/react-query/query.keys';
@@ -20,6 +20,10 @@ import StepCategorySelect, { CategoryOption } from './Components/StepCategorySel
 import StepDocumentDetails from './Components/StepDocumentDetails';
 import StepUploadMethod from './Components/StepUploadMethod';
 import UploadStepper from './Components/UploadStepper';
+import {
+  clearPendingHealthRecordFile,
+  consumePendingHealthRecordFile,
+} from './pendingHealthRecordCapture';
 
 export const UploadHealthRecordScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -64,12 +68,28 @@ export const UploadHealthRecordScreen: React.FC = () => {
   };
 
   const handleFileSelected = async (fileObj: any) => {
+    if (Platform.OS === 'android') {
+      clearPendingHealthRecordFile();
+    }
     setValue('file', fileObj, { shouldValidate: true });
     const isValid = await trigger('file');
     if (isValid) {
       setCurrentStep(3);
     }
   };
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') {
+      return;
+    }
+    const pendingFile = consumePendingHealthRecordFile();
+    if (!pendingFile) {
+      return;
+    }
+    void handleFileSelected(pendingFile);
+    // Restore once after an Android camera Activity remounts this screen.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleToggleDoctor = (id: number) => {
     const exists = shareDoctorIds.includes(id);

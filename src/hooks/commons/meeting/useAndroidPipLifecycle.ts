@@ -43,6 +43,7 @@ export const useAndroidPipLifecycle = () => {
     const willEnterSub = NativePip.addAndroidPipWillEnterListener(() => {
       const state = useMeetingStore.getState();
       if (!state.callInfo?.meetingId) return;
+      if (state.isCameraPausedForCapture) return;
       state.setPipMode('NATIVE_PIP');
       goToMeetingScreen();
     });
@@ -50,6 +51,7 @@ export const useAndroidPipLifecycle = () => {
     const changeSub = NativePip.addAndroidPipListener(active => {
       const state = useMeetingStore.getState();
       if (!state.callInfo?.meetingId) return;
+      if (state.isCameraPausedForCapture) return;
 
       if (active) {
         if (state.pipMode !== 'NATIVE_PIP') {

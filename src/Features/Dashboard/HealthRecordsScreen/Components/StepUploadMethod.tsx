@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Platform, Text, TouchableOpacity, View } from 'react-native';
+import { stashPendingHealthRecordFile } from '../pendingHealthRecordCapture';
 import UploadOptionsModal from '../../../../components/commons/UploadOptionsModal/UploadOptionsModal';
 import {
   CameraIcon,
@@ -63,6 +64,9 @@ export const StepUploadMethod: React.FC<StepUploadMethodProps> = ({ onFileSelect
               type: asset.type || 'image/jpeg',
               size: asset.fileSize,
             };
+            if (Platform.OS === 'android') {
+              stashPendingHealthRecordFile(fileObj);
+            }
             onFileSelected(fileObj);
           }
         }
@@ -99,6 +103,9 @@ export const StepUploadMethod: React.FC<StepUploadMethodProps> = ({ onFileSelect
               type: asset.type || 'image/png',
               size: asset.fileSize,
             };
+            if (Platform.OS === 'android') {
+              stashPendingHealthRecordFile(fileObj);
+            }
             onFileSelected(fileObj);
           }
         }
