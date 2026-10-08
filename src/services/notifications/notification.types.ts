@@ -3,6 +3,7 @@ export enum NotificationCategory {
   APPOINTMENT_REMINDER = 'APPOINTMENT_REMINDER',
   CONSULTATION_ALERT = 'CONSULTATION_ALERT',
   LAB_REPORT = 'LAB_REPORT',
+  MEETING_ONGOING = 'MEETING_ONGOING',
 }
 
 export interface PdfDownloadNotificationData {

@@ -10,6 +10,7 @@ import GlobalPopupAlert from './src/components/commons/PopupAlert/GlobalPopupAle
 import SocketListeners from './src/components/commons/Sockets/SocketListeners';
 import SocketProvider from './src/components/commons/Sockets/SocketProvider';
 import GlobalToast from './src/components/commons/Toast/GlobalToast';
+import HideDuringAndroidPip from './src/components/meeting/HideDuringAndroidPip';
 import MeetingSessionHost from './src/components/meeting/MeetingSessionHost';
 import ReactQueryProvider from './src/components/providers/ReactQueryProvider';
 import { LanguageProvider } from './src/contexts/LanguageContext';
@@ -30,12 +31,14 @@ function App() {
           <MeetingSessionHost />
           <EventListener />
           <NotificationEventListener />
-          <GlobalIncomingCallBanner />
-          <GlobalOfflineBanner />
-          <GlobalToast />
-          <GlobalPopupAlert />
-          <BackdropLoader />
-          <GlobalNoInternetBlocker />
+          <HideDuringAndroidPip>
+            <GlobalIncomingCallBanner />
+            <GlobalOfflineBanner />
+            <GlobalToast />
+            <GlobalPopupAlert />
+            <BackdropLoader />
+            <GlobalNoInternetBlocker />
+          </HideDuringAndroidPip>
         </LanguageProvider>
       </SafeAreaProvider>
     </ReactQueryProvider>

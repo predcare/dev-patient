@@ -1,27 +1,19 @@
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 
-let PipHandler: any = null;
-if (Platform.OS === 'android') {
-  try {
-    const androidPip = require('@videosdk.live/react-native-pip-android');
-    PipHandler = androidPip.default || androidPip;
-  } catch (err) {
-    console.warn('[NativePip] Failed to load @videosdk.live/react-native-pip-android', err);
-  }
-}
-
-const { PiPManager } = NativeModules;
+const { PiPManager, PredPip } = NativeModules;
 
 const iosEmitter =
   Platform.OS === 'ios' && PiPManager ? new NativeEventEmitter(PiPManager) : null;
 
+const androidEmitter =
+  Platform.OS === 'android' && PredPip ? new NativeEventEmitter(PredPip) : null;
+
 export const NativePip = {
   /** Resolves true only when the system PiP window actually opened. */
-  enterPipMode: async (width = 300, height = 500): Promise<boolean> => {
+  enterPipMode: async (_width = 300, _height = 500): Promise<boolean> => {
     try {
-      if (Platform.OS === 'android' && PipHandler?.enterPipMode) {
-        PipHandler.enterPipMode(width, height);
-        return true;
+      if (Platform.OS === 'android' && PredPip?.enterPip) {
+        return Boolean(await PredPip.enterPip());
       }
       if (Platform.OS === 'ios' && PiPManager?.startPiP) {
         return Boolean(await PiPManager.startPiP());
@@ -44,9 +36,8 @@ export const NativePip = {
 
   setMeetingScreenState: (active: boolean): void => {
     try {
-      if (Platform.OS === 'android' && PipHandler) {
-        PipHandler.setDefaultPipDimensions(300, 500);
-        PipHandler.setMeetingScreenState(active);
+      if (Platform.OS === 'android' && PredPip?.setMeetingActive) {
+        PredPip.setMeetingActive(active);
       }
       if (Platform.OS === 'ios' && PiPManager?.setMeetingActive) {
         PiPManager.setMeetingActive(active);
@@ -77,7 +68,7 @@ export const NativePip = {
   isPipSupported: async (): Promise<boolean> => {
     try {
       if (Platform.OS === 'android') {
-        return Platform.Version >= 26;
+        return Boolean(await PredPip?.isPipSupported?.());
       }
       if (Platform.OS === 'ios' && PiPManager?.isPiPSupported) {
         return await PiPManager.isPiPSupported();
@@ -91,6 +82,10 @@ export const NativePip = {
   /** True when the camera can keep capturing while the app sits in the background. */
   isBackgroundCameraSupported: async (): Promise<boolean> => {
     try {
+      // The call runs a camera|microphone foreground service on Android.
+      if (Platform.OS === 'android') {
+        return true;
+      }
       if (Platform.OS === 'ios' && PiPManager?.isBackgroundCameraSupported) {
         return Boolean(await PiPManager.isBackgroundCameraSupported());
       }
@@ -107,6 +102,36 @@ export const NativePip = {
     return iosEmitter.addListener('onPipChanged', (event: { active?: boolean }) => {
       listener(Boolean(event?.active));
     });
+  },
+
+  addAndroidPipListener: (listener: (active: boolean) => void) => {
+    if (!androidEmitter) {
+      return null;
+    }
+    return androidEmitter.addListener('onAndroidPipChanged', (event: { active?: boolean }) => {
+      listener(Boolean(event?.active));
+    });
+  },
+
+  addAndroidPipDismissListener: (listener: () => void) => {
+    if (!androidEmitter) {
+      return null;
+    }
+    return androidEmitter.addListener('onAndroidPipDismissed', listener);
+  },
+
+  /** Fires just before Android starts the PiP transition (Home / swipe up). */
+  addAndroidPipWillEnterListener: (listener: () => void) => {
+    if (!androidEmitter) {
+      return null;
+    }
+    return androidEmitter.addListener('onAndroidPipWillEnter', listener);
+  },
+
+  notifyAndroidPipContentReady: (): void => {
+    if (Platform.OS === 'android' && PredPip?.pipContentReady) {
+      PredPip.pipContentReady();
+    }
   },
 };
 

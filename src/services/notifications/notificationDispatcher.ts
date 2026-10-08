@@ -1,5 +1,6 @@
 import notifee, { Event, EventType } from '@notifee/react-native';
 import { handleDownloadNotificationPress } from './handlers/downloadNotification.handler';
+import { handleMeetingNotificationPress } from './handlers/meetingNotification.handler';
 import { NotificationCategory, PdfDownloadNotificationData } from './notification.types';
 
 /**
@@ -27,6 +28,10 @@ export const routeNotificationPress = async (event: Event): Promise<void> => {
 
     case NotificationCategory.CONSULTATION_ALERT:
       // Future handler registration
+      break;
+
+    case NotificationCategory.MEETING_ONGOING:
+      handleMeetingNotificationPress();
       break;
 
     default:

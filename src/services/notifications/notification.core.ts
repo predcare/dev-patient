@@ -18,7 +18,24 @@ export const NOTIFICATION_CHANNELS = {
     description: 'Reminders and updates for upcoming doctor appointments',
     importance: AndroidImportance.HIGH,
   },
+  MEETING_ONGOING: {
+    id: 'meeting-ongoing',
+    name: 'Ongoing Consultation',
+    description: 'Shown while a video consultation is in progress',
+    importance: AndroidImportance.LOW,
+  },
 } as const;
+
+export const createMeetingOngoingChannel = async (): Promise<string> => {
+  return notifee.createChannel({
+    id: NOTIFICATION_CHANNELS.MEETING_ONGOING.id,
+    name: NOTIFICATION_CHANNELS.MEETING_ONGOING.name,
+    description: NOTIFICATION_CHANNELS.MEETING_ONGOING.description,
+    importance: NOTIFICATION_CHANNELS.MEETING_ONGOING.importance,
+    visibility: AndroidVisibility.PUBLIC,
+    vibration: false,
+  });
+};
 
 /**
  * Initializes required Android notification channels. Safe to call idempotently.
@@ -35,6 +52,7 @@ export const initNotificationChannels = async (): Promise<void> => {
       visibility: AndroidVisibility.PUBLIC,
       vibration: false,
     });
+    await createMeetingOngoingChannel();
   } catch (err) {
     console.warn('[NotificationCore] Failed to create notification channels:', err);
   }

@@ -14,6 +14,7 @@ const SocketListeners = () => {
   const { socketConnection } = useSocketStore();
   const { showCallBanner } = useIncomingCallStore(state => state);
   const callState = useMeetingStore(state => state.callState);
+  const activeMeetingId = useMeetingStore(state => state.callInfo?.meetingId);
 
   useEffect(() => {
     if (!socketConnection) return;
@@ -28,7 +29,7 @@ const SocketListeners = () => {
       meetingId: string;
       callType: string;
     }) => {
-      if (callState === 'CONNECTED' || callState === 'CONNECTING' || callState === 'INITIALIZING') {
+      if (activeMeetingId && payload.meetingId) {
         return null;
       }
       if (payload?.appointmentId) {
