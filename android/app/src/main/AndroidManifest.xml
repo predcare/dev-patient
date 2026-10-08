@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- ============================================
          NETWORK PERMISSIONS
@@ -12,6 +13,16 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
+
+    <!-- ============================================
+         FOREGROUND SERVICE PERMISSIONS (REQUIRED FOR VIDEOSDK)
+    ============================================= -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
 
     <!-- ============================================
          BACKGROUND, NOTIFICATIONS & STABILITY
@@ -46,6 +57,11 @@
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
     <uses-feature android:name="android.hardware.microphone" android:required="true" />
+
+    <!-- ============================================
+         PiP SUPPORT (REQUIRED FOR FLOATING WINDOW)
+    ============================================= -->
+    <uses-feature android:name="android.software.picture_in_picture" />
 
     <!-- ============================================
          PACKAGE VISIBILITY QUERIES
@@ -97,10 +113,21 @@
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
       </activity>
-       <service
+    <!-- ============================================
+         MEDIA PROJECTION SERVICE
+    ============================================= -->
+    <service
         android:name="live.videosdk.rnwebrtc.MediaProjectionService"
         android:enabled="true"
         android:exported="false"
         android:foregroundServiceType="mediaProjection" />
+    <!-- ============================================
+         NOTIFICATION SERVICE
+    ============================================= -->
+    <service
+        android:name="app.notifee.core.ForegroundService"
+        android:exported="false"
+        android:foregroundServiceType="camera|microphone"
+        tools:replace="android:foregroundServiceType" />
     </application>
 </manifest>
