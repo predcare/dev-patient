@@ -1,4 +1,4 @@
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect } from 'react';
 import { StatusBar, View } from 'react-native';
 import SafeAreaWrapper from '../../../Layout/SafeAreaWrapper';
@@ -8,6 +8,7 @@ import useMeetingStore from '../../../zustand/stores/useMeetingStore';
 
 export const MeetingScreen: React.FC = () => {
   const navigation = useNavigation<any>();
+  const isFocused = useIsFocused();
   const { enterInAppPip } = useMeetingPip();
 
   const setPipMode = useMeetingStore(state => state.setPipMode);
@@ -24,14 +25,16 @@ export const MeetingScreen: React.FC = () => {
     }, [setPipMode])
   );
 
-  // If call ended or no active session, go back
+  // If call ended or no active session, go back only while Meeting is still focused.
+  // After the call resets to the visit summary, this screen is no longer focused.
   useEffect(() => {
+    if (!isFocused) return;
     if (!hasToken || callState === 'ENDED') {
       if (navigation.canGoBack()) {
         navigation.goBack();
       }
     }
-  }, [hasToken, callState, navigation]);
+  }, [hasToken, callState, navigation, isFocused]);
 
   // Intercept back button / swipe back to enter In-App PiP rather than dropping the call
   useEffect(() => {

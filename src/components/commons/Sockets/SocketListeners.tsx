@@ -13,6 +13,7 @@ import { useSocketStore } from '../../../zustand/stores/useSocketStore';
 const SocketListeners = () => {
   const { socketConnection } = useSocketStore();
   const { showCallBanner } = useIncomingCallStore(state => state);
+  const callState = useMeetingStore(state => state.callState);
 
   useEffect(() => {
     if (!socketConnection) return;
@@ -27,6 +28,9 @@ const SocketListeners = () => {
       meetingId: string;
       callType: string;
     }) => {
+      if (callState === 'CONNECTED' || callState === 'CONNECTING' || callState === 'INITIALIZING') {
+        return null;
+      }
       if (payload?.appointmentId) {
         showCallBanner({
           appointmentId: payload.appointmentId,

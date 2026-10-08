@@ -11,6 +11,9 @@ export const consultationCompletedStyles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 36,
   },
+  loader: {
+    marginVertical: 32,
+  },
 
   // Hero Section
   heroSection: {
@@ -49,6 +52,13 @@ export const consultationCompletedStyles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 20,
     lineHeight: 18,
+  },
+  autoLeaveNote: {
+    marginTop: 8,
+    fontSize: 11,
+    fontWeight: '600',
+    color: theme.colors.primary,
+    textAlign: 'center',
   },
 
   // Generic Card
@@ -99,15 +109,15 @@ export const consultationCompletedStyles = StyleSheet.create({
     flex: 1,
   },
   doctorName: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '500',
     color: theme.colors.textPrimary,
     marginBottom: 2,
   },
   doctorSpecialty: {
-    fontSize: 12,
+    fontSize: 11,
     color: theme.colors.primary,
-    fontWeight: '500',
+    fontWeight: '400',
     marginBottom: 2,
   },
   doctorClinic: {

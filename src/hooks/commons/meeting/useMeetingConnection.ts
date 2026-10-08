@@ -11,6 +11,10 @@ export const useMeetingConnection = () => {
   const resetCallInfo = useMeetingStore(state => state.resetCallInfo);
 
   const endCall = useCallback(async () => {
+    const meetingState = useMeetingStore.getState();
+    const appointmentId =
+      meetingState.appointmentId || meetingState.callInfo?.appointment?.id || null;
+
     try {
       if (sdkLeave) {
         await sdkLeave();
@@ -19,7 +23,10 @@ export const useMeetingConnection = () => {
       console.warn('[useMeetingConnection] leave error:', e);
     } finally {
       resetCallInfo();
-      resetRoot(AppRoute.CONSULTATION_COMPLETED);
+      resetRoot(
+        AppRoute.CONSULTATION_COMPLETED,
+        appointmentId != null ? { appointmentId } : undefined
+      );
     }
   }, [sdkLeave, resetCallInfo]);
 

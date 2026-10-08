@@ -1,5 +1,5 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import {
     CalendarIcon,
@@ -18,6 +18,7 @@ import { useCreateAppointment } from '../../../hooks/react-query/appointments/ap
 import Header from '../../../Layout/Header';
 import SafeAreaWrapper from '../../../Layout/SafeAreaWrapper';
 import { getInitials } from '../../../lib/common/common.utils';
+import { resetAndNavigate } from '../../../lib/common/navigation.utils';
 import { showErrorToast, showInfoToast, showSuccessToast } from '../../../lib/common/toast.utils';
 import { AppRoute } from '../../../route';
 import paymentStyles from '../../../styled/PaymentScreen.styled';
@@ -25,6 +26,14 @@ import theme from '../../../styled/theme.styled';
 import { IBookingData } from '../../../typescripts/interfaces/appointments.interfaces';
 import { useAuthStore } from '../../../zustand/stores/useAuthStore';
 import { useSocketStore } from '../../../zustand/stores/useSocketStore';
+
+const PAYMENT_TIMEOUT_SECONDS = 180;
+
+const formatCountdown = (totalSeconds: number) => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+};
 
 export const PaymentScreen: React.FC = () => {
     const navigation = useNavigation<any>();
@@ -43,6 +52,12 @@ export const PaymentScreen: React.FC = () => {
 
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [imageError, setImageError] = useState<boolean>(false);
+    const [secondsLeft, setSecondsLeft] = useState<number>(PAYMENT_TIMEOUT_SECONDS);
+    const timedOutRef = useRef(false);
+    const hasLeftRef = useRef(false);
+    const isCheckoutActiveRef = useRef(false);
+    const bookingDataRef = useRef(bookingData);
+    bookingDataRef.current = bookingData;
 
     const doctorName = bookingData.doctor?.doctor_name;
     const doctorSpecialization = bookingData.doctor?.specialization;
@@ -51,10 +66,32 @@ export const PaymentScreen: React.FC = () => {
     const clinicName = bookingData.clinic?.name;
     const clinicCity = bookingData.clinic?.city;
 
+    const leavePaymentScreen = useCallback(() => {
+        if (hasLeftRef.current) return;
+        hasLeftRef.current = true;
+
+        if (typeof navigation.canGoBack === 'function' && navigation.canGoBack()) {
+            navigation.goBack();
+            return;
+        }
+
+        const apiPayload = bookingDataRef.current.apiPayload;
+        const doctorId = Number(apiPayload?.doctor_id);
+        const clinicId = Number(apiPayload?.clinic_id);
+        resetAndNavigate(navigation, AppRoute.BOOK_APPOINTMENT, {
+            doctorId: Number.isFinite(doctorId) && doctorId > 0 ? doctorId : undefined,
+            clinicId: Number.isFinite(clinicId) && clinicId > 0 ? clinicId : undefined,
+        });
+    }, [navigation]);
+
     const { mutate: createAppointmentMutation } = useCreateAppointment();
     const { openCheckout, isLoading: isRazorpayLoading } = useRazorpay({
         onPaymentDismiss: () => {
             setIsSubmitting(false);
+            if (timedOutRef.current) {
+                leavePaymentScreen();
+                return;
+            }
             showInfoToast('Payment Cancelled by User');
             if (socketConnection) {
                 socketConnection.emit(SocketEvents.PAYMENT_CANCEL_USER, { appointment_id: bookingData.id })
@@ -62,13 +99,51 @@ export const PaymentScreen: React.FC = () => {
         },
         onPaymentFailure: (error: unknown) => {
             setIsSubmitting(false);
+            if (timedOutRef.current) {
+                leavePaymentScreen();
+                return;
+            }
             console.log('Payment failure:', error);
             showErrorToast('Payment failed. Please try again.');
         },
     });
 
+    isCheckoutActiveRef.current = isSubmitting || isRazorpayLoading;
+    const isTimeLow = secondsLeft <= 30;
+    const isPayDisabled = isSubmitting || isRazorpayLoading || secondsLeft === 0;
+
+    useEffect(() => {
+        const deadline = Date.now() + PAYMENT_TIMEOUT_SECONDS * 1000;
+        const intervalId = setInterval(() => {
+            const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+            setSecondsLeft(remaining);
+            if (remaining === 0) {
+                clearInterval(intervalId);
+            }
+        }, 1000);
+
+        return () => clearInterval(intervalId);
+    }, []);
+
+    useEffect(() => {
+        if (secondsLeft > 0 || timedOutRef.current || hasLeftRef.current) return;
+
+        timedOutRef.current = true;
+        showInfoToast('Payment time expired. Please book again.');
+
+        if (!isCheckoutActiveRef.current) {
+            leavePaymentScreen();
+        }
+    }, [secondsLeft, leavePaymentScreen]);
+
+    const handleBack = () => {
+        if (hasLeftRef.current) return;
+        hasLeftRef.current = true;
+        navigation.goBack();
+    };
+
     const handlePay = async () => {
-        if (isSubmitting || isRazorpayLoading) return;
+        if (isPayDisabled || timedOutRef.current) return;
 
         setIsSubmitting(true);
 
@@ -83,6 +158,12 @@ export const PaymentScreen: React.FC = () => {
 
         createAppointmentMutation(payloadToSend, {
             onSuccess: async (res: any) => {
+                if (timedOutRef.current || hasLeftRef.current) {
+                    setIsSubmitting(false);
+                    leavePaymentScreen();
+                    return;
+                }
+
                 const data = res?.data;
                 const appointmentId = data?.appointment_id || data?._id || data?.id || '';
                 const bookingId = data?.appointment?.id
@@ -108,7 +189,14 @@ export const PaymentScreen: React.FC = () => {
                         }
                     );
 
+                    if (timedOutRef.current || hasLeftRef.current) {
+                        setIsSubmitting(false);
+                        leavePaymentScreen();
+                        return;
+                    }
+
                     if (checkoutResult) {
+                        hasLeftRef.current = true;
                         setIsSubmitting(false);
                         navigation.replace('PaymentProcessing', {
                             bookingData: {
@@ -126,6 +214,13 @@ export const PaymentScreen: React.FC = () => {
                         setIsSubmitting(false);
                     }
                 } else {
+                    if (timedOutRef.current || hasLeftRef.current) {
+                        setIsSubmitting(false);
+                        leavePaymentScreen();
+                        return;
+                    }
+
+                    hasLeftRef.current = true;
                     setIsSubmitting(false);
                     showSuccessToast('Appointment confirmed successfully!');
                     navigation.replace(AppRoute.BOOKING_SUCCESS, {
@@ -140,6 +235,10 @@ export const PaymentScreen: React.FC = () => {
             },
             onError: (err: any) => {
                 setIsSubmitting(false);
+                if (timedOutRef.current) {
+                    leavePaymentScreen();
+                    return;
+                }
                 showErrorToast(
                     err?.response?.data?.message || err?.message || 'Failed to create appointment.'
                 );
@@ -154,7 +253,7 @@ export const PaymentScreen: React.FC = () => {
                     title="Payment"
                     subtitle="Complete appointment booking"
                     isBackBtn={true}
-                    onBackPress={() => navigation.goBack()}
+                    onBackPress={handleBack}
                 />
             }
         >
@@ -317,12 +416,21 @@ export const PaymentScreen: React.FC = () => {
                         </View>
                     </View>
                 )}
+                <View style={[paymentStyles.timerRow, isTimeLow && paymentStyles.timerRowWarning]}>
+                    <ClockIcon
+                        size={16}
+                        color={isTimeLow ? theme.colors.danger : theme.colors.primary}
+                    />
+                    <Text style={[paymentStyles.timerText, isTimeLow && paymentStyles.timerTextWarning]}>
+                        Complete within {formatCountdown(secondsLeft)}
+                    </Text>
+                </View>
                 <TouchableOpacity
                     onPress={handlePay}
-                    disabled={isSubmitting || isRazorpayLoading}
+                    disabled={isPayDisabled}
                     style={[
                         paymentStyles.payButton,
-                        (isSubmitting || isRazorpayLoading) && paymentStyles.payButtonDisabled,
+                        isPayDisabled && paymentStyles.payButtonDisabled,
                     ]}
                     activeOpacity={0.85}
                 >

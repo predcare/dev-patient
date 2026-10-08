@@ -20,7 +20,7 @@ import UploadHealthRecordScreen from '../Features/Dashboard/HealthRecordsScreen/
 import HomeScreen from '../Features/Dashboard/HomeScreen/HomeScreen';
 import { InvoicesScreen } from '../Features/Dashboard/Invoices/InvoicesScreen';
 import MeetingScreen from '../Features/Dashboard/MeetingScreen/MeetingScreen';
-import ConsultationCompletedScreen from '../Features/Dashboard/MeetingScreen/MeetingStatusScreen';
+import { MeetingStatusScreen } from '../Features/Dashboard/MeetingScreen/MeetingStatusScreen';
 import PaymentProcessingScreen from '../Features/Dashboard/PaymentScreen/PaymentProcessingScreen';
 import PaymentScreen from '../Features/Dashboard/PaymentScreen/PaymentScreen';
 import PrescriptionDetailScreen from '../Features/Dashboard/PrescriptionScreen/PrescriptionDetailScreen';
@@ -81,7 +81,7 @@ export const AppNavigator: React.FC = () => {
         <Stack.Screen name="UploadHealthRecord" component={UploadHealthRecordScreen} />
         <Stack.Screen name="InvoicesList" component={InvoicesScreen} />
         <Stack.Screen name="Meeting" component={MeetingScreen} />
-        <Stack.Screen name="ConsultationCompleted" component={ConsultationCompletedScreen} />
+        <Stack.Screen name="ConsultationCompleted" component={MeetingStatusScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
