@@ -193,7 +193,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: propNaviga
                   phone: loginMode === 'mobile' ? cleanIdentifier : userData?.phone_number,
                 });
               }
-            } else if (userData?.email_verified_at && !userData?.has_accepted_policies) {
+            } else if (!userData?.has_accepted_policies) {
               if (nav && typeof nav.replace === 'function') {
                 nav.replace(AppRoute.POLICY_ACCEPTANCE);
               } else if (nav && typeof nav.navigate === 'function') {

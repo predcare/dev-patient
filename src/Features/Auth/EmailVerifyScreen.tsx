@@ -1,6 +1,6 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
   ActivityIndicator,
@@ -45,8 +45,23 @@ export const EmailVerifyScreen: React.FC<EmailVerifyScreenProps> = ({
   const { userData, setUserData } = useAuthStore(state => state);
   const targetEmail = passedEmail || userData?.email || '';
 
+  const [isOtpSent, setIsOtpSent] = useState(false);
   const [resendTimer, setResendTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
+
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (isOtpSent && resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer(prev => prev - 1);
+      }, 1000);
+    } else if (resendTimer === 0) {
+      setCanResend(true);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isOtpSent, resendTimer]);
 
   const {
     control,
@@ -69,6 +84,23 @@ export const EmailVerifyScreen: React.FC<EmailVerifyScreenProps> = ({
   const { mutate: verifyEmailMutate, isPending: isVerifying } = useVerifyEmail();
   const { mutate: resendEmailOtpMutate, isPending: isResending } = useResendEmailOtp();
 
+  const handleSendInitialOtp = () => {
+    Keyboard.dismiss();
+    resendEmailOtpMutate(
+      { email: targetEmail },
+      {
+        onSuccess: () => {
+          setIsOtpSent(true);
+          setResendTimer(60);
+          setCanResend(false);
+        },
+        onError: err => {
+          console.error('Failed to send email verification OTP:', err);
+        },
+      }
+    );
+  };
+
   const onVerifySubmit = (formData: TVerifyEmailSchemaType) => {
     Keyboard.dismiss();
     verifyEmailMutate(
@@ -78,39 +110,43 @@ export const EmailVerifyScreen: React.FC<EmailVerifyScreenProps> = ({
       },
       {
         onSuccess: async res => {
-          let updatedUserData = userData;
-          try {
-            const profileRes = await fetchProfileQuery(true);
-            if (profileRes?.data) {
-              updatedUserData = profileRes.data;
-              setUserData(profileRes.data);
+          if (res?.success) {
+            let updatedUserData = userData;
+            try {
+              const profileRes = await fetchProfileQuery(true);
+              if (profileRes?.data) {
+                updatedUserData = profileRes.data;
+                setUserData(profileRes.data);
+              }
+            } catch (err) {
+              console.error('Failed to fetch profile after email verification:', err);
             }
-          } catch (err) {
-            console.error('Failed to fetch profile after email verification:', err);
-          }
 
-          const nav = navigation || defaultNavigation;
-          if (nav) {
-            if (!updatedUserData?.has_accepted_policies) {
-              if (typeof nav.replace === 'function') {
-                nav.replace(AppRoute.POLICY_ACCEPTANCE);
-              } else if (typeof nav.navigate === 'function') {
-                nav.navigate(AppRoute.POLICY_ACCEPTANCE);
-              }
-            } else {
-              if (typeof nav.reset === 'function') {
-                nav.reset({
-                  index: 0,
-                  routes: [{ name: 'Home' }],
-                });
-              } else if (typeof nav.navigate === 'function') {
-                nav.navigate('Home');
+            const nav = navigation || defaultNavigation;
+            if (nav) {
+              if (!updatedUserData?.has_accepted_policies) {
+                if (typeof nav.replace === 'function') {
+                  nav.replace(AppRoute.POLICY_ACCEPTANCE);
+                } else if (typeof nav.navigate === 'function') {
+                  nav.navigate(AppRoute.POLICY_ACCEPTANCE);
+                }
+              } else {
+                if (typeof nav.reset === 'function') {
+                  nav.reset({
+                    index: 0,
+                    routes: [{ name: 'Home' }],
+                  });
+                } else if (typeof nav.navigate === 'function') {
+                  nav.navigate('Home');
+                }
               }
             }
+          } else {
+            setIsOtpSent(false);
           }
         },
-        onError: err => {
-          console.error('Failed to verify email:', err);
+        onError: () => {
+          setIsOtpSent(false);
         },
       }
     );
@@ -176,60 +212,81 @@ export const EmailVerifyScreen: React.FC<EmailVerifyScreenProps> = ({
                 <MailIcon size={28} color="#0F766E" />
               </View>
               <Text style={emailVerifyStyles.title}>Verify Your Email</Text>
-              <Text style={emailVerifyStyles.subtitle}>We sent a 6-digit verification code to</Text>
+              <Text style={emailVerifyStyles.subtitle}>
+                {isOtpSent
+                  ? 'We sent a 6-digit verification code to'
+                  : 'Verify your email address to secure your account'}
+              </Text>
               <Text style={emailVerifyStyles.emailBadge}>{targetEmail}</Text>
             </View>
-
-            {/* OTP Section */}
-            <View style={emailVerifyStyles.otpSection}>
-              <Text style={emailVerifyStyles.otpLabel}>Enter 6-digit verification code</Text>
-              <Controller
-                control={control}
-                name="otp"
-                render={({ field: { onChange, value } }) => (
-                  <OtpInput value={value || ''} onChange={onChange} numInputs={6} />
-                )}
-              />
-              {errors.otp ? (
-                <Text style={emailVerifyStyles.errorText}>{errors.otp.message}</Text>
-              ) : null}
-
-              {/* Resend Container */}
-              <View style={emailVerifyStyles.resendContainer}>
-                <Text style={emailVerifyStyles.resendText}>Didn't receive code? </Text>
-                {canResend ? (
-                  <Pressable
-                    disabled={isResending}
-                    onPress={handleResendOtp}
-                    style={({ pressed }) => [pressed && { opacity: 0.6 }]}
-                  >
-                    <Text style={emailVerifyStyles.resendLink}>
-                      {isResending ? 'Sending...' : 'Resend Code'}
+            {isOtpSent && (
+              <View style={emailVerifyStyles.otpSection}>
+                <Text style={emailVerifyStyles.otpLabel}>Enter 6-digit verification code</Text>
+                <Controller
+                  control={control}
+                  name="otp"
+                  render={({ field: { onChange, value } }) => (
+                    <OtpInput value={value || ''} onChange={onChange} numInputs={6} />
+                  )}
+                />
+                {errors.otp ? (
+                  <Text style={emailVerifyStyles.errorText}>{errors.otp.message}</Text>
+                ) : null}
+                <View style={emailVerifyStyles.resendContainer}>
+                  <Text style={emailVerifyStyles.resendText}>Didn't receive code? </Text>
+                  {canResend ? (
+                    <Pressable
+                      disabled={isResending}
+                      onPress={handleResendOtp}
+                      style={({ pressed }) => [pressed && { opacity: 0.6 }]}
+                    >
+                      <Text style={emailVerifyStyles.resendLink}>
+                        {isResending ? 'Sending...' : 'Resend Code'}
+                      </Text>
+                    </Pressable>
+                  ) : (
+                    <Text style={emailVerifyStyles.timerText}>
+                      Resend in <Text style={emailVerifyStyles.timerBold}>{resendTimer}s</Text>
                     </Text>
-                  </Pressable>
-                ) : (
-                  <Text style={emailVerifyStyles.timerText}>
-                    Resend in <Text style={emailVerifyStyles.timerBold}>{resendTimer}s</Text>
-                  </Text>
-                )}
+                  )}
+                </View>
               </View>
-            </View>
+            )}
 
-            <Pressable
-              disabled={!isOtpComplete || isVerifying}
-              style={({ pressed }) => [
-                emailVerifyStyles.primaryButton,
-                (!isOtpComplete || isVerifying) && emailVerifyStyles.buttonDisabled,
-                pressed && isOtpComplete && !isVerifying && { opacity: 0.85 },
-              ]}
-              onPress={() => handleSubmit(onVerifySubmit)()}
-            >
-              {isVerifying ? (
-                <ActivityIndicator color="#FFFFFF" />
-              ) : (
-                <Text style={emailVerifyStyles.primaryButtonText}>Verify & Continue</Text>
-              )}
-            </Pressable>
+            {/* Primary Action Button */}
+            {!isOtpSent ? (
+              <Pressable
+                disabled={!targetEmail || isResending}
+                style={({ pressed }) => [
+                  emailVerifyStyles.primaryButton,
+                  (!targetEmail || isResending) && emailVerifyStyles.buttonDisabled,
+                  pressed && targetEmail && !isResending && { opacity: 0.85 },
+                ]}
+                onPress={handleSendInitialOtp}
+              >
+                {isResending ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={emailVerifyStyles.primaryButtonText}>Verify Email</Text>
+                )}
+              </Pressable>
+            ) : (
+              <Pressable
+                disabled={!isOtpComplete || isVerifying}
+                style={({ pressed }) => [
+                  emailVerifyStyles.primaryButton,
+                  (!isOtpComplete || isVerifying) && emailVerifyStyles.buttonDisabled,
+                  pressed && isOtpComplete && !isVerifying && { opacity: 0.85 },
+                ]}
+                onPress={() => handleSubmit(onVerifySubmit)()}
+              >
+                {isVerifying ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={emailVerifyStyles.primaryButtonText}>Verify & Continue</Text>
+                )}
+              </Pressable>
+            )}
 
             <Pressable
               style={({ pressed }) => [

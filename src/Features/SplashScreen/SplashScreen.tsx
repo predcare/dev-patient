@@ -98,7 +98,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation, onFinish
         if (patientData) {
           if (!patientData?.email_verified_at) {
             resetAndNavigate(navigation, AppRoute.EMAIL_VERIFY);
-          } else if (patientData?.email_verified_at && !patientData.has_accepted_policies) {
+          } else if (!patientData.has_accepted_policies) {
             resetAndNavigate(navigation, AppRoute.POLICY_ACCEPTANCE);
           } else {
             const target = consumeTargetRoute();
