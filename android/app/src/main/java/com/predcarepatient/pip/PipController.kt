@@ -17,10 +17,13 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableMap
+import com.predcarepatient.R
 
 /**
  * Process-wide PiP state shared by [PipModule] (JS side) and MainActivity (lifecycle side).
@@ -35,12 +38,15 @@ object PipController {
   // Portrait call layout; Android only accepts ratios between 1:2.39 and 2.39:1.
   private val ASPECT_RATIO = Rational(9, 16)
 
-  // Matches the AndroidPipStage background.
-  private val COVER_COLOR = Color.parseColor("#0F172A")
-  private const val COVER_TIMEOUT_MS = 1500L
+  // White so the blue wordmark and black label stay readable while the window shrinks.
+  private val COVER_COLOR = Color.WHITE
+  private const val COVER_TIMEOUT_MS = 2500L
+  private const val MIN_PIP_TRANSITION_DURATION_MS = 600L
 
   private val mainHandler = Handler(Looper.getMainLooper())
   private var coverView: View? = null
+  private var coverShownTimeMs: Long = 0L
+
   private val hideCoverRunnable = Runnable {
     coverView?.let { (it.parent as? ViewGroup)?.removeView(it) }
     if (coverView != null) Log.d(TAG, "cover hidden")
@@ -124,41 +130,103 @@ object PipController {
    * shows the previous screen. Removed by [hideCover] once JS reports the stage is laid out.
    */
   fun showCover(activity: Activity) {
-    if (coverView != null) return
-    val root = activity.findViewById<ViewGroup>(android.R.id.content) ?: return
-    val cover =
-        FrameLayout(activity).apply {
-          setBackgroundColor(COVER_COLOR)
-          elevation = 10_000f
-          translationZ = 10_000f
-          isClickable = false
-          addView(
-              TextView(activity).apply {
-                text = "PredCare Consultation"
-                setTextColor(Color.WHITE)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
-                gravity = Gravity.CENTER
-              },
-              FrameLayout.LayoutParams(
-                  ViewGroup.LayoutParams.WRAP_CONTENT,
-                  ViewGroup.LayoutParams.WRAP_CONTENT,
-                  Gravity.CENTER))
-        }
-    root.addView(
-        cover,
-        ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-    coverView = cover
-    Log.d(TAG, "cover shown")
+    activity.runOnUiThread {
+      if (coverView != null) return@runOnUiThread
+      val root = (activity.window?.decorView as? ViewGroup)
+          ?: activity.findViewById<ViewGroup>(android.R.id.content)
+          ?: return@runOnUiThread
+
+      val cover =
+          FrameLayout(activity).apply {
+            setBackgroundColor(COVER_COLOR)
+            elevation = 10_000f
+            translationZ = 10_000f
+            isClickable = false
+            val labelGapPx =
+                TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_DIP, 4f, activity.resources.displayMetrics)
+                    .toInt()
+            addView(
+                LinearLayout(activity).apply {
+                  orientation = LinearLayout.VERTICAL
+                  gravity = Gravity.CENTER_HORIZONTAL
+                  val logo =
+                      ImageView(activity).apply {
+                        setImageResource(R.drawable.predcare_logo)
+                        adjustViewBounds = true
+                        scaleType = ImageView.ScaleType.FIT_CENTER
+                        addOnLayoutChangeListener { view, _, _, _, _, _, _, _, _ ->
+                          val parentWidth =
+                              (view.parent as? View)?.width ?: return@addOnLayoutChangeListener
+                          if (parentWidth <= 0) return@addOnLayoutChangeListener
+                          val inset = (parentWidth * 0.15f).toInt()
+                          val lp =
+                              view.layoutParams as? LinearLayout.LayoutParams
+                                  ?: return@addOnLayoutChangeListener
+                          if (lp.leftMargin != inset || lp.rightMargin != inset) {
+                            lp.leftMargin = inset
+                            lp.rightMargin = inset
+                            view.layoutParams = lp
+                          }
+                        }
+                      }
+                  addView(
+                      logo,
+                      LinearLayout.LayoutParams(
+                          ViewGroup.LayoutParams.MATCH_PARENT,
+                          ViewGroup.LayoutParams.WRAP_CONTENT))
+                  addView(
+                      TextView(activity).apply {
+                        text = "PRED Care Consultation"
+                        setTextColor(Color.BLACK)
+                        setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
+                        gravity = Gravity.CENTER
+                      },
+                      LinearLayout.LayoutParams(
+                              ViewGroup.LayoutParams.WRAP_CONTENT,
+                              ViewGroup.LayoutParams.WRAP_CONTENT)
+                          .apply { topMargin = labelGapPx })
+                },
+                FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    Gravity.CENTER))
+          }
+      root.addView(
+          cover,
+          ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+      cover.bringToFront()
+      root.requestLayout()
+      root.invalidate()
+      coverView = cover
+      coverShownTimeMs = System.currentTimeMillis()
+      Log.d(TAG, "cover shown")
+      mainHandler.removeCallbacks(hideCoverRunnable)
+      mainHandler.postDelayed(hideCoverRunnable, COVER_TIMEOUT_MS)
+    }
+  }
+
+  fun hideCoverWhenReady(delayMs: Long = 250L) {
+    mainHandler.post {
+      val elapsed = System.currentTimeMillis() - coverShownTimeMs
+      val remaining = (MIN_PIP_TRANSITION_DURATION_MS - elapsed).coerceAtLeast(0L)
+      val totalDelay = remaining + delayMs
+      Log.d(TAG, "hideCoverWhenReady: elapsed=$elapsed ms, delaying hide by $totalDelay ms")
+      mainHandler.removeCallbacks(hideCoverRunnable)
+      mainHandler.postDelayed(hideCoverRunnable, totalDelay)
+    }
+  }
+
+  fun hideCoverImmediately() {
     mainHandler.removeCallbacks(hideCoverRunnable)
-    mainHandler.postDelayed(hideCoverRunnable, COVER_TIMEOUT_MS)
+    mainHandler.post(hideCoverRunnable)
   }
 
   fun hideCover(delayMs: Long = 0L) {
-    mainHandler.removeCallbacks(hideCoverRunnable)
     if (delayMs > 0) {
-      mainHandler.postDelayed(hideCoverRunnable, delayMs)
+      hideCoverWhenReady(delayMs)
     } else {
-      mainHandler.post(hideCoverRunnable)
+      hideCoverImmediately()
     }
   }
 

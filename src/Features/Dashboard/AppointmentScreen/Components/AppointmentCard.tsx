@@ -30,7 +30,6 @@ export interface AppointmentCardProps {
   onCancelPress: () => void;
   onOpenDirections?: () => void;
   onView?: () => void;
-  isApptExpired?: boolean;
 }
 
 export const AppointmentCard: React.FC<AppointmentCardProps> = ({
@@ -50,7 +49,6 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
   onReschedule,
   onOpenDirections,
   onView,
-  isApptExpired,
 }) => {
   const { t } = useTranslation();
 

@@ -143,14 +143,16 @@ export const AppointmentDetailsScreen: React.FC = () => {
     const status = apptInfo?.appointment_status?.toLowerCase();
     const consultationType = apptInfo?.consultation_type?.toLowerCase();
     if (
-      status === 'in_progress' ||
-      status === 'confirmed' ||
-      (status === 'in-progress' && consultationType === 'video')
+      (status === 'in_progress' ||
+        status === 'confirmed' ||
+        status === 'in-progress') && consultationType === 'video'
     ) {
       return true;
     }
     return false;
   }, [apptInfo?.appointment_status, apptInfo?.consultation_type]);
+
+  console.log('apptInfo', apptInfo);
 
   const isCurrentCallActive = Boolean(
     activeMeetingId && String(activeCallAppointmentId) === String(apptInfo?.id || apptId)

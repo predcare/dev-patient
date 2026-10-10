@@ -13,8 +13,8 @@ class PipModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
   companion object {
     const val NAME = "PredPip"
 
-    // Gives the video surfaces a frame or two to draw before revealing them.
-    private const val CONTENT_READY_DELAY_MS = 120L
+    // Gives the video surfaces a moment to draw before revealing them.
+    private const val CONTENT_READY_DELAY_MS = 300L
   }
 
   private val emitToJs: (String, WritableMap?) -> Unit = { event, params ->
@@ -63,13 +63,17 @@ class PipModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
       promise.resolve(false)
       return
     }
-    activity.runOnUiThread { promise.resolve(PipController.enter(activity)) }
+    activity.runOnUiThread {
+      PipController.showCover(activity)
+      PipController.emitPipWillEnter()
+      promise.resolve(PipController.enter(activity))
+    }
   }
 
   /** Called once the compact PiP stage has been laid out, so the native cover can go. */
   @ReactMethod
   fun pipContentReady() {
-    PipController.hideCover(CONTENT_READY_DELAY_MS)
+    PipController.hideCoverWhenReady(CONTENT_READY_DELAY_MS)
   }
 
   @ReactMethod

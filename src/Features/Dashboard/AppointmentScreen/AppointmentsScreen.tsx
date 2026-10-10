@@ -22,10 +22,9 @@ import {
 } from '../../../hooks/react-query/appointments/appointments.hooks';
 import {
     _formatTime,
-    _isApptExpired,
     formatDate,
     getDuration,
-    openLocationOnMap,
+    openLocationOnMap
 } from '../../../lib/common/common.utils';
 import { showErrorToast, showSuccessToast } from '../../../lib/common/toast.utils';
 import { AppRoute } from '../../../route';
@@ -213,7 +212,6 @@ export const AppointmentsScreen: React.FC = () => {
                     keyExtractor={(item, index) => String(item.id || item.appointment_id || index)}
                     keyboardShouldPersistTaps="handled"
                     renderItem={({ item: apt }) => {
-                        const isApptExpired = _isApptExpired(apt.appointment_date, apt.start_time);
                         return (
                             <AppointmentCard
                                 apptId={apt?.appointment_id || ''}
@@ -252,7 +250,6 @@ export const AppointmentsScreen: React.FC = () => {
                                         appointmentId: apt.id,
                                     })
                                 }
-                                isApptExpired={isApptExpired}
                             />
                         )
                     }}

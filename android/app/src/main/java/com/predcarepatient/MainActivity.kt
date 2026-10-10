@@ -44,7 +44,7 @@ class MainActivity : ReactActivity() {
     Log.d(TAG, "onResume")
     awaitingPipExitResult = false
     reactKeptAliveForPip = false
-    PipController.hideCover()
+    PipController.hideCoverImmediately()
     if (pipWillEnterPending && !isInPipMode()) {
       pipWillEnterPending = false
       PipController.emitPipChanged(false)
@@ -66,8 +66,8 @@ class MainActivity : ReactActivity() {
     if (!PipController.canEnter(this) || isInPipMode()) return
 
     pipWillEnterPending = true
-    PipController.emitPipWillEnter()
     PipController.showCover(this)
+    PipController.emitPipWillEnter()
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
       PipController.enter(this)
     }
@@ -76,8 +76,8 @@ class MainActivity : ReactActivity() {
   override fun onPictureInPictureRequested(): Boolean {
     if (PipController.canEnter(this)) {
       pipWillEnterPending = true
-      PipController.emitPipWillEnter()
       PipController.showCover(this)
+      PipController.emitPipWillEnter()
     }
     return PipController.enter(this) || super.onPictureInPictureRequested()
   }
@@ -90,15 +90,14 @@ class MainActivity : ReactActivity() {
     PipController.emitPipChanged(isInPictureInPictureMode)
 
     if (isInPictureInPictureMode) {
-      // Entered without a will-enter (e.g. the in-app path), so JS hasn't swapped layouts yet.
-      if (!pipWillEnterPending) PipController.showCover(this)
+      PipController.showCover(this)
       pipWillEnterPending = false
       awaitingPipExitResult = false
       keepReactAliveForPip()
       return
     }
 
-    PipController.hideCover()
+    PipController.hideCoverImmediately()
 
     // Expanding resumes the activity; closing the window stops it.
     when {

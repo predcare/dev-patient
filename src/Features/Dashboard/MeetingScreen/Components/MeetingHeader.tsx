@@ -4,7 +4,8 @@ import { ChevronLeftIcon } from '../../../../components/ui/icons';
 import useMeetingCountdown from '../../../../hooks/commons/meeting/useMeetingCountdown';
 import useMeetingPip from '../../../../hooks/commons/meeting/useMeetingPip';
 import useNetworkStatus from '../../../../hooks/commons/useNetworkStatus';
-import { canGoBack, goBack } from '../../../../navigation/navigationRef';
+import { navigate } from '../../../../navigation/navigationRef';
+import { AppRoute } from '../../../../route';
 import meetingStyles from '../../../../styled/MeetingScreen.styled';
 import theme from '../../../../styled/theme.styled';
 import useMeetingStore from '../../../../zustand/stores/useMeetingStore';
@@ -39,9 +40,7 @@ export const MeetingHeader: React.FC = () => {
 
   const handleMinimize = () => {
     enterInAppPip();
-    if (canGoBack()) {
-      goBack();
-    }
+    navigate(AppRoute.SCHEDULE);
   };
 
   return (
