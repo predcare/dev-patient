@@ -7,8 +7,10 @@ import { useSocketStore } from '../../../zustand/stores/useSocketStore';
 
 const SocketProvider = () => {
   const socketRef = useRef<Socket | null>(null);
-  const { isLoggedIn, userData } = useAuthStore();
-  const { setSocketConnection, setIsConnected } = useSocketStore();
+  const isLoggedIn = useAuthStore(state => state.isLoggedIn);
+  const userId = useAuthStore(state => state.userData?.id);
+  const setSocketConnection = useSocketStore(state => state.setSocketConnection);
+  const setIsConnected = useSocketStore(state => state.setIsConnected);
 
   useEffect(() => {
     let isMounted = true;
@@ -74,7 +76,7 @@ const SocketProvider = () => {
         setIsConnected(false);
       }
     };
-  }, [isLoggedIn, userData?.id, setSocketConnection, setIsConnected]);
+  }, [isLoggedIn, userId, setSocketConnection, setIsConnected]);
 
   return null;
 };

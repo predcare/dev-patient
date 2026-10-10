@@ -170,6 +170,13 @@ export const clinicDetailsStyles = StyleSheet.create({
   doctorsList: {
     gap: 12,
   },
+  doctorListItem: {
+    marginHorizontal: 16,
+    marginBottom: 12,
+  },
+  listFooterSpacer: {
+    height: 40,
+  },
   doctorCard: {
     flexDirection: 'row',
     alignItems: 'center',

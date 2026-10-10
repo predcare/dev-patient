@@ -231,4 +231,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SupportTicketCard;
+export default React.memo(SupportTicketCard);

@@ -190,4 +190,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default QuickAccessGrid;
+export default React.memo(QuickAccessGrid);

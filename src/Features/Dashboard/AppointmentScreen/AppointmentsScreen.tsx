@@ -44,7 +44,8 @@ export const AppointmentsScreen: React.FC = () => {
     const { restoreToMeeting } = useMeetingPip();
     const [activeTab, setActiveTab] = useState<'upcoming' | 'completed'>('upcoming');
     const [refreshing, setRefreshing] = useState(false);
-    const { showLoader, hideLoader } = useLoadingStore(state => state);
+    const showLoader = useLoadingStore(state => state.showLoader);
+    const hideLoader = useLoadingStore(state => state.hideLoader);
     const { showConfirm } = useAlertStore(state => state);
     const { mutate: cancelAppt } = useCancelMyAppt();
     const { mutate: getToken } = useGetToken();
@@ -210,6 +211,9 @@ export const AppointmentsScreen: React.FC = () => {
                 <FlatList
                     data={appointments}
                     keyExtractor={(item, index) => String(item.id || item.appointment_id || index)}
+                    initialNumToRender={8}
+                    windowSize={5}
+                    removeClippedSubviews
                     keyboardShouldPersistTaps="handled"
                     renderItem={({ item: apt }) => {
                         return (

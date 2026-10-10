@@ -1,5 +1,6 @@
 import NetInfo from '@react-native-community/netinfo';
 import React, { useEffect, useRef } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { Animated, Easing, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -32,7 +33,14 @@ const CheckIcon = () => (
 
 export const GlobalOfflineBanner: React.FC = () => {
   const insets = useSafeAreaInsets();
-  const { isOffline, wasOffline, setNetworkState, dismissWasOffline } = useNetworkStore();
+  const { isOffline, wasOffline, setNetworkState, dismissWasOffline } = useNetworkStore(
+    useShallow(state => ({
+      isOffline: state.isOffline,
+      wasOffline: state.wasOffline,
+      setNetworkState: state.setNetworkState,
+      dismissWasOffline: state.dismissWasOffline,
+    }))
+  );
 
   const translateY = useRef(new Animated.Value(-100)).current;
   const opacity = useRef(new Animated.Value(0)).current;

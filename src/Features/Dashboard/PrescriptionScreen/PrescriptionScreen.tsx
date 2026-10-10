@@ -212,6 +212,9 @@ export const PrescriptionsScreen: React.FC = () => {
         >
             <FlatList
                 data={allRxLoading && !refreshing ? [] : allPrescriptions}
+                initialNumToRender={8}
+                windowSize={5}
+                removeClippedSubviews
                 keyExtractor={item => String(item.prescription_id || item.id)}
                 contentContainerStyle={prescriptionsStyles.listContent}
                 showsVerticalScrollIndicator={true}

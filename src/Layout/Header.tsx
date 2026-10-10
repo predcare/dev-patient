@@ -103,8 +103,10 @@ export const Header: React.FC<HeaderProps> = ({
   const effectiveSubTitle = subTitle || subtitle || description;
 
   const { currentLanguage, changeLanguage } = useLanguageContext();
-  const { userData, setUserData } = useAuthStore(state => state);
-  const { hideLoader, showLoader } = useLoadingStore(state => state);
+  const userData = useAuthStore(state => state.userData);
+  const setUserData = useAuthStore(state => state.setUserData);
+  const hideLoader = useLoadingStore(state => state.hideLoader);
+  const showLoader = useLoadingStore(state => state.showLoader);
   const { showConfirm } = useAlertStore(state => state);
 
   const currentLang = LANGUAGES.find(l => l.code === currentLanguage) || LANGUAGES[0];

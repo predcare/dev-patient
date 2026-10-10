@@ -41,7 +41,8 @@ export const FamilyMembersCard: React.FC = () => {
   const { t } = useTranslation();
   const setUserData = useAuthStore(state => state.setUserData);
   const currentUserId = useAuthStore(state => state.userData?.id);
-  const { hideLoader, showLoader } = useLoadingStore(state => state);
+  const hideLoader = useLoadingStore(state => state.hideLoader);
+  const showLoader = useLoadingStore(state => state.showLoader);
   const { showConfirm } = useAlertStore(state => state);
   const {
     data: memberLists,

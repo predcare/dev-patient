@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
-import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, RefreshControl, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CommonErrorCard from '../../../components/commons/CommonErrorCard/CommonErrorCard';
 import { getBottomBarHeight } from '../../../components/commons/CustomBottomBar/CustomBottomBar';
@@ -84,10 +84,12 @@ const getCategoryVisualConfig = (idOrName: string = '') => {
   };
 };
 
+const FolderSeparator = () => <View style={healthRecordsStyles.folderSeparator} />;
+
 export const HealthRecordsScreen: React.FC = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const { userData } = useAuthStore(state => state);
+  const userData = useAuthStore(state => state.userData);
   const [refreshing, setRefreshing] = useState(false);
 
   const {
@@ -103,12 +105,38 @@ export const HealthRecordsScreen: React.FC = () => {
     setRefreshing(false);
   }, [refetchCats]);
 
-  const handleFolderPress = (folder: IEMRCatsList) => {
-    navigation.navigate(AppRoute.HEALTH_RECORD_FOLDER, {
-      patientId: Number(userData?.id),
-      folderName: folder.documentType,
-    });
-  };
+  const handleFolderPress = useCallback(
+    (folder: IEMRCatsList) => {
+      navigation.navigate(AppRoute.HEALTH_RECORD_FOLDER, {
+        patientId: Number(userData?.id),
+        folderName: folder.documentType,
+      });
+    },
+    [navigation, userData?.id]
+  );
+
+  const categories =
+    catsLoading || catsIsError ? [] : emrCatsRes?.categories ?? [];
+
+  const folderKeyExtractor = useCallback((folder: IEMRCatsList) => String(folder.id), []);
+
+  const renderFolder = useCallback(
+    ({ item: folder }: { item: IEMRCatsList }) => {
+      const visualConfig = getCategoryVisualConfig(folder.id || folder.name);
+      return (
+        <HealthRecordFolderCard
+          id={folder.id}
+          name={folder.name}
+          filesCount={folder.filesCount || 0}
+          updatedAtText={folder.updatedAtText || 'Recently'}
+          iconBgColor={visualConfig.iconBgColor}
+          renderIcon={visualConfig.renderIcon}
+          onPress={() => handleFolderPress(folder)}
+        />
+      );
+    },
+    [handleFolderPress]
+  );
 
   const handleNavigateUpload = () => {
     navigation.navigate(AppRoute.UPLOAD_HEALTH_RECORD);
@@ -125,8 +153,15 @@ export const HealthRecordsScreen: React.FC = () => {
         />
       }
     >
-      <ScrollView
+      <FlatList
+        data={categories}
+        keyExtractor={folderKeyExtractor}
+        renderItem={renderFolder}
+        initialNumToRender={8}
+        windowSize={5}
+        removeClippedSubviews
         contentContainerStyle={healthRecordsStyles.contentScroll}
+        ItemSeparatorComponent={FolderSeparator}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         refreshControl={
@@ -137,67 +172,52 @@ export const HealthRecordsScreen: React.FC = () => {
             tintColor={theme.colors.primary}
           />
         }
-      >
-        {catsLoading && !refreshing ? (
-          <HealthRecordsSkeleton />
-        ) : catsIsError ? (
-          <CommonErrorCard
-            title="Unable to Load Records"
-            message="Something went wrong while fetching your health record categories."
-            onRetry={refetchCats}
-          />
-        ) : (
-          <>
-            <View style={healthRecordsStyles.summaryRow}>
-              <View style={healthRecordsStyles.summaryCard}>
-                <Text style={healthRecordsStyles.summaryLabel}>DOCUMENTS</Text>
-                <Text style={healthRecordsStyles.summaryValue}>{emrCatsRes?.total_documents}</Text>
-              </View>
-              <View style={healthRecordsStyles.summaryCard}>
-                <Text style={healthRecordsStyles.summaryLabel}>STORAGE</Text>
-                <Text style={healthRecordsStyles.summaryValue}>{emrCatsRes?.total_file_size}</Text>
-              </View>
-            </View>
-            <Text style={healthRecordsStyles.sectionTitle}>My Documents</Text>
-            {emrCatsRes?.categories?.length === 0 ? (
-              <View style={healthRecordsStyles.emptyWrap}>
-                <View style={healthRecordsStyles.emptyIcon}>
-                  <FolderIcon size={34} color={theme.colors.primary} />
+        ListHeaderComponent={
+          catsLoading || catsIsError ? undefined : (
+            <>
+              <View style={healthRecordsStyles.summaryRow}>
+                <View style={healthRecordsStyles.summaryCard}>
+                  <Text style={healthRecordsStyles.summaryLabel}>DOCUMENTS</Text>
+                  <Text style={healthRecordsStyles.summaryValue}>{emrCatsRes?.total_documents}</Text>
                 </View>
-                <Text style={healthRecordsStyles.emptyTitle}>No Health Records Yet</Text>
-                <Text style={healthRecordsStyles.emptySubtitle}>
-                  Upload your medical reports, scans, and prescriptions to keep them organized.
-                </Text>
-                <TouchableOpacity
-                  style={healthRecordsStyles.emptyBtn}
-                  onPress={handleNavigateUpload}
-                  activeOpacity={0.8}
-                >
-                  <Text style={healthRecordsStyles.emptyBtnText}>Upload New Document</Text>
-                </TouchableOpacity>
+                <View style={healthRecordsStyles.summaryCard}>
+                  <Text style={healthRecordsStyles.summaryLabel}>STORAGE</Text>
+                  <Text style={healthRecordsStyles.summaryValue}>{emrCatsRes?.total_file_size}</Text>
+                </View>
               </View>
-            ) : (
-              <View style={healthRecordsStyles.folderList}>
-                {emrCatsRes?.categories?.map(folder => {
-                  const visualConfig = getCategoryVisualConfig(folder.id || folder.name);
-                  return (
-                    <HealthRecordFolderCard
-                      key={folder.id}
-                      id={folder.id}
-                      name={folder.name}
-                      filesCount={folder.filesCount || 0}
-                      updatedAtText={folder.updatedAtText || 'Recently'}
-                      iconBgColor={visualConfig.iconBgColor}
-                      renderIcon={visualConfig.renderIcon}
-                      onPress={() => handleFolderPress(folder)}
-                    />
-                  );
-                })}
+              <Text style={healthRecordsStyles.sectionTitle}>My Documents</Text>
+            </>
+          )
+        }
+        ListEmptyComponent={
+          catsLoading && !refreshing ? (
+            <HealthRecordsSkeleton />
+          ) : catsIsError ? (
+            <CommonErrorCard
+              title="Unable to Load Records"
+              message="Something went wrong while fetching your health record categories."
+              onRetry={refetchCats}
+            />
+          ) : (
+            <View style={healthRecordsStyles.emptyWrap}>
+              <View style={healthRecordsStyles.emptyIcon}>
+                <FolderIcon size={34} color={theme.colors.primary} />
               </View>
-            )}
-          </>
-        )}
-      </ScrollView>
+              <Text style={healthRecordsStyles.emptyTitle}>No Health Records Yet</Text>
+              <Text style={healthRecordsStyles.emptySubtitle}>
+                Upload your medical reports, scans, and prescriptions to keep them organized.
+              </Text>
+              <TouchableOpacity
+                style={healthRecordsStyles.emptyBtn}
+                onPress={handleNavigateUpload}
+                activeOpacity={0.8}
+              >
+                <Text style={healthRecordsStyles.emptyBtnText}>Upload New Document</Text>
+              </TouchableOpacity>
+            </View>
+          )
+        }
+      />
       <TouchableOpacity
         style={[healthRecordsStyles.fabButton, { bottom: getBottomBarHeight(insets.bottom) + 16 }]}
         onPress={handleNavigateUpload}

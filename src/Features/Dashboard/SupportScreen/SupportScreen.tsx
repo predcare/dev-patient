@@ -42,7 +42,8 @@ export const SupportScreen: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [tab, setTab] = useState<TicketTabKey>('open');
 
-  const { showLoader, hideLoader } = useLoadingStore();
+  const showLoader = useLoadingStore(state => state.showLoader);
+  const hideLoader = useLoadingStore(state => state.hideLoader);
   const showConfirm = useAlertStore(state => state.showConfirm);
   const { mutate: deleteTicket } = useDeleteSupportTicket();
 
@@ -158,6 +159,9 @@ export const SupportScreen: React.FC = () => {
 
       <FlatList
         ref={flatListRef}
+        initialNumToRender={8}
+        windowSize={5}
+        removeClippedSubviews
         showsVerticalScrollIndicator={true}
         keyboardShouldPersistTaps="handled"
         data={tickets}

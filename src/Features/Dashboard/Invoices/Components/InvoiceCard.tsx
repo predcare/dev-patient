@@ -85,4 +85,4 @@ export const InvoiceCard: React.FC<InvoiceCardProps> = ({
   );
 };
 
-export default InvoiceCard;
+export default React.memo(InvoiceCard);

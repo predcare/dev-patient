@@ -143,7 +143,8 @@ export const UpcomingAppointmentsCard: React.FC = () => {
   const { restoreToMeeting } = useMeetingPip();
   const { requestPermissions } = useMeetingPermissions();
   const { mutate: getToken } = useGetToken();
-  const { showLoader, hideLoader } = useLoadingStore(state => state);
+  const showLoader = useLoadingStore(state => state.showLoader);
+  const hideLoader = useLoadingStore(state => state.hideLoader);
   const setCallInfo = useMeetingStore(state => state.setCallInfo);
   const activeMeetingId = useMeetingStore(state => state.callInfo?.meetingId);
   const activeCallAppointmentId = useMeetingStore(state => state.callInfo?.appointment?.id);

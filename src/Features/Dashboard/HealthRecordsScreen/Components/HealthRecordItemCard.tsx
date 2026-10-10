@@ -67,4 +67,4 @@ export const HealthRecordItemCard: React.FC<HealthRecordItemCardProps> = ({
   );
 };
 
-export default HealthRecordItemCard;
+export default React.memo(HealthRecordItemCard);

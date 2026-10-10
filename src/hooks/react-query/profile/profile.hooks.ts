@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryClient } from '../../../components/providers/ReactQueryProvider';
+import { IRootResponse } from '../../../typescripts/interfaces/common.interfaces';
+import { IMyProfileDoc } from '../../../typescripts/interfaces/profile.interfaces';
 import { ProfileQueryKeys } from '../query.keys';
 import {
   addFamilyMember,
@@ -25,6 +27,19 @@ export const fetchProfileQuery = async (forceFetch = false) => {
     queryFn: getProfile,
     staleTime: forceFetch ? 0 : undefined,
   });
+};
+
+export const seedProfileFromAuth = (res?: { data?: unknown; user?: unknown } | null) => {
+  const candidate = (res?.data ?? res?.user) as IMyProfileDoc | undefined;
+  if (!candidate || typeof candidate !== 'object' || !candidate.id) {
+    return null;
+  }
+  queryClient.setQueryData([ProfileQueryKeys.Profile], {
+    success: true,
+    message: '',
+    data: candidate,
+  } as IRootResponse<IMyProfileDoc>);
+  return candidate;
 };
 
 export const useUpdateProfile = () => {

@@ -40,7 +40,8 @@ export const SettingScreen: React.FC = () => {
     const [refreshing, setRefreshing] = useState<boolean>(false);
 
     const logout = useAuthStore(state => state.logout);
-    const { showLoader, hideLoader } = useLoadingStore(state => state);
+    const showLoader = useLoadingStore(state => state.showLoader);
+    const hideLoader = useLoadingStore(state => state.hideLoader);
     const { mutate: userLogoutMutate, isPending: isLoggingOut } = useUserLogout();
 
     const currentLanguage = LANGUAGES.find(l => l.code === selectedLanguageCode) || LANGUAGES[0];

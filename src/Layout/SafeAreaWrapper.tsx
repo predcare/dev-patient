@@ -21,7 +21,6 @@ export interface SafeAreaWrapperProps {
   activeBottomTab?: TabKey;
   visibleBottomTabs?: TabKey[];
   onBottomTabPress?: (tabKey: TabKey) => void;
-  isPathClear?: boolean;
 }
 
 export const isColorDark = (hexColor?: string): boolean => {
@@ -55,7 +54,6 @@ export const SafeAreaWrapper: React.FC<SafeAreaWrapperProps> = ({
   activeBottomTab,
   visibleBottomTabs,
   onBottomTabPress,
-  isPathClear,
 }) => {
   const insets = useSafeAreaInsets();
   const topInset = fullBleed
@@ -113,7 +111,6 @@ export const SafeAreaWrapper: React.FC<SafeAreaWrapperProps> = ({
           activeTab={activeBottomTab}
           visibleTabs={visibleBottomTabs}
           onTabPress={onBottomTabPress}
-          isPathClear={isPathClear}
         />
       )}
     </View>

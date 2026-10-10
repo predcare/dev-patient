@@ -74,6 +74,9 @@ export const DoctorScreen: React.FC = () => {
                 <FlatList
                     data={myDoctorsData?.data || []}
                     keyExtractor={item => String(item.doctor_id)}
+                    initialNumToRender={8}
+                    windowSize={5}
+                    removeClippedSubviews
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
                     contentContainerStyle={doctorStyles.scrollContent}

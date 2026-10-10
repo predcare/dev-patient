@@ -14,6 +14,36 @@ export const doctorSearchStyles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
   },
+  list: {
+    flex: 1,
+  },
+  filterIconBtn: {
+    paddingLeft: 8,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+  },
+  clearFiltersBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: theme.colors.primary,
+  },
+  clearFiltersText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: theme.colors.surface,
+  },
+  fill: {
+    flex: 1,
+  },
+  listFooter: {
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
   listContent: {
     paddingHorizontal: 16,
     paddingBottom: 40,

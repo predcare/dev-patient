@@ -49,7 +49,8 @@ export const AppointmentDetailsScreen: React.FC = () => {
   const { restoreToMeeting } = useMeetingPip();
   const { requestPermissions } = useMeetingPermissions();
   const { mutate: getToken } = useGetToken();
-  const { showLoader, hideLoader } = useLoadingStore(state => state);
+  const showLoader = useLoadingStore(state => state.showLoader);
+  const hideLoader = useLoadingStore(state => state.hideLoader);
   const setCallInfo = useMeetingStore(state => state.setCallInfo);
   const activeMeetingId = useMeetingStore(state => state.callInfo?.meetingId);
   const activeCallAppointmentId = useMeetingStore(state => state.callInfo?.appointment?.id);
@@ -254,7 +255,7 @@ export const AppointmentDetailsScreen: React.FC = () => {
           <AppointmentDetailsSkeleton />
         </ScrollView>
       ) : apptInfoIsError ? (
-        <View style={{ flex: 1, padding: 16 }}>
+        <View style={appointmentDetailsStyles.centeredState}>
           <CommonErrorCard
             title="Unable to Load Appointment"
             message="Failed to retrieve appointment details. Please try again."
@@ -262,7 +263,7 @@ export const AppointmentDetailsScreen: React.FC = () => {
           />
         </View>
       ) : !apptInfo ? (
-        <View style={{ flex: 1, padding: 16 }}>
+        <View style={appointmentDetailsStyles.centeredState}>
           <CommonErrorCard
             title="Appointment Not Found"
             message="No details found for this appointment ID."
@@ -569,7 +570,7 @@ export const AppointmentDetailsScreen: React.FC = () => {
                 </View>
               </View>
 
-              <View style={{ gap: 12 }}>
+              <View style={appointmentDetailsStyles.notesStack}>
                 {apptInfo.reason ? (
                   <View>
                     <Text style={appointmentDetailsStyles.detailLabel}>

@@ -7,6 +7,13 @@ export const appointmentDetailsStyles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
 
+  centeredState: {
+    flex: 1,
+    padding: 16,
+  },
+  notesStack: {
+    gap: 12,
+  },
   scrollContent: {
     padding: 16,
     gap: 14,

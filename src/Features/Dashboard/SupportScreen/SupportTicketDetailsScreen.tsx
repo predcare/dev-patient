@@ -33,7 +33,8 @@ export const SupportTicketDetailsScreen: React.FC = () => {
   const { ticketId } = route.params as IRouterProps;
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-  const { showLoader, hideLoader } = useLoadingStore();
+  const showLoader = useLoadingStore(state => state.showLoader);
+  const hideLoader = useLoadingStore(state => state.hideLoader);
   const showConfirm = useAlertStore(state => state.showConfirm);
   const { mutate: deleteTicket } = useDeleteSupportTicket();
 

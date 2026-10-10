@@ -70,4 +70,4 @@ export const PrescriptionCard: React.FC<IRxCardProps> = ({
   );
 };
 
-export default PrescriptionCard;
+export default React.memo(PrescriptionCard);

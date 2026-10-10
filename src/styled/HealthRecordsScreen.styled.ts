@@ -67,6 +67,9 @@ export const healthRecordsStyles = StyleSheet.create({
   folderList: {
     gap: 12,
   },
+  folderSeparator: {
+    height: 12,
+  },
   folderCard: {
     flexDirection: 'row',
     alignItems: 'center',

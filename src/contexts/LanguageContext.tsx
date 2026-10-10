@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from 'i18next';
-import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { TLanguage } from '../typescripts/enums';
 import { ILanguageContextState, TSupportedLanguage } from '../typescripts/types/i18n.types';
 import { defaultLanguage, storageKey } from '../config/i18n.config';
@@ -53,11 +53,14 @@ export const LanguageProvider: React.FC<ILanguageProviderProps> = ({ children })
     [currentLanguage]
   );
 
-  const contextValue: ILanguageContextState = {
-    currentLanguage,
-    changeLanguage,
-    isChangingLanguage,
-  };
+  const contextValue = useMemo<ILanguageContextState>(
+    () => ({
+      currentLanguage,
+      changeLanguage,
+      isChangingLanguage,
+    }),
+    [currentLanguage, changeLanguage, isChangingLanguage]
+  );
 
   return <LanguageContext.Provider value={contextValue}>{children}</LanguageContext.Provider>;
 };

@@ -43,4 +43,4 @@ export const HealthRecordFolderCard: React.FC<HealthRecordFolderProps> = ({
   );
 };
 
-export default HealthRecordFolderCard;
+export default React.memo(HealthRecordFolderCard);

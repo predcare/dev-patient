@@ -241,7 +241,7 @@ export const DoctorSearchScreen: React.FC = () => {
                     <TouchableOpacity
                         onPress={() => setShowFilterModal(true)}
                         activeOpacity={1}
-                        style={{ paddingLeft: 8 }}
+                        style={doctorSearchStyles.filterIconBtn}
                     >
                         <FilterIcon size={20} color={theme.colors.primaryDark} />
                     </TouchableOpacity>
@@ -271,14 +271,7 @@ export const DoctorSearchScreen: React.FC = () => {
                     </View>
                 </View>
 
-                <View
-                    style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        marginBottom: 14,
-                    }}
-                >
+                <View style={doctorSearchStyles.sectionHeaderRow}>
                     <Text style={[doctorSearchStyles.sectionTitle, { marginBottom: 0 }]}>
                         {t('doctorSearchScreen.sectionTitle')}
                     </Text>
@@ -286,14 +279,9 @@ export const DoctorSearchScreen: React.FC = () => {
                         <TouchableOpacity
                             onPress={handleResetFilters}
                             activeOpacity={1}
-                            style={{
-                                paddingHorizontal: 10,
-                                paddingVertical: 4,
-                                borderRadius: 12,
-                                backgroundColor: theme.colors.primary || '#FEE2E2',
-                            }}
+                            style={doctorSearchStyles.clearFiltersBtn}
                         >
-                            <Text style={{ fontSize: 12, fontWeight: '600', color: theme.colors.surface }}>
+                            <Text style={doctorSearchStyles.clearFiltersText}>
                                 {t('commons.clearAll')}
                             </Text>
                         </TouchableOpacity>
@@ -302,13 +290,16 @@ export const DoctorSearchScreen: React.FC = () => {
             </View>
 
             {isPending && !isFetchingNextPage ? (
-                <View style={{ flex: 1 }}>
+                <View style={doctorSearchStyles.fill}>
                     <DoctorSearchSkeleton cardOnly={true} />
                 </View>
             ) : (
                 <FlatList
-                    style={{ flex: 1 }}
+                    style={doctorSearchStyles.list}
                     data={combinedList}
+                    initialNumToRender={8}
+                    windowSize={5}
+                    removeClippedSubviews
                     keyExtractor={item =>
                         item.type === 'clinic' ? `clinic-${item.data.id}` : `doctor-${item.data.id}`
                     }
@@ -330,7 +321,7 @@ export const DoctorSearchScreen: React.FC = () => {
                     }
                     ListFooterComponent={
                         isFetchingNextPage ? (
-                            <View style={{ paddingVertical: 16, alignItems: 'center' }}>
+                            <View style={doctorSearchStyles.listFooter}>
                                 <ActivityIndicator size="small" color={theme.colors.primary} />
                             </View>
                         ) : (

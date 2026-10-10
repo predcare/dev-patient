@@ -14,7 +14,7 @@ interface EventListenerProps {
 
 export default function EventListener({ onLogout }: EventListenerProps) {
   useAuthProfile();
-  const { logout } = useAuthStore(state => state);
+  const logout = useAuthStore(state => state.logout);
   const handleLogout = useCallback(
     async (data?: { intentional?: boolean }) => {
       if (data?.intentional) {

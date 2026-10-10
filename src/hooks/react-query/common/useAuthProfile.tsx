@@ -8,7 +8,8 @@ import { ProfileQueryKeys } from '../query.keys';
 const useAuthProfile = () => {
   const [token, setToken] = useState<string | null>(null);
   const [isTokenLoading, setIsTokenLoading] = useState(true);
-  const { setUserData, isLoggedIn } = useAuthStore(state => state);
+  const setUserData = useAuthStore(state => state.setUserData);
+  const isLoggedIn = useAuthStore(state => state.isLoggedIn);
 
   const profileDetails = useQuery({
     queryKey: [ProfileQueryKeys.Profile],

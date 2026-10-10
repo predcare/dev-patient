@@ -47,7 +47,8 @@ export const AppNavigator: React.FC = () => {
         initialRouteName="Splash"
         screenOptions={{
           headerShown: false,
-          animation: 'fade',
+          animation: 'none',
+          freezeOnBlur: true,
         }}
       >
         <Stack.Screen name="Splash" component={SplashScreen} />

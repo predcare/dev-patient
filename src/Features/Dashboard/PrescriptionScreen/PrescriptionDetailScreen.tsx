@@ -106,27 +106,14 @@ export const PrescriptionDetailScreen: React.FC = () => {
             <TouchableOpacity
               onPress={handleDownloadPDF}
               activeOpacity={0.7}
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 19,
-                backgroundColor: theme.colors.surfaceSecondary,
-                borderWidth: 1,
-                borderColor: theme.colors.surfaceBorder,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
+              style={prescriptionsStyles.downloadAction}
               disabled={downloadPdfLoading}
               accessibilityRole="button"
               accessibilityLabel="Download PDF"
             >
               {downloadPdfLoading ? (
                 <Text
-                  style={{
-                    fontSize: 11,
-                    fontWeight: '700',
-                    color: theme.colors.primary,
-                  }}
+                  style={prescriptionsStyles.downloadProgressText}
                 >
                   {downloadProgress > 0 ? `${downloadProgress}%` : '...'}
                 </Text>
@@ -147,7 +134,7 @@ export const PrescriptionDetailScreen: React.FC = () => {
           <PrescriptionDetailSkeleton />
         </ScrollView>
       ) : !rxInfo || error ? (
-        <View style={{ flex: 1, justifyContent: 'center' }}>
+        <View style={prescriptionsStyles.errorFill}>
           <CommonErrorCard
             title="Unable to Load Prescription"
             message="We couldn't retrieve the prescription details. Please try again."
@@ -181,7 +168,7 @@ export const PrescriptionDetailScreen: React.FC = () => {
                   {getInitials(rxInfo.patient_name || 'Patient')}
                 </Text>
               </View>
-              <View style={{ flex: 1 }}>
+              <View style={prescriptionsStyles.flexFill}>
                 <Text style={prescriptionsStyles.patientName}>{rxInfo.patient_name || 'N/A'}</Text>
                 <View style={prescriptionsStyles.badgeRow}>
                   {rxInfo.patient_display_id ? (
@@ -211,7 +198,7 @@ export const PrescriptionDetailScreen: React.FC = () => {
           </View>
           <View style={prescriptionsStyles.detailCard}>
             <View style={prescriptionsStyles.doctorRow}>
-              <View style={{ flex: 1, paddingRight: 12 }}>
+              <View style={prescriptionsStyles.doctorTextBlock}>
                 <Text style={prescriptionsStyles.doctorName}>Dr. {rxInfo.doctor_name}</Text>
                 {!!rxInfo.doctor_specialization && (
                   <Text style={prescriptionsStyles.doctorSpec}>{rxInfo.doctor_specialization}</Text>
@@ -371,15 +358,11 @@ export const PrescriptionDetailScreen: React.FC = () => {
                 return (
                   <View key={`med-${index}`} style={prescriptionsStyles.detailCard}>
                     <View style={prescriptionsStyles.medTop}>
-                      <View style={{ flex: 1 }}>
+                      <View style={prescriptionsStyles.flexFill}>
                         <Text style={prescriptionsStyles.medName}>{med.name}</Text>
                         {!!strengthText && (
                           <Text
-                            style={{
-                              fontSize: 13,
-                              color: theme.colors.textSecondary,
-                              marginTop: 2,
-                            }}
+                            style={prescriptionsStyles.medStrength}
                           >
                             Strength: {strengthText}
                           </Text>
@@ -512,12 +495,7 @@ export const PrescriptionDetailScreen: React.FC = () => {
           >
             {downloadPdfLoading ? (
               <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 10,
-                }}
+                style={prescriptionsStyles.downloadRow}
               >
                 <ActivityIndicator size="small" color={theme.colors.surface} />
                 <Text style={prescriptionsStyles.pdfBtnText}>

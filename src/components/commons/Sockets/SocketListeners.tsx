@@ -11,17 +11,13 @@ import { useMeetingStore } from '../../../zustand/stores/useMeetingStore';
 import { useSocketStore } from '../../../zustand/stores/useSocketStore';
 
 const SocketListeners = () => {
-  const { socketConnection } = useSocketStore();
-  const { showCallBanner } = useIncomingCallStore(state => state);
+  const socketConnection = useSocketStore(state => state.socketConnection);
+  const showCallBanner = useIncomingCallStore(state => state.showCallBanner);
   const callState = useMeetingStore(state => state.callState);
   const activeMeetingId = useMeetingStore(state => state.callInfo?.meetingId);
 
   useEffect(() => {
     if (!socketConnection) return;
-
-    const handleHeartbeat = (payload: any) => {
-      console.log('💓 [Socket] HEARTBEAT received:', payload);
-    };
 
     const handleIncomingCall = (payload: {
       appointmentId: string;
@@ -100,14 +96,12 @@ const SocketListeners = () => {
     };
 
     // ---- REGISTER EVENTS ----
-    socketConnection.on(SocketEvents.HEARTBEAT, handleHeartbeat);
     socketConnection.on(SocketEvents.INCOMING_CALL, handleIncomingCall);
     socketConnection.on(SocketEvents.INCOMING_CALL_CANCELLED, handleCallCancelled);
     socketConnection.on(SocketEvents.TIME_UP_VIDEO_CALL_ENDED, handleTimeUpVideoCallEnded);
 
     // ---- CLEANUP ----
     return () => {
-      socketConnection.off(SocketEvents.HEARTBEAT, handleHeartbeat);
       socketConnection.off(SocketEvents.INCOMING_CALL, handleIncomingCall);
       socketConnection.off(SocketEvents.INCOMING_CALL_CANCELLED, handleCallCancelled);
       socketConnection.off(SocketEvents.TIME_UP_VIDEO_CALL_ENDED, handleTimeUpVideoCallEnded);

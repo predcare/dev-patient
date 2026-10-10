@@ -318,4 +318,4 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
   );
 };
 
-export default AppointmentCard;
+export default React.memo(AppointmentCard);

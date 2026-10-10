@@ -1,4 +1,5 @@
 import React from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { queryClient } from '../../../components/providers/ReactQueryProvider';
 import useDevicePermissions from '../../../hooks/commons/useDevicePermissions';
 import {
@@ -15,9 +16,17 @@ import { useMeetingStore } from '../../../zustand/stores/useMeetingStore';
 import IncomingCallBanner from './IncomingCallBanner';
 
 export const GlobalIncomingCallBanner: React.FC = () => {
-  const { visible, doctorName, callType, appointmentId } = useIncomingCallStore(state => state);
-  const { hideCallBanner } = useIncomingCallStore(state => state);
-  const { showLoader, hideLoader } = useLoadingStore(state => state);
+  const { visible, doctorName, callType, appointmentId, hideCallBanner } = useIncomingCallStore(
+    useShallow(state => ({
+      visible: state.visible,
+      doctorName: state.doctorName,
+      callType: state.callType,
+      appointmentId: state.appointmentId,
+      hideCallBanner: state.hideCallBanner,
+    }))
+  );
+  const showLoader = useLoadingStore(state => state.showLoader);
+  const hideLoader = useLoadingStore(state => state.hideLoader);
   const { requestAudioVideoPermissions } = useDevicePermissions();
   const setCallInfo = useMeetingStore(state => state.setCallInfo);
 

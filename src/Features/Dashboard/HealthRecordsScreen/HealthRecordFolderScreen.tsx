@@ -1,10 +1,10 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
+  FlatList,
   Keyboard,
   Linking,
   RefreshControl,
-  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -104,7 +104,7 @@ const getCategoryVisualConfig = (idOrName: string = '') => {
 export const HealthRecordFolderScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute<any>();
-  const { userData } = useAuthStore(state => state);
+  const userData = useAuthStore(state => state.userData);
   const folderName = route.params?.folderName || '';
   const patinentId = route.params?.patientId || userData?.id || 0;
   const insets = useSafeAreaInsets();
@@ -112,7 +112,8 @@ export const HealthRecordFolderScreen: React.FC = () => {
   const [search, setSearch] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [shareDoc, setShareDoc] = useState<IEmrListDoc | null>(null);
-  const { showLoader, hideLoader } = useLoadingStore(state => state);
+  const showLoader = useLoadingStore(state => state.showLoader);
+  const hideLoader = useLoadingStore(state => state.hideLoader);
   const { showConfirm } = useAlertStore();
   const debounceSearch = useDebounce(search.trim(), 500);
 
@@ -151,13 +152,13 @@ export const HealthRecordFolderScreen: React.FC = () => {
     setSearch('');
   }, []);
 
-  const handleNavigateUpload = () => {
+  const handleNavigateUpload = useCallback(() => {
     navigation.navigate(AppRoute.UPLOAD_HEALTH_RECORD, {
       initialCategory: folderName,
     });
-  };
+  }, [folderName, navigation]);
 
-  const handleView = async (url?: string) => {
+  const handleView = useCallback(async (url?: string) => {
     if (!url) return showErrorToast('No Document Found');
     try {
       await Linking.openURL(url);
@@ -165,9 +166,9 @@ export const HealthRecordFolderScreen: React.FC = () => {
       console.error('File Open Error', error);
       showErrorToast('Could not open document');
     }
-  };
+  }, []);
 
-  const handleDeleteEmr = (id: number) => {
+  const handleDeleteEmr = useCallback((id: number) => {
     if (!id) return showErrorToast('Invalid Id');
     showConfirm({
       title: 'Delete',
@@ -192,7 +193,36 @@ export const HealthRecordFolderScreen: React.FC = () => {
         });
       },
     });
-  };
+  }, [deleteMutate, hideLoader, showConfirm, showLoader]);
+
+  const records = !isLoading && !isError ? catWiseEmrs ?? [] : [];
+
+  const recordKeyExtractor = useCallback(
+    (doc: IEmrListDoc) => `${doc.id}-${doc?.document_path}`,
+    []
+  );
+
+  const renderRecord = useCallback(
+    ({ item: doc }: { item: IEmrListDoc }) => (
+      <HealthRecordItemCard
+        title={doc?.title}
+        date={formatDate(doc?.created_at, 'DD MMM YYYY')}
+        fileSize={doc?.file_size || 'N/A'}
+        format={getFileType(doc?.document_path) || ''}
+        isAllowDelete={Boolean(doc?.created_by == userData?.id)}
+        onDelete={() => {
+          handleDeleteEmr(Number(doc?.id));
+        }}
+        onShare={() => {
+          setShareDoc(doc);
+        }}
+        onView={() => {
+          handleView(doc?.document_url);
+        }}
+      />
+    ),
+    [handleDeleteEmr, handleView, userData?.id]
+  );
 
   return (
     <SafeAreaWrapper
@@ -223,7 +253,13 @@ export const HealthRecordFolderScreen: React.FC = () => {
         />
       }
     >
-      <ScrollView
+      <FlatList
+        data={records}
+        keyExtractor={recordKeyExtractor}
+        renderItem={renderRecord}
+        initialNumToRender={8}
+        windowSize={5}
+        removeClippedSubviews
         contentContainerStyle={healthRecordsStyles.contentScroll}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -235,133 +271,111 @@ export const HealthRecordFolderScreen: React.FC = () => {
             tintColor={theme.colors.primary}
           />
         }
-      >
-        {isSearchOpen && (
-          <View style={healthRecordsStyles.folderSearchRow}>
-            <View style={healthRecordsStyles.folderSearchBox}>
-              <SearchIcon size={18} color={theme.colors.textMuted} />
-              <TextInput
-                style={healthRecordsStyles.folderSearchInput}
-                placeholder="Search by document name..."
-                placeholderTextColor={theme.colors.textMuted}
-                value={search}
-                onChangeText={setSearch}
-                returnKeyType="search"
-                autoCorrect={false}
-                autoCapitalize="none"
-                autoFocus
-                onSubmitEditing={() => Keyboard.dismiss()}
-                selectionColor={theme.colors.primary}
-              />
-              {search.length > 0 && (
-                <TouchableOpacity
-                  style={healthRecordsStyles.folderSearchClearBtn}
-                  onPress={handleClearSearch}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <CircleXIcon size={16} color={theme.colors.textMuted} />
-                </TouchableOpacity>
-              )}
-            </View>
-            <TouchableOpacity
-              style={healthRecordsStyles.folderSearchCancelBtn}
-              onPress={handleToggleSearch}
-              activeOpacity={0.7}
-            >
-              <Text style={healthRecordsStyles.folderSearchCancelText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {isLoading && !refreshing ? (
-          <HealthRecordFolderSkeleton />
-        ) : isError ? (
-          <CommonErrorCard
-            title="Unable to Load Documents"
-            message="Something went wrong while fetching your health records for this folder."
-            onRetry={refetch}
-          />
-        ) : (
-          <View>
-            <View style={healthRecordsStyles.folderHeaderBanner}>
-              <View
-                style={[
-                  healthRecordsStyles.folderBannerIconWrap,
-                  { backgroundColor: visualConfig.iconBgColor },
-                ]}
-              >
-                {visualConfig.renderIcon()}
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={healthRecordsStyles.folderBannerTitle}>{folderName}</Text>
-                <Text style={healthRecordsStyles.folderBannerSubtitle}>
-                  {catWiseEmrs?.length || 0} {catWiseEmrs?.length === 1 ? 'document' : 'documents'}{' '}
-                  {search.trim().length > 0 ? 'found' : 'in this folder'}
-                </Text>
-              </View>
-            </View>
-            {catWiseEmrs?.length === 0 ? (
-              search.trim().length > 0 ? (
-                <View style={healthRecordsStyles.emptySearchWrap}>
-                  <View style={healthRecordsStyles.emptySearchIcon}>
-                    <SearchIcon size={28} color={theme.colors.primary} />
-                  </View>
-                  <Text style={healthRecordsStyles.emptySearchTitle}>No Documents Found</Text>
-                  <Text style={healthRecordsStyles.emptySearchSubtitle}>
-                    No documents match &quot;{search.trim()}&quot; in this folder.
-                  </Text>
-                  <TouchableOpacity
-                    style={healthRecordsStyles.emptySearchBtn}
-                    onPress={handleClearSearch}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={healthRecordsStyles.emptySearchBtnText}>Clear Search</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <View style={healthRecordsStyles.emptyWrap}>
-                  <View style={healthRecordsStyles.emptyIcon}>
-                    <FolderIcon size={34} color={theme.colors.primary} />
-                  </View>
-                  <Text style={healthRecordsStyles.emptyTitle}>No Documents Yet</Text>
-                  <Text style={healthRecordsStyles.emptySubtitle}>
-                    You haven&apos;t uploaded any documents in this category yet.
-                  </Text>
-                  <TouchableOpacity
-                    style={healthRecordsStyles.emptyBtn}
-                    onPress={handleNavigateUpload}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={healthRecordsStyles.emptyBtnText}>Upload Document</Text>
-                  </TouchableOpacity>
-                </View>
-              )
-            ) : (
-              <View>
-                {catWiseEmrs?.map(doc => (
-                  <HealthRecordItemCard
-                    key={`${doc.id}-${doc?.document_path}`}
-                    title={doc?.title}
-                    date={formatDate(doc?.created_at, 'DD MMM YYYY')}
-                    fileSize={doc?.file_size || 'N/A'}
-                    format={getFileType(doc?.document_path) || ''}
-                    isAllowDelete={Boolean(doc?.created_by == userData?.id)}
-                    onDelete={() => {
-                      handleDeleteEmr(Number(doc?.id));
-                    }}
-                    onShare={() => {
-                      setShareDoc(doc);
-                    }}
-                    onView={() => {
-                      handleView(doc?.document_url);
-                    }}
+        ListHeaderComponent={
+          <>
+            {isSearchOpen && (
+              <View style={healthRecordsStyles.folderSearchRow}>
+                <View style={healthRecordsStyles.folderSearchBox}>
+                  <SearchIcon size={18} color={theme.colors.textMuted} />
+                  <TextInput
+                    style={healthRecordsStyles.folderSearchInput}
+                    placeholder="Search by document name..."
+                    placeholderTextColor={theme.colors.textMuted}
+                    value={search}
+                    onChangeText={setSearch}
+                    returnKeyType="search"
+                    autoCorrect={false}
+                    autoCapitalize="none"
+                    autoFocus
+                    onSubmitEditing={() => Keyboard.dismiss()}
+                    selectionColor={theme.colors.primary}
                   />
-                ))}
+                  {search.length > 0 && (
+                    <TouchableOpacity
+                      style={healthRecordsStyles.folderSearchClearBtn}
+                      onPress={handleClearSearch}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <CircleXIcon size={16} color={theme.colors.textMuted} />
+                    </TouchableOpacity>
+                  )}
+                </View>
+                <TouchableOpacity
+                  style={healthRecordsStyles.folderSearchCancelBtn}
+                  onPress={handleToggleSearch}
+                  activeOpacity={0.7}
+                >
+                  <Text style={healthRecordsStyles.folderSearchCancelText}>Cancel</Text>
+                </TouchableOpacity>
               </View>
             )}
-          </View>
-        )}
-      </ScrollView>
+            {!isLoading && !isError ? (
+              <View style={healthRecordsStyles.folderHeaderBanner}>
+                <View
+                  style={[
+                    healthRecordsStyles.folderBannerIconWrap,
+                    { backgroundColor: visualConfig.iconBgColor },
+                  ]}
+                >
+                  {visualConfig.renderIcon()}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={healthRecordsStyles.folderBannerTitle}>{folderName}</Text>
+                  <Text style={healthRecordsStyles.folderBannerSubtitle}>
+                    {catWiseEmrs?.length || 0} {catWiseEmrs?.length === 1 ? 'document' : 'documents'}{' '}
+                    {search.trim().length > 0 ? 'found' : 'in this folder'}
+                  </Text>
+                </View>
+              </View>
+            ) : null}
+          </>
+        }
+        ListEmptyComponent={
+          isLoading && !refreshing ? (
+            <HealthRecordFolderSkeleton />
+          ) : isError ? (
+            <CommonErrorCard
+              title="Unable to Load Documents"
+              message="Something went wrong while fetching your health records for this folder."
+              onRetry={refetch}
+            />
+          ) : search.trim().length > 0 ? (
+            <View style={healthRecordsStyles.emptySearchWrap}>
+              <View style={healthRecordsStyles.emptySearchIcon}>
+                <SearchIcon size={28} color={theme.colors.primary} />
+              </View>
+              <Text style={healthRecordsStyles.emptySearchTitle}>No Documents Found</Text>
+              <Text style={healthRecordsStyles.emptySearchSubtitle}>
+                No documents match &quot;{search.trim()}&quot; in this folder.
+              </Text>
+              <TouchableOpacity
+                style={healthRecordsStyles.emptySearchBtn}
+                onPress={handleClearSearch}
+                activeOpacity={0.8}
+              >
+                <Text style={healthRecordsStyles.emptySearchBtnText}>Clear Search</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={healthRecordsStyles.emptyWrap}>
+              <View style={healthRecordsStyles.emptyIcon}>
+                <FolderIcon size={34} color={theme.colors.primary} />
+              </View>
+              <Text style={healthRecordsStyles.emptyTitle}>No Documents Yet</Text>
+              <Text style={healthRecordsStyles.emptySubtitle}>
+                You haven&apos;t uploaded any documents in this category yet.
+              </Text>
+              <TouchableOpacity
+                style={healthRecordsStyles.emptyBtn}
+                onPress={handleNavigateUpload}
+                activeOpacity={0.8}
+              >
+                <Text style={healthRecordsStyles.emptyBtnText}>Upload Document</Text>
+              </TouchableOpacity>
+            </View>
+          )
+        }
+      />
 
       <TouchableOpacity
         style={[healthRecordsStyles.fabButton, { bottom: getBottomBarHeight(insets.bottom) + 16 }]}

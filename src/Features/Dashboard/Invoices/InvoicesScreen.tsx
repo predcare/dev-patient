@@ -34,7 +34,8 @@ export const InvoicesScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedInvoiceId, setSelectedInvoiceid] = useState<number | null>(null);
   const debouncedSearch = useDebounce(searchQuery.trim(), 500);
-  const { hideLoader, showLoader } = useLoadingStore(state => state);
+  const hideLoader = useLoadingStore(state => state.hideLoader);
+  const showLoader = useLoadingStore(state => state.showLoader);
 
   const {
     data: invoicesPagesData,
@@ -99,6 +100,9 @@ export const InvoicesScreen: React.FC = () => {
     >
       <FlatList
         data={isLoading && !refreshing ? [] : allInvoices}
+        initialNumToRender={8}
+        windowSize={5}
+        removeClippedSubviews
         keyExtractor={item => String(item.invoice_number)}
         renderItem={({ item }) => (
           <InvoiceCard

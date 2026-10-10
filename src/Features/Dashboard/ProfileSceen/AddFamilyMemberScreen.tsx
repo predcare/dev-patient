@@ -58,7 +58,8 @@ export const AddNewMemberScreen: React.FC = () => {
     const [showDOBPicker, setShowDOBPicker] = useState<boolean>(false);
     const [showRelationPicker, setShowRelationPicker] = useState<boolean>(false);
     const [showGenderPicker, setShowGenderPicker] = useState<boolean>(false);
-    const { hideLoader, showLoader } = useLoadingStore(state => state);
+    const hideLoader = useLoadingStore(state => state.hideLoader);
+    const showLoader = useLoadingStore(state => state.showLoader);
     const {
         control,
         handleSubmit,

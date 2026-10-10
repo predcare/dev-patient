@@ -653,6 +653,43 @@ export const prescriptionsStyles = StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: 4,
   },
+  downloadAction: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: theme.colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: theme.colors.surfaceBorder,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  downloadProgressText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: theme.colors.primary,
+  },
+  errorFill: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  flexFill: {
+    flex: 1,
+  },
+  doctorTextBlock: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  medStrength: {
+    fontSize: 13,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
+  },
+  downloadRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
   sectionSubValue: {
     fontSize: 14,
     color: theme.colors.textPrimary,

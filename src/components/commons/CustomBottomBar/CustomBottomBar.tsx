@@ -1,4 +1,4 @@
-import { StackActions, useNavigation, useNavigationState } from '@react-navigation/native';
+import { CommonActions, useNavigation, useNavigationState } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useMemo } from 'react';
 import {
@@ -59,12 +59,43 @@ export const BOTTOM_BAR_TABS: TabConfig[] = [
   },
 ];
 
+const TAB_BY_ROUTE: Record<string, TabKey> = {
+  Home: 'Home',
+  MainTabs: 'Home',
+  Doctors: 'Doctors',
+  DoctorSearch: 'Doctors',
+  DoctorDetails: 'Doctors',
+  ClinicDetails: 'Doctors',
+  BookAppointment: 'Doctors',
+  Payment: 'Doctors',
+  PaymentProcessing: 'Doctors',
+  BookingSuccess: 'Doctors',
+  Schedule: 'Schedule',
+  AppointmentDetails: 'Schedule',
+  RescheduleAppointment: 'Schedule',
+  Meeting: 'Schedule',
+  ConsultationCompleted: 'Schedule',
+  Reports: 'Reports',
+  PrescriptionsList: 'Reports',
+  PrescriptionDetail: 'Reports',
+  HealthRecords: 'Reports',
+  HealthRecordFolder: 'Reports',
+  UploadHealthRecord: 'Reports',
+  Account: 'Account',
+  ProfileSetup: 'Account',
+  AddNewMember: 'Account',
+  Support: 'Account',
+  NewSupportTicket: 'Account',
+  SupportTicketDetails: 'Account',
+  SupportTicketSuccess: 'Account',
+  InvoicesList: 'Account',
+};
+
 export interface CustomBottomBarProps {
   activeTab?: TabKey;
   visibleTabs?: TabKey[];
   onTabPress?: (tabKey: TabKey) => void;
   containerStyle?: StyleProp<ViewStyle>;
-  isPathClear?: boolean;
 }
 
 export const CustomBottomBar: React.FC<CustomBottomBarProps> = ({
@@ -72,7 +103,6 @@ export const CustomBottomBar: React.FC<CustomBottomBarProps> = ({
   visibleTabs,
   onTabPress,
   containerStyle,
-  isPathClear = false,
 }) => {
   const insets = useSafeAreaInsets();
   const rootNavigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -86,60 +116,15 @@ export const CustomBottomBar: React.FC<CustomBottomBarProps> = ({
       .filter((tab): tab is TabConfig => Boolean(tab));
   }, [visibleTabs]);
 
-  // Determine current active tab from React Navigation state or fallback
-  const activeTabFromNavigationState = useNavigationState(navState => {
-    if (!navState || !navState.routes) return 'Home';
-    const currentRoute = navState.routes[navState.index];
-    if (!currentRoute) return 'Home';
-
-    if (currentRoute.name === 'MainTabs' && currentRoute.state) {
-      const tabState = currentRoute.state as {
-        index?: number;
-        routes?: Array<{ name?: string }>;
-      };
-      const focusedRouteName =
-        typeof tabState.index === 'number' && tabState.routes
-          ? tabState.routes[tabState.index]?.name
-          : undefined;
-      return (focusedRouteName as TabKey) || 'Home';
-    }
-
-    const routeName = currentRoute.name;
-    if (routeName === 'Home' || routeName === 'MainTabs') return 'Home';
-    if (
-      routeName === 'Patients' ||
-      routeName === 'PatientDetails' ||
-      routeName === 'AddPatient' ||
-      routeName === 'EditPatient'
-    ) {
-      return 'Patients';
-    }
-    if (
-      routeName === 'Schedule' ||
-      routeName === 'DoctorAppointments' ||
-      routeName === 'BookAppointment' ||
-      routeName === 'RescheduleAppointment'
-    ) {
-      return 'Schedule';
-    }
-    if (routeName === 'Reports') return 'Reports';
-    if (
-      routeName === 'Account' ||
-      routeName === 'DoctorProfile' ||
-      routeName === 'Availability' ||
-      routeName === 'InvoiceSettings' ||
-      routeName === 'PrescriptionSettings'
-    ) {
-      return 'Account';
-    }
-
-    return (routeName as TabKey) || 'Home';
+  const focusedRouteName = useNavigationState(navState => {
+    if (!navState?.routes?.length) return 'Home';
+    return navState.routes[navState.index]?.name ?? 'Home';
   });
 
   const currentTabKey: TabKey = useMemo(() => {
     if (controlledActiveTab) return controlledActiveTab;
-    return (activeTabFromNavigationState as TabKey) || 'Home';
-  }, [controlledActiveTab, activeTabFromNavigationState]);
+    return TAB_BY_ROUTE[focusedRouteName] ?? 'Home';
+  }, [controlledActiveTab, focusedRouteName]);
 
   const handleTabPress = (tabKey: TabKey) => {
     if (onTabPress) {
@@ -147,36 +132,21 @@ export const CustomBottomBar: React.FC<CustomBottomBarProps> = ({
       return;
     }
 
-    // Already on the current tab
-    if (currentTabKey === tabKey) {
+    if (focusedRouteName === tabKey) {
       return;
     }
 
-    const params = tabKey === 'Schedule' ? { refresh: true } : undefined;
-
-    if (isPathClear) {
-      if (navigationRef.isReady()) {
-        try {
-          navigationRef.dispatch(StackActions.replace(tabKey, params));
-          return;
-        } catch {
-          // fallback
-        }
-      }
-      if (rootNavigation && typeof rootNavigation.replace === 'function') {
-        try {
-          rootNavigation.replace(tabKey as any, params);
-          return;
-        } catch {
-          // fallback
-        }
-      }
-    }
+    const routes =
+      tabKey === 'Home' ? [{ name: 'Home' as const }] : [{ name: 'Home' as const }, { name: tabKey }];
+    const resetAction = CommonActions.reset({
+      index: routes.length - 1,
+      routes,
+    });
 
     if (navigationRef.isReady()) {
-      (navigationRef as any).navigate(tabKey, params);
-    } else if (rootNavigation) {
-      rootNavigation.navigate(tabKey as any, params);
+      navigationRef.dispatch(resetAction);
+    } else {
+      rootNavigation.dispatch(resetAction);
     }
   };
 

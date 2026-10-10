@@ -137,4 +137,4 @@ export const DoctorSearchCard: React.FC<DoctorSearchCardProps> = ({
   );
 };
 
-export default DoctorSearchCard;
+export default React.memo(DoctorSearchCard);
