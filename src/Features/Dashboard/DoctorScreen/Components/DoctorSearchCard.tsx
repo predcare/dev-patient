@@ -97,7 +97,7 @@ export const DoctorSearchCard: React.FC<DoctorSearchCardProps> = ({
               style={{ marginTop: 4, flexDirection: 'row', alignItems: 'center' }}
             >
               <Text style={{ fontSize: 12, fontWeight: '700', color: theme.colors.primary }}>
-                🏥 {clinicName} →
+                {clinicName}
               </Text>
             </TouchableOpacity>
           ) : null}
