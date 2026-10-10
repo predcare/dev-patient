@@ -90,6 +90,18 @@ export interface ICommisionSlabsDoc {
   updated_at: string;
 }
 
+export interface IPlatformFeeSlabsDoc {
+  id: string;
+  min_amount: string;
+  max_amount?: string;
+  fee_type: string;
+  fee_value: string;
+  created_at: string;
+  updated_at: string;
+  status: boolean;
+  sort_order: number;
+}
+
 export interface ICommonEMRCats {
   id: string;
   name: string;

@@ -4,6 +4,7 @@ import {
   ICommisionSlabsDoc,
   ICommonEMRCats,
   IHealthCareTips,
+  IPlatformFeeSlabsDoc,
   IRootResponse,
 } from '../../../typescripts/interfaces/common.interfaces';
 import { ILocationDoc } from '../../../typescripts/interfaces/locations.interfaces';
@@ -62,6 +63,13 @@ export const getAllCities = async (params?: { search?: string }) => {
     {
       params,
     }
+  );
+  return res.data;
+};
+
+export const getPlatformFeeSlabs = async () => {
+  const res = await axiosInstance.get<IRootResponse<IPlatformFeeSlabsDoc[]>>(
+    `${endpoints.commons.getPlatformFeeSlabs}`
   );
   return res.data;
 };

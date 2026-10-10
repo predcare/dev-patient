@@ -19,7 +19,7 @@ import {
     StethoscopeIcon,
     VideoIcon,
 } from '../../../components/ui/icons';
-import { useCommisionSlabs } from '../../../hooks/react-query/common/common.hooks';
+import { useGetPlatformFeeSlabs } from '../../../hooks/react-query/common/common.hooks';
 import {
     useDoctorAvailDates,
     useDoctorClinicSummary,
@@ -112,9 +112,10 @@ export const BookAppointmentScreen: React.FC = () => {
         consultation_type: formStates.consultationType,
     });
 
-    const { data: commisionSlabsData, isFetching: isCommisionSlabsPending } = useCommisionSlabs();
+    const { data: platformFeeSlabsData, isFetching: isPlatformFeeSlabsPending } = useGetPlatformFeeSlabs();
 
     const isFeeHidden = useMemo(() => {
+        if (formStates.consultationType !== 'in-person') return false;
         if (
             formStates.selectedSlot &&
             (formStates.selectedSlot.hide_fee === true ||
@@ -125,7 +126,7 @@ export const BookAppointmentScreen: React.FC = () => {
         return formStates.selectedSlots?.some(
             slot => slot.hide_fee === true || String(slot.hide_fee) === 'true'
         );
-    }, [formStates.selectedSlots, formStates.selectedSlot]);
+    }, [formStates.consultationType, formStates.selectedSlots, formStates.selectedSlot]);
 
     const consultationFee = useMemo(() => {
         if (!formStates.selectedSlots || formStates.selectedSlots.length === 0) return 0;
@@ -137,8 +138,8 @@ export const BookAppointmentScreen: React.FC = () => {
     }, [formStates.selectedSlots, formStates.consultationType]);
 
     const platformFee = useMemo(() => {
-        return calculatePlatformFee(consultationFee, commisionSlabsData, doctorId);
-    }, [consultationFee, commisionSlabsData, doctorId]);
+        return calculatePlatformFee(consultationFee, platformFeeSlabsData, doctorId);
+    }, [consultationFee, platformFeeSlabsData, doctorId]);
 
     const totalAmount = useMemo(() => {
         return consultationFee + platformFee;
@@ -588,7 +589,7 @@ export const BookAppointmentScreen: React.FC = () => {
                             <Text style={bookAppointmentStyles.summaryLabel}>
                                 {t('bookAppointmentScreen.platformFee')}
                             </Text>
-                            {isCommisionSlabsPending ? (
+                            {isPlatformFeeSlabsPending ? (
                                 <ActivityIndicator size="small" color={theme.colors.primaryDark} />
                             ) : (
                                 <Text style={bookAppointmentStyles.summaryValue}>₹{platformFee}</Text>
@@ -603,7 +604,7 @@ export const BookAppointmentScreen: React.FC = () => {
                             <Text style={bookAppointmentStyles.totalLabel}>
                                 {t('bookAppointmentScreen.totalAmount')}
                             </Text>
-                            {isCommisionSlabsPending ? (
+                            {isPlatformFeeSlabsPending ? (
                                 <ActivityIndicator size="small" color={theme.colors.primaryDark} />
                             ) : (
                                 <Text style={bookAppointmentStyles.totalValue}>₹{totalAmount}</Text>
@@ -619,17 +620,17 @@ export const BookAppointmentScreen: React.FC = () => {
                         bookAppointmentStyles.proceedBtn,
                         (!formStates.selectedDate ||
                             formStates.selectedSlots.length === 0 ||
-                            isCommisionSlabsPending) && { opacity: 0.6 },
+                            (!isFeeHidden && isPlatformFeeSlabsPending)) && { opacity: 0.6 },
                     ]}
                     disabled={
                         !formStates.selectedDate ||
                         formStates.selectedSlots.length === 0 ||
-                        isCommisionSlabsPending
+                        (!isFeeHidden && isPlatformFeeSlabsPending)
                     }
                     activeOpacity={0.85}
                     onPress={handleProceed}
                 >
-                    {isCommisionSlabsPending ? (
+                    {!isFeeHidden && isPlatformFeeSlabsPending ? (
                         <ActivityIndicator color={theme.colors.surface} />
                     ) : (
                         <Text style={bookAppointmentStyles.proceedBtnText}>

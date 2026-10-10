@@ -7,6 +7,7 @@ import {
   getCommisionSlabs,
   getCountries,
   getHealthCareTips,
+  getPlatformFeeSlabs,
   getSpecializations,
   getStates,
 } from './common.func';
@@ -102,3 +103,14 @@ export const useAllCities = (params?: { search?: string }) =>
       return [];
     },
   });
+
+  export const useGetPlatformFeeSlabs = () =>
+    useQuery({
+      queryKey: [CommonQueryKeys.GET_PLATFORM_FEE_SLABS],
+      queryFn: () => getPlatformFeeSlabs(),
+      select: (v: any) => {
+        if (Array.isArray(v)) return v;
+        if (Array.isArray(v?.data)) return v.data;
+        return [];
+      },
+    });

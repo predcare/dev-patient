@@ -96,6 +96,7 @@ export const endpoints = {
     getCommisionSlabs: '/commission-slabs',
     getEmrCategories: '/common/emr-categories',
     healthCareTips: '/common/daily-health-tips',
+    getPlatformFeeSlabs: '/platform-fee-slabs',
   },
   notifications: {
     getAll: '/notifications',

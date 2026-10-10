@@ -306,33 +306,6 @@ export const paymentStyles = StyleSheet.create({
     color: theme.colors.primary,
   },
 
-  timerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 4,
-    marginBottom: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    backgroundColor: theme.colors.primarySoft,
-    borderWidth: 1,
-    borderColor: theme.colors.mintBdr,
-  },
-  timerRowWarning: {
-    backgroundColor: theme.colors.dangerLight,
-    borderColor: theme.colors.danger,
-  },
-  timerText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: theme.colors.primary,
-  },
-  timerTextWarning: {
-    color: theme.colors.danger,
-  },
-
   // Pay Button Styles
   payButton: {
     backgroundColor: theme.colors.primary,
