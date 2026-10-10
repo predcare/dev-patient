@@ -4,6 +4,7 @@ import {
   MyAppointmentListRoot,
   TApptInfoRoot,
   TGetApptTokenRoot,
+  TPaymentStatusCheckRoot,
 } from '../../../typescripts/interfaces/appointments.interfaces';
 import { ICommonRoot } from '../../../typescripts/interfaces/common.interfaces';
 import { IRescheduleAppointment } from './payload.interfaces';
@@ -15,12 +16,13 @@ export const createAppointment = async (body: any) => {
 
 export const getBookingPaymentStatus = async (params: {
   razorpay_order_id: string;
-  appointment_id: string;
-  razorpay_payment_id: string;
 }) => {
-  const res = await axiosInstance.get<ICommonRoot>(`${endpoints.appointments.checkPaymentStatus}`, {
-    params,
-  });
+  const res = await axiosInstance.get<TPaymentStatusCheckRoot>(
+    `${endpoints.appointments.checkPaymentStatus}`,
+    {
+      params,
+    }
+  );
   return res.data;
 };
 

@@ -45,7 +45,7 @@ export const teluguTranslations = {
     error: 'లోపం',
     na: 'వర్తించదు',
     retry: 'మళ్లీ ప్రయత్నించండి',
-    viewClinic: 'క్లినిక్ చూడండి →',
+    viewClinic: 'క్లినిక్ చూడండి',
   },
   doctorFilterModal: {
     filterDoctors: 'వైద్యులను ఫిల్టర్ చేయండి',

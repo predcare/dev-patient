@@ -45,7 +45,7 @@ export const englishTranslations = {
     error: 'Error',
     na: 'N/A',
     retry: 'Retry',
-    viewClinic: 'View Clinic →',
+    viewClinic: 'View Clinic',
   },
   doctorFilterModal: {
     filterDoctors: 'Filter Doctors',

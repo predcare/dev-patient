@@ -234,10 +234,11 @@ export const UpcomingAppointmentsCard: React.FC = () => {
                   doctorId: videoCallData?.doctor?.id,
                 },
               });
+              hideLoader()
               navigation.navigate(AppRoute.MEETING);
             }
           },
-          onSettled: () => {
+          onError: () => {
             hideLoader();
           },
         }
@@ -414,6 +415,15 @@ export const UpcomingAppointmentsCard: React.FC = () => {
                           <StethoscopeIcon size={11} color={theme.colors.primary} />
                           <Text style={UpcomingApptStyles.specialtyText} numberOfLines={1}>
                             {item.specialization}
+                          </Text>
+                        </View>
+                      )}
+                      {Boolean(item.appointment_id) && (
+                        <View style={UpcomingApptStyles.patientChip}>
+                          <Text style={UpcomingApptStyles.patientText} numberOfLines={1}>
+                            {t('appointments.idPrefix', {
+                              id: item.appointment_id || item.id,
+                            })}
                           </Text>
                         </View>
                       )}

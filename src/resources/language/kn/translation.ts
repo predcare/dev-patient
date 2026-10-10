@@ -45,7 +45,7 @@ export const kannadaTranslations = {
     error: 'ದೋಷ',
     na: 'ಅನ್ವಯಿಸುವುದಿಲ್ಲ',
     retry: 'ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ',
-    viewClinic: 'ಕ್ಲಿನಿಕ್ ವೀಕ್ಷಿಸಿ →',
+    viewClinic: 'ಕ್ಲಿನಿಕ್ ವೀಕ್ಷಿಸಿ',
   },
   doctorFilterModal: {
     filterDoctors: 'ವೈದ್ಯರನ್ನು ಫಿಲ್ಟರ್ ಮಾಡಿ',

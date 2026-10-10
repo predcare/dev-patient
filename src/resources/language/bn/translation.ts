@@ -45,7 +45,7 @@ export const banglaTranslations = {
     error: 'ত্রুটি',
     na: 'প্রযোজ্য নয়',
     retry: 'পুনরায় চেষ্টা করুন',
-    viewClinic: 'ক্লিনিক দেখুন →',
+    viewClinic: 'ক্লিনিক দেখুন',
   },
   doctorFilterModal: {
     filterDoctors: 'ডাক্তার ফিল্টার করুন',

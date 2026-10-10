@@ -13,9 +13,11 @@ import {
 } from 'react-native';
 import { queryClient } from '../../../components/providers/ReactQueryProvider';
 import {
+  AlertTriangleIcon,
   CheckIcon,
   ClockIcon,
   InfoCircleIcon,
+  WalletIcon,
   XCircleIcon,
 } from '../../../components/ui/icons';
 import { getBookingPaymentStatus } from '../../../hooks/react-query/appointments/appointments.funcs';
@@ -27,7 +29,7 @@ import { AppRoute } from '../../../route';
 import paymentProcessingStyles from '../../../styled/PaymentProcessingScreen.styled';
 import theme from '../../../styled/theme.styled';
 
-type TVerificationState = 'processing' | 'success' | 'error' | 'timeout';
+type TVerificationState = 'processing' | 'success' | 'error' | 'timeout' | 'booking_failed';
 
 export const PaymentProcessingScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -42,8 +44,13 @@ export const PaymentProcessingScreen: React.FC = () => {
 
   const [verificationStatus, setVerificationStatus] = useState<TVerificationState>('processing');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [failureReason, setFailureReason] = useState<string>('');
+  const [paymentId, setPaymentId] = useState<string>('');
+  const [orderId, setOrderId] = useState<string>('');
   const [progressPercent, setProgressPercent] = useState<number>(12);
-  const [stageMessage, setStageMessage] = useState<string>('Initiating secure payment verification...');
+  const [stageMessage, setStageMessage] = useState<string>(
+    'Initiating secure payment verification...'
+  );
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const pulseOpacity = useRef(new Animated.Value(0.7)).current;
@@ -64,7 +71,11 @@ export const PaymentProcessingScreen: React.FC = () => {
   }, []);
 
   const handleBack = useCallback(() => {
-    if (verificationStatus === 'error' || verificationStatus === 'timeout') {
+    if (
+      verificationStatus === 'error' ||
+      verificationStatus === 'timeout' ||
+      verificationStatus === 'booking_failed'
+    ) {
       isAllowedNavigationRef.current = true;
       navigation.navigate('Home');
     }
@@ -121,7 +132,7 @@ export const PaymentProcessingScreen: React.FC = () => {
         navigation.navigate(AppRoute.SCHEDULE, { refresh: true });
         return true;
       }
-      if (verificationStatus === 'error') {
+      if (verificationStatus === 'error' || verificationStatus === 'booking_failed') {
         isAllowedNavigationRef.current = true;
         navigation.navigate('Home');
         return true;
@@ -171,12 +182,32 @@ export const PaymentProcessingScreen: React.FC = () => {
     const pulseAnimation = Animated.loop(
       Animated.parallel([
         Animated.sequence([
-          Animated.timing(pulseAnim, { toValue: 1.15, duration: 1200, easing: Easing.out(Easing.ease), useNativeDriver: true }),
-          Animated.timing(pulseAnim, { toValue: 1, duration: 1200, easing: Easing.in(Easing.ease), useNativeDriver: true }),
+          Animated.timing(pulseAnim, {
+            toValue: 1.15,
+            duration: 1200,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1200,
+            easing: Easing.in(Easing.ease),
+            useNativeDriver: true,
+          }),
         ]),
         Animated.sequence([
-          Animated.timing(pulseOpacity, { toValue: 0.3, duration: 1200, easing: Easing.out(Easing.ease), useNativeDriver: true }),
-          Animated.timing(pulseOpacity, { toValue: 0.7, duration: 1200, easing: Easing.in(Easing.ease), useNativeDriver: true }),
+          Animated.timing(pulseOpacity, {
+            toValue: 0.3,
+            duration: 1200,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseOpacity, {
+            toValue: 0.7,
+            duration: 1200,
+            easing: Easing.in(Easing.ease),
+            useNativeDriver: true,
+          }),
         ]),
       ])
     );
@@ -184,21 +215,26 @@ export const PaymentProcessingScreen: React.FC = () => {
 
     let attempts = 0;
     const maxDuration = 45000;
-    const intervalTime = 3000;
+    const intervalTime = 4000;
 
     const pollInterval = setInterval(async () => {
       attempts++;
       try {
-        const response: any = await getBookingPaymentStatus({
-          appointment_id: paymentVerifyParams.appointment_id,
+        const response = await getBookingPaymentStatus({
           razorpay_order_id: paymentVerifyParams.razorpay_order_id,
-          razorpay_payment_id: paymentVerifyParams.razorpay_payment_id,
         });
 
-        const statusData: any = response?.data;
-        const isPaid = statusData?.payment_status?.toLowerCase() === 'paid' || statusData?.is_paid === true;
-        const isConfirmed = statusData?.appointment_status?.toLowerCase() === 'confirmed' || statusData?.booking_completed === true;
+        const statusData = response?.data;
+        const isPaid =
+          statusData?.payment_status?.toLowerCase() === 'paid' || statusData?.is_paid === true;
+        const appointmentStatus = statusData?.appointment_status?.toLowerCase();
+        const isConfirmed =
+          (appointmentStatus === 'booked' || statusData?.booking_completed === true) &&
+          appointmentStatus !== 'failed';
+        const isAppointmentFailed = appointmentStatus === 'failed';
+        const isPaymentFailed = statusData?.payment_status?.toLowerCase() === 'failed';
 
+        // 1️⃣ Scenario A: Payment confirmed & appointment confirmed
         if (isPaid && isConfirmed) {
           clearInterval(pollInterval);
           setVerificationStatus('success');
@@ -209,12 +245,19 @@ export const PaymentProcessingScreen: React.FC = () => {
           ]).start();
 
           setStageMessage('Appointment confirmed & slot reserved!');
-          Animated.timing(progressAnim, { toValue: 1, duration: 400, easing: Easing.out(Easing.quad), useNativeDriver: false }).start();
+          Animated.timing(progressAnim, {
+            toValue: 1,
+            duration: 400,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: false,
+          }).start();
 
           await queryClient.invalidateQueries({ queryKey: [DoctorQueryKeys.GET_AVAIL_DATES] });
           await queryClient.invalidateQueries({ queryKey: [DoctorQueryKeys.GET_SLOTS_BY_DATE] });
           await queryClient.invalidateQueries({ queryKey: [DoctorQueryKeys.MY_DOCS] });
-          await queryClient.invalidateQueries({ queryKey: [AppointmemntQueryKey.ALL_APPOINTMENTS] });
+          await queryClient.invalidateQueries({
+            queryKey: [AppointmemntQueryKey.ALL_APPOINTMENTS],
+          });
 
           showSuccessToast('Payment confirmed & appointment scheduled!');
 
@@ -237,12 +280,43 @@ export const PaymentProcessingScreen: React.FC = () => {
           return;
         }
 
-        if (statusData?.payment_status === 'failed' || statusData?.appointment_status === 'cancelled') {
+        // 2️⃣ Scenario B: Payment paid, but appointment booking failed / slot unavailable
+        if (isPaid && isAppointmentFailed) {
+          clearInterval(pollInterval);
+          setVerificationStatus('booking_failed');
+          setStageMessage('Slot reservation failed');
+          setFailureReason(
+            statusData?.reason || 'The requested doctor slot is no longer available.'
+          );
+          setPaymentId(
+            statusData?.razorpay_payment_id || paymentVerifyParams.razorpay_payment_id || ''
+          );
+          setOrderId(statusData?.razorpay_order_id || paymentVerifyParams.razorpay_order_id || '');
+
+          Animated.sequence([
+            Animated.spring(badgeScaleAnim, { toValue: 1.15, friction: 4, useNativeDriver: true }),
+            Animated.spring(badgeScaleAnim, { toValue: 1, friction: 5, useNativeDriver: true }),
+          ]).start();
+          Animated.timing(progressAnim, {
+            toValue: 1,
+            duration: 400,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: false,
+          }).start();
+
+          showErrorToast('Slot reservation failed. Your payment will be refunded.');
+          return;
+        }
+
+        // 3️⃣ Scenario C: Payment failed
+        if (isPaymentFailed || (statusData?.is_paid === false && isAppointmentFailed)) {
           clearInterval(pollInterval);
           setVerificationStatus('error');
           setStageMessage('Transaction verification failed');
-          setErrorMessage(statusData?.failure_reason || 'Payment or appointment confirmation failed. Please contact support.');
-          showErrorToast('Payment or appointment confirmation failed. Please contact support.');
+          setErrorMessage(
+            statusData?.reason || 'Payment could not be verified. Please contact support.'
+          );
+          showErrorToast('Payment failed. Please retry.');
           return;
         }
       } catch (err: any) {
@@ -253,7 +327,9 @@ export const PaymentProcessingScreen: React.FC = () => {
         clearInterval(pollInterval);
         setVerificationStatus('timeout');
         setStageMessage('Verification response delayed');
-        showInfoToast('Payment verification is taking longer than expected. Please check your schedule.');
+        showInfoToast(
+          'Payment verification is taking longer than expected. Please check your schedule.'
+        );
       }
     }, intervalTime);
 
@@ -263,19 +339,50 @@ export const PaymentProcessingScreen: React.FC = () => {
       pulseAnimation.stop();
       clearInterval(pollInterval);
     };
-  }, [verificationStatus, paymentVerifyParams, bookingData, navigation, badgeScaleAnim, progressAnim, pulseAnim, pulseOpacity]);
+  }, [
+    verificationStatus,
+    paymentVerifyParams,
+    bookingData,
+    navigation,
+    badgeScaleAnim,
+    progressAnim,
+    pulseAnim,
+    pulseOpacity,
+  ]);
 
   const headerConfig = useMemo(() => {
     switch (verificationStatus) {
       case 'processing':
-        return { title: 'Payment Verification', subtitle: 'Securing your appointment reservation', isBackBtn: false };
+        return {
+          title: 'Payment Verification',
+          subtitle: 'Securing your appointment reservation',
+          isBackBtn: false,
+        };
       case 'success':
-        return { title: 'Payment Confirmed', subtitle: 'Appointment booked successfully', isBackBtn: false };
+        return {
+          title: 'Payment Confirmed',
+          subtitle: 'Appointment booked successfully',
+          isBackBtn: false,
+        };
+      case 'booking_failed':
+        return {
+          title: 'Booking Incomplete',
+          subtitle: 'Payment received • Slot unavailable',
+          isBackBtn: true,
+        };
       case 'error':
-        return { title: 'Payment Status', subtitle: 'Unable to confirm transaction', isBackBtn: true };
+        return {
+          title: 'Payment Status',
+          subtitle: 'Unable to confirm transaction',
+          isBackBtn: true,
+        };
       case 'timeout':
       default:
-        return { title: 'Verification Pending', subtitle: 'Taking longer than expected', isBackBtn: true };
+        return {
+          title: 'Verification Pending',
+          subtitle: 'Taking longer than expected',
+          isBackBtn: true,
+        };
     }
   }, [verificationStatus]);
 
@@ -284,7 +391,8 @@ export const PaymentProcessingScreen: React.FC = () => {
       case 'processing':
         return {
           title: 'Processing Your Payment',
-          subtitle: 'Please stay on this screen while we securely verify your payment with the clinic bank.',
+          subtitle:
+            'Please stay on this screen while we securely verify your payment with the clinic bank.',
           subnote: 'Real-time communication with clinic authorization server',
           titleStyle: paymentProcessingStyles.title,
           dotStyle: null,
@@ -308,7 +416,9 @@ export const PaymentProcessingScreen: React.FC = () => {
       case 'error':
         return {
           title: 'Payment Confirmation Failed',
-          subtitle: errorMessage || 'We could not verify your payment. If money was debited, it will be refunded within 3-5 business days.',
+          subtitle:
+            errorMessage ||
+            'We could not verify your payment. If money was debited, it will be refunded within 3-5 business days.',
           subnote: 'Transaction halted. You can retry or contact clinic support.',
           titleStyle: [paymentProcessingStyles.title, paymentProcessingStyles.titleError],
           dotStyle: paymentProcessingStyles.progressDotError,
@@ -317,11 +427,26 @@ export const PaymentProcessingScreen: React.FC = () => {
           badgeStyle: paymentProcessingStyles.centerBadgeError,
           badgeIcon: <XCircleIcon size={32} color={theme.colors.surface} />,
         };
+      case 'booking_failed':
+        return {
+          title: 'Payment Received, Slot Unavailable',
+          subtitle:
+            failureReason ||
+            'We received your payment, but the doctor’s slot could not be secured. Your payment will be refunded.',
+          subnote: '100% refund initiated to your original payment method.',
+          titleStyle: [paymentProcessingStyles.title, paymentProcessingStyles.titleWarning],
+          dotStyle: paymentProcessingStyles.progressDotWarning,
+          percentStyle: paymentProcessingStyles.progressPercentWarning,
+          progressFillStyle: paymentProcessingStyles.progressBarFillWarning,
+          badgeStyle: paymentProcessingStyles.centerBadgeWarning,
+          badgeIcon: <AlertTriangleIcon size={32} color={theme.colors.surface} />,
+        };
       case 'timeout':
       default:
         return {
           title: 'Confirmation In Progress',
-          subtitle: 'Your bank response is taking longer than usual. Please check your schedule or contact support if the slot is not updated.',
+          subtitle:
+            'Your bank response is taking longer than usual. Please check your schedule or contact support if the slot is not updated.',
           subnote: 'Your payment is still being confirmed. Check your schedule shortly.',
           titleStyle: [paymentProcessingStyles.title, paymentProcessingStyles.titleWarning],
           dotStyle: paymentProcessingStyles.progressDotWarning,
@@ -334,13 +459,41 @@ export const PaymentProcessingScreen: React.FC = () => {
   }, [verificationStatus, errorMessage]);
 
   const actionButtons = useMemo(() => {
+    if (verificationStatus === 'booking_failed') {
+      return (
+        <View style={paymentProcessingStyles.actionButtonsWrap}>
+          <TouchableOpacity
+            style={paymentProcessingStyles.primaryBtn}
+            onPress={handleContactSupport}
+            activeOpacity={0.85}
+          >
+            <Text style={paymentProcessingStyles.primaryBtnText}>Contact Support</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={paymentProcessingStyles.secondaryBtn}
+            onPress={handleRetry}
+            activeOpacity={0.85}
+          >
+            <Text style={paymentProcessingStyles.secondaryBtnText}>Select Another Slot</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
     if (verificationStatus === 'error') {
       return (
         <View style={paymentProcessingStyles.actionButtonsWrap}>
-          <TouchableOpacity style={paymentProcessingStyles.primaryBtn} onPress={handleRetry} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={paymentProcessingStyles.primaryBtn}
+            onPress={handleRetry}
+            activeOpacity={0.85}
+          >
             <Text style={paymentProcessingStyles.primaryBtnText}>Retry Booking</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={paymentProcessingStyles.secondaryBtn} onPress={handleContactSupport} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={paymentProcessingStyles.secondaryBtn}
+            onPress={handleContactSupport}
+            activeOpacity={0.85}
+          >
             <Text style={paymentProcessingStyles.secondaryBtnText}>Contact Support</Text>
           </TouchableOpacity>
         </View>
@@ -349,10 +502,18 @@ export const PaymentProcessingScreen: React.FC = () => {
     if (verificationStatus === 'timeout') {
       return (
         <View style={paymentProcessingStyles.actionButtonsWrap}>
-          <TouchableOpacity style={paymentProcessingStyles.primaryBtn} onPress={handleGoSchedule} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={paymentProcessingStyles.primaryBtn}
+            onPress={handleGoSchedule}
+            activeOpacity={0.85}
+          >
             <Text style={paymentProcessingStyles.primaryBtnText}>Check Schedule</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={paymentProcessingStyles.secondaryBtn} onPress={handleContactSupport} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={paymentProcessingStyles.secondaryBtn}
+            onPress={handleContactSupport}
+            activeOpacity={0.85}
+          >
             <Text style={paymentProcessingStyles.secondaryBtnText}>Contact Support</Text>
           </TouchableOpacity>
         </View>
@@ -417,11 +578,17 @@ export const PaymentProcessingScreen: React.FC = () => {
             <View style={paymentProcessingStyles.progressMetaRow}>
               <View style={paymentProcessingStyles.progressStatusGroup}>
                 <View style={[paymentProcessingStyles.progressDot, statusContent.dotStyle]} />
-                <Text style={paymentProcessingStyles.progressStatusText} numberOfLines={1} ellipsizeMode="tail">
+                <Text
+                  style={paymentProcessingStyles.progressStatusText}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
                   {stageMessage}
                 </Text>
               </View>
-              <Text style={[paymentProcessingStyles.progressPercentText, statusContent.percentStyle]}>
+              <Text
+                style={[paymentProcessingStyles.progressPercentText, statusContent.percentStyle]}
+              >
                 {progressPercent}%
               </Text>
             </View>
@@ -451,6 +618,70 @@ export const PaymentProcessingScreen: React.FC = () => {
             <Text style={paymentProcessingStyles.warningNoticeText}>
               Do not press back or leave the app. Your slot is being confirmed in real-time.
             </Text>
+          </View>
+        )}
+
+        {verificationStatus === 'booking_failed' && (
+          <View style={paymentProcessingStyles.refundCard}>
+            <View style={paymentProcessingStyles.refundHeaderRow}>
+              <View style={paymentProcessingStyles.refundHeaderLeft}>
+                <WalletIcon size={20} color={theme.colors.warning} />
+                <Text style={paymentProcessingStyles.refundTitle}>Refund Assurance</Text>
+              </View>
+              <View style={paymentProcessingStyles.refundBadge}>
+                <Text style={paymentProcessingStyles.refundBadgeText}>Refund Initiated</Text>
+              </View>
+            </View>
+
+            <Text style={paymentProcessingStyles.refundDescription}>
+              {bookingData?.totalAmount
+                ? `Your payment of ₹${bookingData.totalAmount} was received, but the appointment slot could not be confirmed. The full amount will be refunded to your original payment method within 5–7 business days.`
+                : 'Your payment was received, but the appointment slot could not be confirmed. The full amount will be refunded to your original payment method within 5–7 business days.'}
+            </Text>
+
+            <View style={paymentProcessingStyles.refundDivider} />
+
+            <View style={paymentProcessingStyles.refundMetaWrap}>
+              {paymentId || paymentVerifyParams.razorpay_payment_id ? (
+                <View style={paymentProcessingStyles.refundMetaRow}>
+                  <Text style={paymentProcessingStyles.refundMetaLabel}>Payment ID</Text>
+                  <Text
+                    style={paymentProcessingStyles.refundMetaValue}
+                    numberOfLines={1}
+                    ellipsizeMode="middle"
+                  >
+                    {paymentId || paymentVerifyParams.razorpay_payment_id}
+                  </Text>
+                </View>
+              ) : null}
+
+              {orderId || paymentVerifyParams.razorpay_order_id ? (
+                <View style={paymentProcessingStyles.refundMetaRow}>
+                  <Text style={paymentProcessingStyles.refundMetaLabel}>Order Reference</Text>
+                  <Text
+                    style={paymentProcessingStyles.refundMetaValue}
+                    numberOfLines={1}
+                    ellipsizeMode="middle"
+                  >
+                    {orderId || paymentVerifyParams.razorpay_order_id}
+                  </Text>
+                </View>
+              ) : null}
+
+              <View style={paymentProcessingStyles.refundMetaRow}>
+                <Text style={paymentProcessingStyles.refundMetaLabel}>Refund ETA</Text>
+                <Text style={paymentProcessingStyles.refundMetaValue}>5–7 Business Days</Text>
+              </View>
+            </View>
+
+            {failureReason ? (
+              <View style={paymentProcessingStyles.refundReasonBox}>
+                <Text style={paymentProcessingStyles.refundReasonLabel}>
+                  Reason from Clinic System
+                </Text>
+                <Text style={paymentProcessingStyles.refundReasonText}>{failureReason}</Text>
+              </View>
+            ) : null}
           </View>
         )}
 

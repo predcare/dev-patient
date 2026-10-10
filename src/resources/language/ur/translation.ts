@@ -45,7 +45,7 @@ export const urduTranslations = {
     error: 'خرابی',
     na: 'لاگو نہیں',
     retry: 'دوبارہ کوشش کریں',
-    viewClinic: 'کلینک دیکھیں →',
+    viewClinic: 'کلینک دیکھیں',
   },
   doctorFilterModal: {
     filterDoctors: 'ڈاکٹرز کو فلٹر کریں',

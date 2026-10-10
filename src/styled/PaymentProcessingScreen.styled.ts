@@ -274,6 +274,104 @@ export const paymentProcessingStyles = StyleSheet.create({
     fontWeight: '600',
     color: theme.colors.textPrimary,
   },
+
+  // Dedicated Refund Card for Scenario B (Payment Paid, Booking Failed)
+  refundCard: {
+    width: '100%',
+    backgroundColor: '#FFFDF5',
+    borderRadius: 18,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    marginBottom: 16,
+    shadowColor: 'rgba(245, 158, 11, 0.08)',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  refundHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  refundHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  refundTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: theme.colors.textPrimary,
+  },
+  refundBadge: {
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FCD34D',
+  },
+  refundBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#B45309',
+  },
+  refundDescription: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: theme.colors.textSecondary,
+    marginBottom: 14,
+  },
+  refundDivider: {
+    height: 1,
+    backgroundColor: '#FDE68A',
+    opacity: 0.7,
+    marginBottom: 12,
+  },
+  refundMetaWrap: {
+    gap: 8,
+  },
+  refundMetaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  refundMetaLabel: {
+    fontSize: 12,
+    color: theme.colors.textSlate,
+  },
+  refundMetaValue: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: theme.colors.textPrimary,
+    maxWidth: '65%',
+    textAlign: 'right',
+  },
+  refundReasonBox: {
+    marginTop: 12,
+    backgroundColor: theme.colors.surface,
+    padding: 11,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  refundReasonLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#B45309',
+    marginBottom: 3,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  refundReasonText: {
+    fontSize: 12.5,
+    lineHeight: 18,
+    color: theme.colors.textSecondary,
+  },
 });
 
 export default paymentProcessingStyles;

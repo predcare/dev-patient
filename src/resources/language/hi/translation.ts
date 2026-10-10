@@ -45,7 +45,7 @@ export const hindiTranslations = {
     error: 'त्रुटि',
     na: 'लागू नहीं',
     retry: 'पुनः प्रयास करें',
-    viewClinic: 'क्लिनिक देखें →',
+    viewClinic: 'क्लिनिक देखें',
   },
   doctorFilterModal: {
     filterDoctors: 'डॉक्टर फ़िल्टर करें',

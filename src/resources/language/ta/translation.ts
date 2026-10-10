@@ -45,7 +45,7 @@ export const tamilTranslations = {
     error: 'பிழை',
     na: 'பொருந்தாது',
     retry: 'மீண்டும் முயற்சி செய்க',
-    viewClinic: 'மருத்துவமனையைப் பார்க்கவும் →',
+    viewClinic: 'மருத்துவமனையைப் பார்க்கவும்',
   },
   doctorFilterModal: {
     filterDoctors: 'மருத்துவர்களை வடிகட்டவும்',

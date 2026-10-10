@@ -30,7 +30,7 @@ export const PaymentScreen: React.FC = () => {
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
     const { userData } = useAuthStore(state => state);
-    const { socketConnection } = useSocketStore((state) => state)
+    const { socketConnection } = useSocketStore(state => state);
     const bookingData: Partial<IBookingData> = route.params?.bookingData || {};
     const consultationType = bookingData.consultation_type || bookingData.consultationType;
     const isFeeHidden =
@@ -58,7 +58,7 @@ export const PaymentScreen: React.FC = () => {
             setIsSubmitting(false);
             showInfoToast('Payment Cancelled by User');
             if (socketConnection) {
-                socketConnection.emit(SocketEvents.PAYMENT_CANCEL_USER, { appointment_id: bookingData.id })
+                socketConnection.emit(SocketEvents.PAYMENT_CANCEL_USER, { appointment_id: bookingData.id });
             }
         },
         onPaymentFailure: (error: unknown) => {
@@ -91,9 +91,7 @@ export const PaymentScreen: React.FC = () => {
         createAppointmentMutation(payloadToSend, {
             onSuccess: async (res: any) => {
                 const data = res?.data;
-                const appointmentId = data?.appointment_id || data?._id || data?.id || '';
-                const bookingId = data?.appointment?.id
-
+                const appointmentId = data?.appointment_id || '';
                 if (data?.requires_payment && data?.order_id) {
                     const checkoutResult = await openCheckout(
                         {
@@ -136,7 +134,7 @@ export const PaymentScreen: React.FC = () => {
                     setIsSubmitting(false);
                     showSuccessToast('Appointment confirmed successfully!');
                     navigation.replace(AppRoute.BOOKING_SUCCESS, {
-                        appointmentId: bookingId,
+                        appointmentId: appointmentId,
                         bookingData: {
                             ...bookingData,
                             appointmentId: appointmentId,
@@ -327,10 +325,7 @@ export const PaymentScreen: React.FC = () => {
                 <TouchableOpacity
                     onPress={handlePay}
                     disabled={isPayDisabled}
-                    style={[
-                        paymentStyles.payButton,
-                        isPayDisabled && paymentStyles.payButtonDisabled,
-                    ]}
+                    style={[paymentStyles.payButton, isPayDisabled && paymentStyles.payButtonDisabled]}
                     activeOpacity={0.85}
                 >
                     {isSubmitting || isRazorpayLoading ? (

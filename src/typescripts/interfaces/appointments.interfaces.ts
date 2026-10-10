@@ -3,7 +3,7 @@ import { IRootResponse } from './common.interfaces';
 export type MyAppointmentListRoot = IRootResponse<IMyAppointmentDoc[]>;
 export type TGetApptTokenRoot = IRootResponse<IGetApptTokenDoc>;
 export type TApptInfoRoot = IRootResponse<IApptInfoDoc>;
-
+export type TPaymentStatusCheckRoot = IRootResponse<IPaymentStatusCheckDoc>;
 export interface IMyAppointmentDoc {
   id: string;
   created_from: string;
@@ -285,4 +285,16 @@ export interface IBookingData {
   consultationType?: string;
   hideFee?: boolean;
   hide_fee?: boolean;
+}
+
+export interface IPaymentStatusCheckDoc {
+  booking_completed: boolean;
+  is_paid: boolean;
+  is_active: boolean;
+  appointment_id: string;
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  appointment_status: string;
+  payment_status: string;
+  reason: string;
 }
