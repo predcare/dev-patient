@@ -394,15 +394,6 @@ export const AppointmentDetailsScreen: React.FC = () => {
                 </View>
                 <View style={appointmentDetailsStyles.statDividerVertical} />
                 <View style={appointmentDetailsStyles.statItem}>
-                  <Text style={appointmentDetailsStyles.statValue}>
-                    ★ {apptInfo.doctor.rating ? Number(apptInfo.doctor.rating).toFixed(1) : '-'}
-                  </Text>
-                  <Text style={appointmentDetailsStyles.statLabel}>
-                    {apptInfo.doctor.reviews_count || 0} Reviews
-                  </Text>
-                </View>
-                <View style={appointmentDetailsStyles.statDividerVertical} />
-                <View style={appointmentDetailsStyles.statItem}>
                   <Text style={appointmentDetailsStyles.statValue}>Verified</Text>
                   <Text style={appointmentDetailsStyles.statLabel}>Doctor</Text>
                 </View>
