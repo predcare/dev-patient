@@ -11,6 +11,7 @@ import { useMeetingCountdownTicker } from '../../hooks/commons/meeting/useMeetin
 import useMeetingParticipants from '../../hooks/commons/meeting/useMeetingParticipants';
 import usePipRemoteTrack from '../../hooks/commons/meeting/usePipRemoteTrack';
 import NativePip from '../../native/NativePip';
+import { useAuthStore } from '../../zustand/stores/useAuthStore';
 import useMeetingStore from '../../zustand/stores/useMeetingStore';
 import AndroidPipStage from './AndroidPipStage';
 import InAppPipWindow from './InAppPipWindow';
@@ -50,10 +51,18 @@ export const MeetingSessionHost: React.FC = () => {
   const isCamOn = useMeetingStore(state => state.isCamOn);
   const setCallState = useMeetingStore(state => state.setCallState);
   const resetCallInfo = useMeetingStore(state => state.resetCallInfo);
+  const userData = useAuthStore((state) => state.userData)
 
   const token = callInfo?.token;
   const meetingId = callInfo?.meetingId;
 
+  const patientParticipantId = userData?.patient_id
+    ? `patient_${userData.patient_id}`
+    : userData?.id
+      ? `patient_${userData.id}`
+      : 'patient_guest';
+  const patientDisplayName = userData?.name || 'Patient';
+  const sessionKey = `${callInfo?.meetingId}_${patientParticipantId}`;
   useEffect(() => {
     if (meetingId) {
       NativePip.setMeetingScreenState(true);
@@ -71,11 +80,13 @@ export const MeetingSessionHost: React.FC = () => {
 
   return (
     <MeetingProvider
+      key={sessionKey}
       config={{
         meetingId,
         micEnabled: !isMuted,
         webcamEnabled: isCamOn,
-        name: 'Patient',
+        participantId: patientParticipantId,
+        name: patientDisplayName,
         defaultCamera: 'front',
         maxResolution: 'hd',
         mode: 'SEND_AND_RECV',
@@ -84,6 +95,7 @@ export const MeetingSessionHost: React.FC = () => {
           title: 'PredCare Consultation',
           message: 'Video consultation in progress',
         },
+        codecSwitchEnabled: true
       }}
       token={token}
       joinWithoutUserInteraction={true}
