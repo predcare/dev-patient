@@ -41,3 +41,5 @@ export const SlotGroups = [
   { title: 'AFTERNOON', key: 'afternoon' },
   { title: 'EVENING', key: 'evening' },
 ] as const;
+
+export const MAX_COMPRESS_FILE_BYTES = 15 * 1024 * 1024;

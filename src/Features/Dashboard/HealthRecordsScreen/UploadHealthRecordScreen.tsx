@@ -4,6 +4,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Platform, Text, View } from 'react-native';
 import { queryClient } from '../../../components/providers/ReactQueryProvider';
+import { MAX_COMPRESS_FILE_BYTES } from '../../../config/constants';
+import { useCompressFile } from '../../../hooks/commons/useCompressFile';
 import { useUploadEMR } from '../../../hooks/react-query/emr/emr.hooks';
 import { EMRQuerykeys } from '../../../hooks/react-query/query.keys';
 import Header from '../../../Layout/Header';
@@ -31,6 +33,7 @@ export const UploadHealthRecordScreen: React.FC = () => {
   const { hideLoader, showLoader } = useLoadingStore();
   const appointmentId = useMeetingStore(state => state.appointmentId);
   const { mutate: uploadEmrMutation, isPending: isUploading } = useUploadEMR();
+  const { compressFile } = useCompressFile();
 
   const {
     control,
@@ -71,7 +74,11 @@ export const UploadHealthRecordScreen: React.FC = () => {
     if (Platform.OS === 'android') {
       clearPendingHealthRecordFile();
     }
-    setValue('file', fileObj, { shouldValidate: true });
+    const prepared = await compressFile(fileObj, { maxBytes: MAX_COMPRESS_FILE_BYTES });
+    if (!prepared) {
+      return;
+    }
+    setValue('file', prepared, { shouldValidate: true });
     const isValid = await trigger('file');
     if (isValid) {
       setCurrentStep(3);

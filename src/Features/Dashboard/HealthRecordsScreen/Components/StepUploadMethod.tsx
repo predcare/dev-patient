@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Platform, Text, TouchableOpacity, View } from 'react-native';
-import { stashPendingHealthRecordFile } from '../pendingHealthRecordCapture';
 import UploadOptionsModal from '../../../../components/commons/UploadOptionsModal/UploadOptionsModal';
 import {
   CameraIcon,
@@ -12,6 +11,7 @@ import useDevicePermissions from '../../../../hooks/commons/useDevicePermissions
 import { safeLaunchCamera, safeLaunchImageLibrary } from '../../../../lib/common/imagePicker.utils';
 import { showInfoToast } from '../../../../lib/common/toast.utils';
 import { uploadRecordStyles } from '../../../../styled/UploadHealthRecordScreen.styled';
+import { stashPendingHealthRecordFile } from '../pendingHealthRecordCapture';
 
 export interface StepUploadMethodProps {
   onFileSelected: (file: {
