@@ -13,7 +13,7 @@ export const settingStyles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 16,
-    paddingBottom: 48,
+    paddingBottom: 5,
   },
   sectionHeader: {
     fontSize: 10,
@@ -316,7 +316,7 @@ export const settingStyles = StyleSheet.create({
     fontWeight: '500',
     color: theme.colors.textMuted,
     marginTop: 28,
-    marginBottom: 50,
+    marginBottom: 20,
   },
 });
 

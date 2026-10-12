@@ -19,6 +19,7 @@ import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import OtpInput from '../../components/commons/OtpInput/OtpInput';
 import { MailIcon, PhoneIcon, ProfileIcon } from '../../components/ui/icons';
 import {
+  useCheckUser,
   usePatientRegister,
   usePatientVerifyOTP,
   useReSendOtp,
@@ -33,6 +34,7 @@ import {
   type RegisterScreenRouteProp,
 } from '../../route';
 import { registerStyles } from '../../styled/RegisterScreen.styled';
+import { useAlertStore } from '../../zustand/stores/useAlertStore';
 import { useAuthStore } from '../../zustand/stores/useAuthStore';
 
 export interface RegisterScreenProps {
@@ -55,6 +57,9 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: prop
   const defaultNavigation = useNavigation<RegisterScreenNavigationProp>();
   const navigation = propNavigation || defaultNavigation;
   const setUserData = useAuthStore(state => state.setUserData);
+  const showConfirm = useAlertStore(state => state.showConfirm);
+
+  const { mutate: checkUserMutation, isPending: isChecking } = useCheckUser();
 
   const [state, setState] = useState<RegisterState>({
     step: 'form',
@@ -101,24 +106,55 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: prop
   const { mutate: verifyOtp, isPending: isVerifying } = usePatientVerifyOTP();
   const { mutate: resendOtp, isPending: isResending } = useReSendOtp();
 
+  const submitRegistration = useCallback(
+    (formData: TPatientRegisterSchemaType) => {
+      register(
+        {
+          name: formData.name,
+          email: formData.email,
+          phone_number: formData.phone_number,
+          country_code: formData.country_code || 91,
+          gender: formData.gender || '',
+          salutation: formData.salutation || 'Mr.',
+          source: formData.source || 'patient-app',
+          created_from: formData.created_from || 'patient-app',
+        },
+        {
+          onSuccess: res => {
+            if (res?.success) {
+              updateState({ step: 'otp', resendTimer: 60, canResend: false });
+              setValue('otp', '');
+            }
+          },
+        }
+      );
+    },
+    [register, setValue, updateState]
+  );
+
   const onRegisterSubmit = (formData: TPatientRegisterSchemaType) => {
-    register(
+    checkUserMutation(
       {
-        name: formData.name,
         email: formData.email,
         phone_number: formData.phone_number,
-        country_code: formData.country_code || 91,
-        gender: formData.gender || '',
-        salutation: formData.salutation || 'Mr.',
-        source: formData.source || 'patient-app',
-        created_from: formData.created_from || 'patient-app',
+        name: formData.name,
       },
       {
         onSuccess: res => {
-          if (res?.success) {
-            updateState({ step: 'otp', resendTimer: 60, canResend: false });
-            setValue('otp', '');
+          if (res?.data?.is_existing_doctor) {
+            showConfirm({
+              title: 'Existing doctor account',
+              message:
+                'This email and phone number is already registered as a doctor. Do you want to continue as a patient?',
+              buttonText: 'Continue',
+              cancelText: 'Cancel',
+              onConfirm: () => {
+                submitRegistration(formData);
+              },
+            });
+            return;
           }
+          submitRegistration(formData);
         },
       }
     );
@@ -326,15 +362,15 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: prop
 
                 {/* Action Button */}
                 <Pressable
-                  disabled={isRegistering}
+                  disabled={isChecking || isRegistering}
                   style={({ pressed }) => [
                     registerStyles.primaryButton,
-                    isRegistering && { opacity: 0.7 },
+                    (isChecking || isRegistering) && { opacity: 0.7 },
                     pressed && { opacity: 0.85 },
                   ]}
                   onPress={() => handleSubmit(onRegisterSubmit)()}
                 >
-                  {isRegistering ? (
+                  {isChecking || isRegistering ? (
                     <ActivityIndicator color="#FFFFFF" />
                   ) : (
                     <Text style={registerStyles.primaryButtonText}>Create Account</Text>

@@ -27,6 +27,17 @@ export const patientRegister = async (body: TPatientRegisterSchemaType) => {
   return res.data;
 };
 
+export const checkUser = async (body: { email: string; phone_number: string; name: string }) => {
+  const res = await axiosInstance.post<
+    IRootResponse<{
+      is_existing_user: boolean;
+      is_existing_patient: boolean;
+      is_existing_doctor: boolean;
+      present_role: string;
+    }>
+  >(endpoints.auth.checkUser, body);
+  return res.data;
+};
 export const patientVerifyOtp = async (body: TPatientVerifyOtpSchemaType) => {
   const res = await axiosInstance.post<ICommonRoot>(endpoints.auth.patientVerifyOtp, body);
   return res.data;

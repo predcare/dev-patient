@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { AuthQueryKey } from '../query.keys';
 import {
+  checkUser,
   fetchAllUsers,
   patientRegister,
   patientVerifyOtp,
@@ -69,4 +70,8 @@ export const useUserLogout = () =>
     mutationKey: [AuthQueryKey.USER_LOGOUT],
   });
 
-
+export const useCheckUser = () =>
+  useMutation({
+    mutationFn: checkUser,
+    mutationKey: [AuthQueryKey.CHECK_USER],
+  });
