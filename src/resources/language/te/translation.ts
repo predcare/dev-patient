@@ -328,7 +328,7 @@ export const teluguTranslations = {
     statusInProgress: 'పురోగతిలో ఉంది',
     bookNewSession: 'కొత్త సెషన్‌ను బుక్ చేయండి',
     bookNewSessionSub: 'ప్రత్యేక సంరక్షణ కావాలా? మీ ఆరోగ్య ప్రయాణానికి సరైన నిపుణుడిని కనుగొనండి.',
-    findSpecialistArrow: 'నిపుణుడిని కనుగొనండి →',
+    findSpecialistArrow: 'నిపుణుడిని కనుగొనండి',
   },
   prescriptionsScreen: {
     title: 'వైద్యుల ప్రిస్క్రిప్షన్‌లు',

@@ -323,7 +323,7 @@ export const urduTranslations = {
     statusInProgress: 'زیرِ عمل',
     bookNewSession: 'نیا سیشن بک کریں',
     bookNewSessionSub: 'خصوصی دیکھ بھال کی ضرورت ہے؟ اپنی صحت کے لیے صحیح ماہر تلاش کریں۔',
-    findSpecialistArrow: 'ماہر تلاش کریں →',
+    findSpecialistArrow: 'ماہر تلاش کریں',
   },
   prescriptionsScreen: {
     title: 'نسخہ جات (پریسکرپشنز)',

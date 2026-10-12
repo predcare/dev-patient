@@ -316,7 +316,7 @@ export const banglaTranslations = {
     statusInProgress: 'চলমান',
     bookNewSession: 'নতুন সেশন বুক করুন',
     bookNewSessionSub: 'বিশেষজ্ঞ সেবা প্রয়োজন? আপনার স্বাস্থ্যের জন্য সঠিক বিশেষজ্ঞ খুঁজুন।',
-    findSpecialistArrow: 'বিশেষজ্ঞ খুঁজুন →',
+    findSpecialistArrow: 'বিশেষজ্ঞ খুঁজুন',
   },
   prescriptionsScreen: {
     title: 'প্রেসক্রিপশন',

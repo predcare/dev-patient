@@ -315,7 +315,7 @@ export const kannadaTranslations = {
     statusInProgress: 'ಪ್ರಗತಿಯಲ್ಲಿದೆ',
     bookNewSession: 'ಹೊಸ ಸೆಷನ್ ಬುಕ್ ಮಾಡಿ',
     bookNewSessionSub: 'ವಿಶೇಷ ಕಾಳಜಿ ಬೇಕೇ? ನಿಮ್ಮ ಆರೋಗ್ಯ ಪ್ರಯಾಣಕ್ಕಾಗಿ ಸರಿಯಾದ ತಜ್ಞರನ್ನು ಹುಡುಕಿ.',
-    findSpecialistArrow: 'ತಜ್ಞರನ್ನು ಹುಡುಕಿ →',
+    findSpecialistArrow: 'ತಜ್ಞರನ್ನು ಹುಡುಕಿ',
   },
   prescriptionsScreen: {
     title: 'ಔಷಧ ಚೀಟಿಗಳು (ಪ್ರಿಸ್ಕ್ರಿಪ್ಷನ್)',

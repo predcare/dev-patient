@@ -316,7 +316,7 @@ export const tamilTranslations = {
     statusInProgress: 'செயல்பாட்டில் உள்ளது',
     bookNewSession: 'புதிய முன்பதிவு செய்யுங்கள்',
     bookNewSessionSub: 'சிறப்பு கவனிப்பு தேவையா? உங்கள் ஆரோக்கிய பயணத்திற்கான சரியான நிபுணரைக் கண்டறியவும்.',
-    findSpecialistArrow: 'நிபுணரைக் கண்டறியவும் →',
+    findSpecialistArrow: 'நிபுணரைக் கண்டறியவும்',
   },
   prescriptionsScreen: {
     title: 'மருத்துவச் சீட்டுகள் (பரிந்துரைகள்)',

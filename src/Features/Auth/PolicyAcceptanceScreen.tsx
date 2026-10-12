@@ -251,7 +251,7 @@ export const PolicyAcceptanceScreen: React.FC<PolicyAcceptanceScreenProps> = ({
                     General Patient Terms of Service and Platform Usage Guidelines.
                   </Text>
                   <Pressable onPress={() => openPolicyModal(termsData)}>
-                    <Text style={policyStyles.viewPolicyLinkText}>Read Full Document →</Text>
+                    <Text style={policyStyles.viewPolicyLinkText}>Read Full Document</Text>
                   </Pressable>
                 </View>
 
@@ -273,7 +273,7 @@ export const PolicyAcceptanceScreen: React.FC<PolicyAcceptanceScreenProps> = ({
                     Patient Data Protection & HIPAA Compliant Healthcare Standards.
                   </Text>
                   <Pressable onPress={() => openPolicyModal(privacyData)}>
-                    <Text style={policyStyles.viewPolicyLinkText}>Read Full Document →</Text>
+                    <Text style={policyStyles.viewPolicyLinkText}>Read Full Document</Text>
                   </Pressable>
                 </View>
 
@@ -295,7 +295,7 @@ export const PolicyAcceptanceScreen: React.FC<PolicyAcceptanceScreenProps> = ({
                     Consent to Digital Health Consultations & Electronic Medical Records.
                   </Text>
                   <Pressable onPress={() => openPolicyModal(consentData)}>
-                    <Text style={policyStyles.viewPolicyLinkText}>Read Full Document →</Text>
+                    <Text style={policyStyles.viewPolicyLinkText}>Read Full Document</Text>
                   </Pressable>
                 </View>
               </View>

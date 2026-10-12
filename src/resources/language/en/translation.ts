@@ -322,7 +322,7 @@ export const englishTranslations = {
     statusInProgress: 'In Progress',
     bookNewSession: 'Book New Session',
     bookNewSessionSub: 'Need specialized care? Find the right expert for your health journey.',
-    findSpecialistArrow: 'Find a Specialist →',
+    findSpecialistArrow: 'Find a Specialist',
   },
   prescriptionsScreen: {
     title: 'Rx Prescriptions',

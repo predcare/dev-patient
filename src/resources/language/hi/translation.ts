@@ -314,7 +314,7 @@ export const hindiTranslations = {
     statusInProgress: 'प्रगति पर है',
     bookNewSession: 'नया सत्र बुक करें',
     bookNewSessionSub: 'विशेषज्ञ देखभाल की आवश्यकता है? अपने स्वास्थ्य के लिए सही विशेषज्ञ खोजें।',
-    findSpecialistArrow: 'विशेषज्ञ खोजें →',
+    findSpecialistArrow: 'विशेषज्ञ खोजें',
   },
   prescriptionsScreen: {
     title: 'नुस्खे (प्रिस्क्रिप्शन)',
