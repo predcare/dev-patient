@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
 import { queryClient } from '../../../components/providers/ReactQueryProvider';
 import { SocketEvents } from '../../../config/socket.constants';
+import { leaveActiveMeeting } from '../../../hooks/commons/meeting/meetingSessionLeave';
 import { AppointmemntQueryKey } from '../../../hooks/react-query/query.keys';
 import { showInfoToast } from '../../../lib/common/toast.utils';
-import { navigationRef, replace } from '../../../navigation/navigationRef';
+import NativePip from '../../../native/NativePip';
+import { navigationRef, resetRoot } from '../../../navigation/navigationRef';
 import { AppRoute } from '../../../route';
 import useIncomingCallStore from '../../../zustand/stores/useIncomingCallStore';
 import { useLoadingStore } from '../../../zustand/stores/useLoadingStore';
@@ -13,7 +15,6 @@ import { useSocketStore } from '../../../zustand/stores/useSocketStore';
 const SocketListeners = () => {
   const socketConnection = useSocketStore(state => state.socketConnection);
   const showCallBanner = useIncomingCallStore(state => state.showCallBanner);
-  const callState = useMeetingStore(state => state.callState);
   const activeMeetingId = useMeetingStore(state => state.callInfo?.meetingId);
 
   useEffect(() => {
@@ -47,51 +48,40 @@ const SocketListeners = () => {
       }
     };
 
-    const handleTimeUpVideoCallEnded = (payload: { appointmentId: string | number }) => {
+    const handleTimeUpVideoCallEnded = async (payload: { appointmentId: string | number }) => {
       const incomingApptId = payload?.appointmentId;
       if (!incomingApptId) return;
 
-      // 1. Hide incoming call banner if currently visible for this appointment
       const incomingState = useIncomingCallStore.getState();
       if (String(incomingApptId) === String(incomingState.appointmentId)) {
         incomingState.hideCallBanner();
       }
 
-      // 2. Check if an active meeting is ongoing for this appointment
       const meetingState = useMeetingStore.getState();
       const isCallActiveForThisAppt = String(incomingApptId) === String(meetingState.appointmentId);
 
-      if (isCallActiveForThisAppt) {
-        // Clean up meeting state & loaders
-        meetingState.resetMeetingStore();
-        useLoadingStore.getState().hideLoader();
+      if (!isCallActiveForThisAppt) return;
 
-        // Inform the user
-        showInfoToast('Consultation time has ended. The call has ended.', '⏱ Time Up');
+      await leaveActiveMeeting();
+      NativePip.exitPipMode();
+      NativePip.setMeetingScreenState(false);
 
-        // Invalidate queries so appointment details/list show fresh status
-        queryClient.invalidateQueries({
-          queryKey: [AppointmemntQueryKey.ALL_APPOINTMENTS],
+      useMeetingStore.getState().resetCallInfo();
+      useLoadingStore.getState().hideLoader();
+
+      showInfoToast('Consultation time has ended. The call has ended.', 'Time Up');
+
+      await queryClient.invalidateQueries({
+        queryKey: [AppointmemntQueryKey.ALL_APPOINTMENTS],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: [AppointmemntQueryKey.INFO, incomingApptId],
+      });
+
+      if (navigationRef.isReady()) {
+        resetRoot(AppRoute.CONSULTATION_COMPLETED, {
+          appointmentId: incomingApptId,
         });
-        queryClient.invalidateQueries({
-          queryKey: [AppointmemntQueryKey.INFO, incomingApptId],
-        });
-
-        // Navigate user to appointment details
-        const targetApptId = Number(incomingApptId) || incomingApptId;
-        const currentRoute = navigationRef.isReady() ? navigationRef.getCurrentRoute()?.name : null;
-
-        if (currentRoute === AppRoute.APPOINTMENT_DETAILS) {
-          replace(AppRoute.APPOINTMENT_DETAILS, {
-            appointmentId: targetApptId as any,
-            isComingFromNotification: false,
-          });
-        } else {
-          replace(AppRoute.APPOINTMENT_DETAILS, {
-            appointmentId: targetApptId as any,
-            isComingFromNotification: false,
-          });
-        }
       }
     };
 

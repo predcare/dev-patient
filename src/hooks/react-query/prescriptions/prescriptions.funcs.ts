@@ -3,7 +3,7 @@ import axiosInstance from '../../../services/api/apiClient';
 import { endpoints } from '../../../services/api/endpoints';
 import { TRxInfoRoot, TRxListRoot } from '../../../typescripts/interfaces/prescriptions.interfaces';
 
-export type RxStatus = 'draft' | 'completed' | 'sent';
+export type RxStatus = 'draft' | 'completed' | 'sent' | 'current';
 export type RxDateFilter = 'today' | 'this_week' | 'current_month' | 'current_year' | 'custom';
 
 export interface IRxParamQuery {

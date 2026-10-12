@@ -1,6 +1,13 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import CommonErrorCard from '../../../components/commons/CommonErrorCard/CommonErrorCard';
 import { CalendarIcon, DownloadIcon, StethoscopeIcon } from '../../../components/ui/icons';
 import {
@@ -32,6 +39,7 @@ export const PrescriptionDetailScreen: React.FC = () => {
   const route = useRoute<any>();
   const paramId = route.params?.prescriptionId || '';
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
   const { mutate: downloadPdfMutation, isPending: downloadPdfLoading } =
     useDownloadPrescriptionPdf();
 
@@ -62,15 +70,21 @@ export const PrescriptionDetailScreen: React.FC = () => {
     [rxInfo]
   );
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch]);
+
   const handleDownloadPDF = useCallback(() => {
-    if (!rxInfo?.id) {
+    if (!rxInfo?.doctor_prescription_id) {
       showErrorToast('Prescription ID is missing', 'Download Failed');
       return;
     }
     setDownloadProgress(0);
     downloadPdfMutation(
       {
-        id: rxInfo.id,
+        id: rxInfo.doctor_prescription_id,
         onProgress: setDownloadProgress,
       },
       {
@@ -82,7 +96,7 @@ export const PrescriptionDetailScreen: React.FC = () => {
         },
       }
     );
-  }, [rxInfo?.id, downloadPdfMutation]);
+  }, [rxInfo?.doctor_prescription_id, downloadPdfMutation]);
 
   return (
     <SafeAreaWrapper
@@ -125,7 +139,7 @@ export const PrescriptionDetailScreen: React.FC = () => {
         />
       }
     >
-      {isRxPending ? (
+      {isRxPending && !refreshing && !rxInfo ? (
         <ScrollView
           style={prescriptionsStyles.detailScroll}
           showsVerticalScrollIndicator={false}
@@ -147,6 +161,14 @@ export const PrescriptionDetailScreen: React.FC = () => {
           contentContainerStyle={prescriptionsStyles.detailContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[theme.colors.primary]}
+              tintColor={theme.colors.primary}
+            />
+          }
         >
           <View style={prescriptionsStyles.rxIdBar}>
             <View>
@@ -269,7 +291,6 @@ export const PrescriptionDetailScreen: React.FC = () => {
           {Boolean(
             rxInfo.diagnosis ||
             rxInfo.chief_complaints ||
-            rxInfo.symptoms ||
             rxInfo.examination_notes ||
             rxInfo.treatment_plan
           ) && (
@@ -291,14 +312,6 @@ export const PrescriptionDetailScreen: React.FC = () => {
                       </Text>
                     </View>
                   ) : null}
-
-                  {rxInfo.symptoms ? (
-                    <View style={prescriptionsStyles.sectionSubBlock}>
-                      <Text style={prescriptionsStyles.sectionSubTitle}>Symptoms</Text>
-                      <Text style={prescriptionsStyles.sectionSubValue}>{rxInfo.symptoms}</Text>
-                    </View>
-                  ) : null}
-
                   {rxInfo.examination_notes ? (
                     <View style={prescriptionsStyles.sectionSubBlock}>
                       <Text style={prescriptionsStyles.sectionSubTitle}>Examination Notes</Text>

@@ -79,4 +79,26 @@ export const useDoctorStream = (doctorId: string | null) => {
   };
 };
 
+export const useDoctorVideoQuality = (doctorId: string | null) => {
+  const { webcamOn, webcamStream, setQuality } = useParticipant(doctorId || '');
+  const trackId = webcamStream?.track?.id ?? null;
+
+  useEffect(() => {
+    if (!doctorId || !webcamOn || !trackId || typeof setQuality !== 'function') {
+      return;
+    }
+
+    let cancelled = false;
+    setQuality('high').catch(error => {
+      if (!cancelled) {
+        console.warn('[useDoctorVideoQuality] setQuality(high) failed:', error);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [doctorId, webcamOn, trackId, setQuality]);
+};
+
 export default useMeetingParticipants;

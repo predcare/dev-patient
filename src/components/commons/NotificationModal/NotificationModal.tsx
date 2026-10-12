@@ -17,6 +17,7 @@ import { resolveNotificationModalNavigation } from '../../../lib/common/notifica
 import { theme } from '../../../styled/theme.styled';
 import { IMetadata } from '../../../typescripts/interfaces/notification.interfaces';
 import { BellIcon, CircleXIcon } from '../../ui/icons';
+import NotificationModalSkeleton from './Skeletons/NotificationModalSkeleton';
 
 export interface NotificationModalProps {
   visible: boolean;
@@ -117,12 +118,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
                 </TouchableOpacity>
               </View>
               {isLoading && notificationsList.length === 0 ? (
-                <View style={NotifificationModalStyles.loadingState}>
-                  <ActivityIndicator size="small" color={theme.colors.primary} />
-                  <Text style={NotifificationModalStyles.loadingText}>
-                    Loading notifications...
-                  </Text>
-                </View>
+                <NotificationModalSkeleton />
               ) : notificationsList.length === 0 ? (
                 <View style={NotifificationModalStyles.emptyState}>
                   <View style={NotifificationModalStyles.emptyIconCircle}>
@@ -309,15 +305,6 @@ export const NotifificationModalStyles = StyleSheet.create({
   },
   closeBtn: {
     padding: 4,
-  },
-  loadingState: {
-    paddingVertical: 60,
-    alignItems: 'center',
-    gap: 12,
-  },
-  loadingText: {
-    fontSize: 14,
-    color: theme.colors.textSecondary,
   },
   emptyState: {
     alignItems: 'center',

@@ -119,6 +119,7 @@ export interface IRxInfoDoc {
   published_version_count: any;
   last_published_at: any;
   referral_doctor_name: string;
+  appointment: IRxAppointment
 }
 
 export interface IRxCustomVital {
@@ -140,4 +141,10 @@ export interface IRxMedication {
 export interface RxLabTest {
   name: string;
   instructions: string;
+}
+
+export interface IRxAppointment {
+  id: string
+  appointment_id: string
+  appointment_status: string
 }

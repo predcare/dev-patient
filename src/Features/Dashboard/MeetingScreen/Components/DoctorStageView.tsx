@@ -1,5 +1,5 @@
 import { MediaStream, RTCView } from '@videosdk.live/react-native-sdk';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useDoctorStream } from '../../../../hooks/commons/meeting/useMeetingParticipants';
 import meetingStyles from '../../../../styled/MeetingScreen.styled';
@@ -11,16 +11,21 @@ export const DoctorStageView: React.FC = () => {
   const callState = useMeetingStore(state => state.callState);
 
   const { webcamStream, webcamOn } = useDoctorStream(doctorParticipantId);
+  const remoteTrack = webcamOn && webcamStream ? webcamStream.track : null;
+  const remoteStreamURL = useMemo(
+    () => (remoteTrack ? new MediaStream([remoteTrack]).toURL() : null),
+    [remoteTrack],
+  );
 
   const doctorName = doctorInfo?.name || 'Dr. Sahil Mallick';
   const initial = doctorName.replace(/^Dr\.\s*/i, '').charAt(0) || 'D';
   const isConnected = callState === 'CONNECTED';
 
-  if (webcamOn && webcamStream) {
+  if (remoteStreamURL) {
     return (
       <View style={StyleSheet.absoluteFill}>
         <RTCView
-          streamURL={new MediaStream([webcamStream.track]).toURL()}
+          streamURL={remoteStreamURL}
           objectFit="contain"
           style={StyleSheet.absoluteFill}
           zOrder={0}

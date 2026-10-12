@@ -1,7 +1,6 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
     BackHandler,
     ScrollView,
     Text,
@@ -29,6 +28,7 @@ import {
 } from '../../../route';
 import consultationCompletedStyles from '../../../styled/ConsultationCompletedScreen.styled';
 import theme from '../../../styled/theme.styled';
+import MeetingStatusSkeleton from './Skeletons/MeetingStatusSkeleton';
 
 const formatCallDuration = (seconds: unknown): string => {
     const total = Number(seconds);
@@ -168,7 +168,7 @@ export const MeetingStatusScreen: React.FC = () => {
                     </Text>
                 </View>
                 {showLoader ? (
-                    <ActivityIndicator color={theme.colors.primary} style={consultationCompletedStyles.loader} />
+                    <MeetingStatusSkeleton />
                 ) : showError ? (
                     <CommonErrorCard
                         title={hasAppointmentId ? 'Unable to load visit' : 'Visit unavailable'}

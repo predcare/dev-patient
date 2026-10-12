@@ -33,6 +33,11 @@ export const InAppPipWindow: React.FC = () => {
   const { restoreToMeeting } = useMeetingPip();
   const { endCall } = useMeetingConnection();
   const { webcamStream, webcamOn } = useDoctorStream(doctorParticipantId);
+  const remoteTrack = webcamOn && webcamStream ? webcamStream.track : null;
+  const remoteStreamURL = useMemo(
+    () => (remoteTrack ? new MediaStream([remoteTrack]).toURL() : null),
+    [remoteTrack],
+  );
 
   const doctorName = doctorInfo?.name || 'Doctor';
   const initial = doctorName.replace(/^Dr\.\s*/i, '').charAt(0) || 'D';
@@ -121,9 +126,9 @@ export const InAppPipWindow: React.FC = () => {
           onPress={restoreToMeeting}
         >
           <View style={inAppPipStyles.videoContainer}>
-            {webcamOn && webcamStream ? (
+            {remoteStreamURL ? (
               <RTCView
-                streamURL={new MediaStream([webcamStream.track]).toURL()}
+                streamURL={remoteStreamURL}
                 objectFit="cover"
                 style={StyleSheet.absoluteFill}
                 zOrder={1}

@@ -7,8 +7,11 @@ import useAndroidPipCameraRestore from '../../hooks/commons/meeting/useAndroidPi
 import useAndroidPipLifecycle from '../../hooks/commons/meeting/useAndroidPipLifecycle';
 import useMeetingAppState from '../../hooks/commons/meeting/useMeetingAppState';
 import useMeetingCaptureHandoff from '../../hooks/commons/meeting/useMeetingCaptureHandoff';
+import { useRegisterMeetingLeave } from '../../hooks/commons/meeting/meetingSessionLeave';
 import { useMeetingCountdownTicker } from '../../hooks/commons/meeting/useMeetingCountdown';
-import useMeetingParticipants from '../../hooks/commons/meeting/useMeetingParticipants';
+import useMeetingParticipants, {
+  useDoctorVideoQuality,
+} from '../../hooks/commons/meeting/useMeetingParticipants';
 import usePipRemoteTrack from '../../hooks/commons/meeting/usePipRemoteTrack';
 import NativePip from '../../native/NativePip';
 import { useAuthStore } from '../../zustand/stores/useAuthStore';
@@ -17,8 +20,11 @@ import AndroidPipStage from './AndroidPipStage';
 import InAppPipWindow from './InAppPipWindow';
 
 const MeetingSessionController: React.FC = () => {
+  useRegisterMeetingLeave();
   useMeetingAppState();
   useMeetingParticipants();
+  const doctorParticipantId = useMeetingStore(state => state.doctorParticipantId);
+  useDoctorVideoQuality(doctorParticipantId);
   usePipRemoteTrack();
   useMeetingCountdownTicker();
   useAndroidPipLifecycle();

@@ -48,7 +48,7 @@ export interface IRxFilterState {
 const DefualtFilterState: IRxFilterState = {
     limit: 10,
     search: '',
-    status: 'sent',
+    status: 'current',
     date_filter: undefined,
     from_date: undefined,
     to_date: undefined,
@@ -215,7 +215,7 @@ export const PrescriptionsScreen: React.FC = () => {
                 initialNumToRender={8}
                 windowSize={5}
                 removeClippedSubviews
-                keyExtractor={item => String(item.prescription_id || item.id)}
+                keyExtractor={item => String(item.id)}
                 contentContainerStyle={prescriptionsStyles.listContent}
                 showsVerticalScrollIndicator={true}
                 keyboardShouldPersistTaps="handled"
