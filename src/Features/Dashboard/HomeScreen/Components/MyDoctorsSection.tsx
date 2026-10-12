@@ -7,6 +7,7 @@ import CommonErrorCard from '../../../../components/commons/CommonErrorCard/Comm
 import { StethoscopeIcon } from '../../../../components/ui/icons';
 import { useGetMyDoctors } from '../../../../hooks/react-query/doctors/doctor.hooks';
 import { getInitials } from '../../../../lib/common/common.utils';
+import { showErrorToast } from '../../../../lib/common/toast.utils';
 import { AppRoute } from '../../../../route';
 import theme from '../../../../styled/theme.styled';
 
@@ -64,13 +65,37 @@ export const MyDoctorsSection: React.FC = () => {
     naviagtion.navigate(AppRoute.DOCTORS);
   };
 
-  const handleDoctorPress = (doctorId: number, clinicId: number) => {
-    naviagtion.navigate(AppRoute.BOOK_APPOINTMENT, {
-      doctorId: doctorId,
-      clinicId: clinicId,
-    });
+  const handleDoctorPress = (type: string, params: { doctorId: number, clinicId: number }) => {
+    switch (type) {
+      case 'profile':
+        naviagtion.navigate(AppRoute.DOCTOR_DETAILS, { doctorId: params.doctorId });
+        break;
+      case 'book_appointment':
+        naviagtion.navigate(AppRoute.BOOK_APPOINTMENT, params);
+        break;
+      default:
+        break;
+    }
   };
 
+  const handleNavigate = (type: string, options: { doctorId: number; clinicId: number }) => {
+    const { clinicId, doctorId } = options;
+    if (!clinicId && !doctorId && type === 'book') {
+      return showErrorToast(t('myDoctorsScreen.invalidDoctorInfo'));
+    }
+    if (type === 'profile') {
+      naviagtion.navigate(AppRoute.DOCTOR_DETAILS, {
+        doctorId: options?.doctorId,
+      });
+    } else if (type === 'book') {
+      naviagtion.navigate(AppRoute.BOOK_APPOINTMENT, {
+        doctorId: options?.doctorId,
+        clinicId: options?.clinicId,
+      });
+    } else {
+      showErrorToast(t('myDoctorsScreen.cannotBookOrViewDoctor'));
+    }
+  };
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
@@ -102,43 +127,53 @@ export const MyDoctorsSection: React.FC = () => {
           {myDoctorsData?.data?.map((doc, idx: number) => {
             const showDivider = idx < myDoctorsData?.data?.length - 1;
             return (
-              <TouchableOpacity
+              <View
                 key={String(doc.doctor_id || doc.user_id || idx)}
                 style={[styles.docRow, showDivider && styles.divider]}
-                onPress={() => handleDoctorPress(Number(doc?.user_id), Number(doc?.clinic?.id))}
-                activeOpacity={0.75}
               >
-                {doc.profile_image ? (
-                  <Image source={{ uri: doc.profile_image }} style={styles.avatarImage} />
-                ) : (
-                  <View style={styles.avatarCircle}>
-                    <Text style={styles.avatarText}>{getInitials(doc?.name || '')}</Text>
-                  </View>
-                )}
+                <TouchableOpacity
+                  style={styles.docProfileTouchable}
+                  onPress={() => handleNavigate("profile", {
+                    doctorId: Number(doc?.user_id),
+                    clinicId: Number(doc?.clinic?.id),
+                  })}
+                  activeOpacity={0.75}
+                >
+                  {doc.profile_image ? (
+                    <Image source={{ uri: doc.profile_image }} style={styles.avatarImage} />
+                  ) : (
+                    <View style={styles.avatarCircle}>
+                      <Text style={styles.avatarText}>{getInitials(doc?.name || '')}</Text>
+                    </View>
+                  )}
 
-                <View style={styles.docInfo}>
-                  <Text style={styles.docName} numberOfLines={1}>
-                    {doc?.name || ''}
-                  </Text>
-                  <Text style={styles.docSpec} numberOfLines={1}>
-                    {doc.specialization}
-                  </Text>
-                  {doc?.clinic?.name ? (
-                    <Text style={styles.clinicName} numberOfLines={1}>
-                      {doc.clinic.name}
+                  <View style={styles.docInfo}>
+                    <Text style={styles.docName} numberOfLines={1}>
+                      {doc?.name || ''}
                     </Text>
-                  ) : null}
-                </View>
+                    <Text style={styles.docSpec} numberOfLines={1}>
+                      {doc.specialization}
+                    </Text>
+                    {doc?.clinic?.name ? (
+                      <Text style={styles.clinicName} numberOfLines={1}>
+                        {doc.clinic.name}
+                      </Text>
+                    ) : null}
+                  </View>
+                </TouchableOpacity>
 
                 <TouchableOpacity
                   style={[styles.consultBtn, !doc?.next_available_date && { opacity: 0.6 }]}
-                  onPress={() => handleDoctorPress(Number(doc?.user_id), Number(doc?.clinic?.id))}
+                  onPress={() => handleNavigate("book", {
+                    doctorId: Number(doc?.user_id),
+                    clinicId: Number(doc?.clinic?.id),
+                  })}
                   activeOpacity={0.85}
                   disabled={!doc?.next_available_date}
                 >
                   <Text style={styles.consultBtnText}>{t('commons.consult')}</Text>
                 </TouchableOpacity>
-              </TouchableOpacity>
+              </View>
             );
           })}
         </View>
@@ -187,6 +222,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 14,
+  },
+  docProfileTouchable: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   divider: {
     borderBottomWidth: 1,

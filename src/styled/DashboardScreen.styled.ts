@@ -21,7 +21,7 @@ export const dashboardStyles = StyleSheet.create({
     paddingBottom: 30,
   },
   blockSpacing: {
-    marginBottom: 16,
+    marginBottom: 0,
   },
 
   memberBanner: {
