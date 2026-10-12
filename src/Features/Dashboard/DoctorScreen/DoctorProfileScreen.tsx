@@ -1,7 +1,7 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, ScrollView, Text, View } from 'react-native';
+import { Image, RefreshControl, ScrollView, Text, View } from 'react-native';
 import Header from '../../../Layout/Header';
 import SafeAreaWrapper from '../../../Layout/SafeAreaWrapper';
 import CommonErrorCard from '../../../components/commons/CommonErrorCard/CommonErrorCard';
@@ -22,13 +22,22 @@ export const DoctorProfileScreen: React.FC = () => {
     const route = useRoute();
     const navigation = useNavigation();
     const { doctorId } = route.params as IRouterProps;
+    const [refreshing, setRefreshing] = useState(false);
 
     const {
         data: doctorDetailsData,
         isFetching: doctorDetailsPending,
-        error: doctorDetailsError,
         refetch,
     } = useDoctorDetails(doctorId);
+
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
+        try {
+            await refetch();
+        } finally {
+            setRefreshing(false);
+        }
+    }, [refetch]);
 
     const handleBookAppointment = (clinicId: string) => {
         if (!doctorDetailsData)
@@ -52,9 +61,9 @@ export const DoctorProfileScreen: React.FC = () => {
                 />
             }
         >
-            {doctorDetailsPending ? (
+            {doctorDetailsPending && !doctorDetailsData ? (
                 <DoctorDetailsSkeleton cardOnly={true} />
-            ) : !doctorDetailsData || doctorDetailsError ? (
+            ) : !doctorDetailsData ? (
                 <CommonErrorCard
                     title={t('doctorDetailsScreen.unableToLoadProfile')}
                     message={t('doctorDetailsScreen.unableToLoadProfileMsg')}
@@ -66,6 +75,14 @@ export const DoctorProfileScreen: React.FC = () => {
                     contentContainerStyle={doctorDetailsStyles.scrollContent}
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            colors={[theme.colors.primary]}
+                            tintColor={theme.colors.primary}
+                        />
+                    }
                 >
                     <View style={doctorDetailsStyles.profileHeader}>
                         <View style={doctorDetailsStyles.avatarWrap}>

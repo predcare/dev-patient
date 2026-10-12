@@ -21,6 +21,7 @@ import Header from '../../../Layout/Header';
 import SafeAreaWrapper from '../../../Layout/SafeAreaWrapper';
 import { resetToLogin } from '../../../lib/common/navigation.utils';
 import { navigationRef } from '../../../navigation/navigationRef';
+import { AppRoute } from '../../../route';
 import settingStyles from '../../../styled/SettingScreen.styled';
 import theme from '../../../styled/theme.styled';
 import { TSupportedLanguage } from '../../../typescripts/types/i18n.types';
@@ -63,7 +64,7 @@ export const SettingScreen: React.FC = () => {
     }, []);
 
     const handleProfilePress = () => {
-        rootNav.navigate('ProfileSetup');
+        rootNav.navigate(AppRoute.PROFILE_SETUP);
     };
 
     const handleLanguagePress = () => {
@@ -71,7 +72,7 @@ export const SettingScreen: React.FC = () => {
     };
 
     const handleSupportPress = () => {
-        rootNav.navigate('Support');
+        rootNav.navigate(AppRoute.SUPPORT);
     };
 
     const handleSignOut = () => {
