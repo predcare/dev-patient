@@ -182,14 +182,14 @@ export const settingStyles = StyleSheet.create({
   },
   memberAvatarText: {
     color: theme.colors.surface,
-    fontWeight: '700',
-    fontSize: 14,
+    fontWeight: '600',
+    fontSize: 12,
   },
   memberInfo: {
     flex: 1,
   },
   memberName: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '600',
     color: theme.colors.textPrimary,
   },

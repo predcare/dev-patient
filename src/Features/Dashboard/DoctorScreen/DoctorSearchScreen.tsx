@@ -218,7 +218,6 @@ export const DoctorSearchScreen: React.FC = () => {
     return (
         <SafeAreaWrapper
             showBottomBar={true}
-            activeBottomTab="Doctors"
             header={
                 <Header
                     isBackBtn={true}

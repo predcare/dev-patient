@@ -59,40 +59,10 @@ export const BOTTOM_BAR_TABS: TabConfig[] = [
   },
 ];
 
-const TAB_BY_ROUTE: Record<string, TabKey> = {
-  Home: 'Home',
-  MainTabs: 'Home',
-  Doctors: 'Doctors',
-  DoctorSearch: 'Doctors',
-  DoctorDetails: 'Doctors',
-  ClinicDetails: 'Doctors',
-  BookAppointment: 'Doctors',
-  Payment: 'Doctors',
-  PaymentProcessing: 'Doctors',
-  BookingSuccess: 'Doctors',
-  Schedule: 'Schedule',
-  AppointmentDetails: 'Schedule',
-  RescheduleAppointment: 'Schedule',
-  Meeting: 'Schedule',
-  ConsultationCompleted: 'Schedule',
-  Reports: 'Reports',
-  PrescriptionsList: 'Reports',
-  PrescriptionDetail: 'Reports',
-  HealthRecords: 'Reports',
-  HealthRecordFolder: 'Reports',
-  UploadHealthRecord: 'Reports',
-  Account: 'Account',
-  ProfileSetup: 'Account',
-  AddNewMember: 'Account',
-  Support: 'Account',
-  NewSupportTicket: 'Account',
-  SupportTicketDetails: 'Account',
-  SupportTicketSuccess: 'Account',
-  InvoicesList: 'Account',
-};
+export const PRIMARY_TAB_KEYS: Set<TabKey> = new Set(BOTTOM_BAR_TABS.map(tab => tab.key));
 
 export interface CustomBottomBarProps {
-  activeTab?: TabKey;
+  activeTab?: TabKey | null;
   visibleTabs?: TabKey[];
   onTabPress?: (tabKey: TabKey) => void;
   containerStyle?: StyleProp<ViewStyle>;
@@ -117,13 +87,22 @@ export const CustomBottomBar: React.FC<CustomBottomBarProps> = ({
   }, [visibleTabs]);
 
   const focusedRouteName = useNavigationState(navState => {
-    if (!navState?.routes?.length) return 'Home';
-    return navState.routes[navState.index]?.name ?? 'Home';
+    if (!navState?.routes?.length) return '';
+    return navState.routes[navState.index]?.name ?? '';
   });
 
-  const currentTabKey: TabKey = useMemo(() => {
-    if (controlledActiveTab) return controlledActiveTab;
-    return TAB_BY_ROUTE[focusedRouteName] ?? 'Home';
+  const currentTabKey: TabKey | null = useMemo(() => {
+    if (focusedRouteName) {
+      const isPrimaryRoute = PRIMARY_TAB_KEYS.has(focusedRouteName as TabKey);
+      if (!isPrimaryRoute) {
+        return null;
+      }
+      return controlledActiveTab ?? (focusedRouteName as TabKey);
+    }
+    if (controlledActiveTab && PRIMARY_TAB_KEYS.has(controlledActiveTab)) {
+      return controlledActiveTab;
+    }
+    return null;
   }, [controlledActiveTab, focusedRouteName]);
 
   const handleTabPress = (tabKey: TabKey) => {

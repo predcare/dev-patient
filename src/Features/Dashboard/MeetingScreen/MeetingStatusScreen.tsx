@@ -1,5 +1,6 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     BackHandler,
     ScrollView,
@@ -17,10 +18,22 @@ import {
     StethoscopeIcon,
     VideoIcon,
 } from '../../../components/ui/icons';
-import { useGetApptInfo } from '../../../hooks/react-query/appointments/appointments.hooks';
+import useMeetingPermissions from '../../../hooks/commons/meeting/useMeetingPermissions';
+import useMeetingPip from '../../../hooks/commons/meeting/useMeetingPip';
+import { useGetApptInfo, useGetToken } from '../../../hooks/react-query/appointments/appointments.hooks';
 import Header from '../../../Layout/Header';
 import SafeAreaWrapper from '../../../Layout/SafeAreaWrapper';
-import { _formatTime, formatDate, getDuration } from '../../../lib/common/common.utils';
+import {
+    _formatTime,
+    formatDate,
+    getDuration,
+    isInProgressStatus,
+    resolveAppointmentDurationMinutes,
+    shouldHideJoinForCallDuration,
+} from '../../../lib/common/common.utils';
+import { showErrorToast } from '../../../lib/common/toast.utils';
+import { useLoadingStore } from '../../../zustand/stores/useLoadingStore';
+import { useMeetingStore } from '../../../zustand/stores/useMeetingStore';
 import {
     AppRoute,
     ConsultationCompletedScreenNavigationProp,
@@ -50,8 +63,17 @@ const formatStatusLabel = (status?: string | null): string => {
 };
 
 export const MeetingStatusScreen: React.FC = () => {
+    const { t } = useTranslation();
     const navigation = useNavigation<ConsultationCompletedScreenNavigationProp>();
     const route = useRoute<ConsultationCompletedScreenRouteProp>();
+    const { restoreToMeeting } = useMeetingPip();
+    const { requestPermissions } = useMeetingPermissions();
+    const { mutate: getToken } = useGetToken();
+    const showLoaderOverlay = useLoadingStore(state => state.showLoader);
+    const hideLoader = useLoadingStore(state => state.hideLoader);
+    const setCallInfo = useMeetingStore(state => state.setCallInfo);
+    const activeMeetingId = useMeetingStore(state => state.callInfo?.meetingId);
+    const activeCallAppointmentId = useMeetingStore(state => state.callInfo?.appointment?.id);
     const appointmentId = route.params?.appointmentId;
     const hasAppointmentId = appointmentId !== undefined && appointmentId !== null && `${appointmentId}` !== '';
     const hasLeftRef = useRef(false);
@@ -80,6 +102,56 @@ export const MeetingStatusScreen: React.FC = () => {
             index: 0,
             routes: [{ name: AppRoute.SCHEDULE }],
         });
+    };
+
+    const handleRejoinCall = async () => {
+        const targetId = apptInfo?.id;
+        if (!targetId || hasLeftRef.current) return;
+
+        if (activeMeetingId && String(activeCallAppointmentId) === String(targetId)) {
+            hasLeftRef.current = true;
+            restoreToMeeting();
+            return;
+        }
+
+        const hasPermissions = await requestPermissions();
+        if (!hasPermissions) {
+            showErrorToast(
+                'Camera and microphone permissions are required to join the video consultation.'
+            );
+            return;
+        }
+
+        hasLeftRef.current = true;
+        showLoaderOverlay('Joining Video Call...');
+        getToken(
+            { appointmentId: String(targetId) },
+            {
+                onSuccess: async res => {
+                    const videoCallData = res?.data;
+                    if (videoCallData && res?.success) {
+                        setCallInfo({
+                            token: videoCallData?.token,
+                            meeting_id: videoCallData?.meeting_id,
+                            appointment: videoCallData?.appointment,
+                            doctorInfo: {
+                                name: videoCallData?.doctor?.name,
+                                doctorId: videoCallData?.doctor?.id,
+                            },
+                        });
+                        navigation.navigate(AppRoute.MEETING);
+                        return;
+                    }
+                    hasLeftRef.current = false;
+                },
+                onError: () => {
+                    hasLeftRef.current = false;
+                },
+                onSettled: () => {
+                    hideLoader();
+                },
+            }
+        );
     };
 
     useEffect(() => {
@@ -133,6 +205,20 @@ export const MeetingStatusScreen: React.FC = () => {
     const durationLabel =
         formatCallDuration(apptInfo?.call_duration_seconds) ||
         getDuration(apptInfo?.start_time, apptInfo?.end_time);
+    const hideJoin = shouldHideJoinForCallDuration({
+        status: apptInfo?.appointment_status,
+        appointmentDurationMinutes: resolveAppointmentDurationMinutes(
+            apptInfo?.appointment_duration,
+            apptInfo?.slot_duration_minutes,
+            apptInfo?.start_time,
+            apptInfo?.end_time
+        ),
+        callDurationSeconds: Number(apptInfo?.call_duration_seconds || 0),
+    });
+    const joinLabel =
+        isInProgressStatus(apptInfo?.appointment_status) || Number(apptInfo?.call_duration_seconds) > 0
+            ? t('appointments.rejoin')
+            : t('appointments.joinVideoCall');
     const showLoader = hasAppointmentId && apptInfoIsPending && !apptInfo;
     const showError = !hasAppointmentId || apptInfoIsError;
 
@@ -278,6 +364,16 @@ export const MeetingStatusScreen: React.FC = () => {
                             </View>
                         </View>
                     </>
+                )}
+                {isVideo && !hideJoin && !showLoader && !showError && (
+                    <TouchableOpacity
+                        style={consultationCompletedStyles.primaryBtn}
+                        activeOpacity={0.8}
+                        onPress={handleRejoinCall}
+                    >
+                        <VideoIcon size={18} color={theme.colors.surface} />
+                        <Text style={consultationCompletedStyles.primaryBtnTxt}>{joinLabel}</Text>
+                    </TouchableOpacity>
                 )}
                 <TouchableOpacity
                     style={consultationCompletedStyles.primaryBtn}

@@ -19,7 +19,13 @@ import {
   useGetToken,
   useMyAppointments,
 } from '../../../../hooks/react-query/appointments/appointments.hooks';
-import { _formatTime, getInitials, openLocationOnMap } from '../../../../lib/common/common.utils';
+import {
+  _formatTime,
+  getInitials,
+  openLocationOnMap,
+  resolveAppointmentDurationMinutes,
+  shouldHideJoinForCallDuration,
+} from '../../../../lib/common/common.utils';
 import { showErrorToast } from '../../../../lib/common/toast.utils';
 import { AppRoute } from '../../../../route';
 import { UpcomingApptStyles } from '../../../../styled/DashboardScreen.styled';
@@ -309,6 +315,18 @@ export const UpcomingAppointmentsCard: React.FC = () => {
             const isVideo = String(item.consultation_type || '')
               .toLowerCase()
               .includes('video');
+            const hideVideoJoin =
+              isVideo &&
+              shouldHideJoinForCallDuration({
+                status: item.appointment_status,
+                appointmentDurationMinutes: resolveAppointmentDurationMinutes(
+                  item.appointment_duration,
+                  item.slot_duration_minutes,
+                  item.start_time,
+                  item.end_time
+                ),
+                callDurationSeconds: item.call_duration_seconds,
+              });
             const statusInfo = getStatusBadgeInfo(item.appointment_status);
             const dateInfo = getRelativeDateInfo(item.appointment_date);
             const formattedDate = dayjs(item.appointment_date).format('ddd, DD MMM YYYY');
@@ -462,7 +480,7 @@ export const UpcomingAppointmentsCard: React.FC = () => {
                       <MapPinIcon size={14} color="#FFFFFF" />
                       <Text style={UpcomingApptStyles.actionButtonText}>Get Directions</Text>
                     </TouchableOpacity>
-                  ) : (
+                  ) : hideVideoJoin ? null : (
                     <TouchableOpacity
                       style={[
                         UpcomingApptStyles.actionButton,

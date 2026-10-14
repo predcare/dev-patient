@@ -158,7 +158,6 @@ export const AddNewMemberScreen: React.FC = () => {
             style={memberStyles.screen}
             headerBackgroundColor={theme.colors.surface}
             showBottomBar={true}
-            activeBottomTab="Account"
             header={
                 <Header
                     isBackBtn={true}

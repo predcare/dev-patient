@@ -257,8 +257,6 @@ export const supportStyles = StyleSheet.create({
     backgroundColor: theme.colors.inputBg,
     borderRadius: 12,
     padding: 14,
-    borderLeftWidth: 4,
-    borderLeftColor: theme.colors.primary,
   },
   messageTxt: {
     fontSize: 14,

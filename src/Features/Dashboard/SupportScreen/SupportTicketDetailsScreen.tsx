@@ -102,7 +102,6 @@ export const SupportTicketDetailsScreen: React.FC = () => {
         style={supportStyles.screen}
         headerBackgroundColor={theme.colors.surface}
         showBottomBar={true}
-        activeBottomTab="Account"
         header={
           <Header
             isBackBtn={true}
@@ -122,7 +121,6 @@ export const SupportTicketDetailsScreen: React.FC = () => {
         style={supportStyles.screen}
         headerBackgroundColor={theme.colors.surface}
         showBottomBar={true}
-        activeBottomTab="Account"
         header={
           <Header
             isBackBtn={true}
@@ -164,7 +162,6 @@ export const SupportTicketDetailsScreen: React.FC = () => {
       style={supportStyles.screen}
       headerBackgroundColor={theme.colors.surface}
       showBottomBar={true}
-      activeBottomTab="Account"
       header={
         <Header
           isBackBtn={true}

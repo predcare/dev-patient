@@ -91,6 +91,60 @@ export const capitalize = (value: string): string => {
   return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
 };
 
+export const CALL_NEAR_END_SECONDS = 4;
+
+export const isInProgressStatus = (status?: string) => {
+  const value = (status || '').toLowerCase();
+  return value === 'in-progress' || value === 'in_progress' || value === 'inprogress';
+};
+
+/** appointment_duration is minutes. 3 minutes => 180 seconds. */
+export const getAllowedCallSeconds = (appointmentDurationMinutes?: number | null) => {
+  const minutes = Number(appointmentDurationMinutes || 0);
+  if (!Number.isFinite(minutes) || minutes <= 0) return 0;
+  return Math.floor(minutes * 60);
+};
+
+export const getSlotDurationMinutes = (startTime?: string | null, endTime?: string | null) => {
+  if (!startTime || !endTime || !startTime.includes(':') || !endTime.includes(':')) return 0;
+  const toMinutes = (time: string) => {
+    const [hours, minutes] = time.split(':').map(Number);
+    return (hours || 0) * 60 + (minutes || 0);
+  };
+  let duration = toMinutes(endTime) - toMinutes(startTime);
+  if (duration <= 0) duration += 1440;
+  return duration;
+};
+
+export const resolveAppointmentDurationMinutes = (
+  appointmentDuration?: number | null,
+  slotDurationMinutes?: number | null,
+  startTime?: string | null,
+  endTime?: string | null
+) => {
+  const explicit = Number(appointmentDuration || 0);
+  if (Number.isFinite(explicit) && explicit > 0) return explicit;
+  const slot = Number(slotDurationMinutes || 0);
+  if (Number.isFinite(slot) && slot > 0) return slot;
+  return getSlotDurationMinutes(startTime, endTime);
+};
+
+export const shouldHideJoinForCallDuration = ({
+  status,
+  appointmentDurationMinutes,
+  callDurationSeconds,
+}: {
+  status?: string;
+  appointmentDurationMinutes?: number | null;
+  callDurationSeconds?: number | null;
+}) => {
+  if (!isInProgressStatus(status)) return false;
+  const allowed = getAllowedCallSeconds(appointmentDurationMinutes);
+  if (allowed <= 0) return false;
+  const used = Math.max(0, Number(callDurationSeconds || 0));
+  return used >= allowed - CALL_NEAR_END_SECONDS;
+};
+
 export const getDuration = (startTime?: string | null, endTime?: string | null): string => {
   if (!startTime || !endTime || typeof startTime !== 'string' || typeof endTime !== 'string') {
     return '';

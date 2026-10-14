@@ -9,10 +9,12 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Header from '../../../Layout/Header';
 import SafeAreaWrapper from '../../../Layout/SafeAreaWrapper';
 import CommonErrorCard from '../../../components/commons/CommonErrorCard/CommonErrorCard';
-import { CalendarIcon } from '../../../components/ui/icons';
+import { getBottomBarHeight } from '../../../components/commons/CustomBottomBar/CustomBottomBar';
+import { PlusIcon } from '../../../components/ui/icons';
 import useMeetingPermissions from '../../../hooks/commons/meeting/useMeetingPermissions';
 import useMeetingPip from '../../../hooks/commons/meeting/useMeetingPip';
 import {
@@ -24,7 +26,8 @@ import {
     _formatTime,
     formatDate,
     getDuration,
-    openLocationOnMap
+    openLocationOnMap,
+    resolveAppointmentDurationMinutes,
 } from '../../../lib/common/common.utils';
 import { showErrorToast, showSuccessToast } from '../../../lib/common/toast.utils';
 import { AppRoute } from '../../../route';
@@ -41,6 +44,8 @@ import AppointmentsSkeleton from './Skeletons/AppointmentsSkeleton';
 export const AppointmentsScreen: React.FC = () => {
     const { t } = useTranslation();
     const navigation = useNavigation();
+    const insets = useSafeAreaInsets();
+    const fabBottom = getBottomBarHeight(insets.bottom) + 16;
     const { restoreToMeeting } = useMeetingPip();
     const [activeTab, setActiveTab] = useState<'upcoming' | 'completed'>('upcoming');
     const [refreshing, setRefreshing] = useState(false);
@@ -227,6 +232,13 @@ export const AppointmentsScreen: React.FC = () => {
                                 doctorName={apt.doctorInfo?.name || ''}
                                 duration={getDuration(apt?.start_time, apt?.end_time) || ''}
                                 mode={apt?.consultation_type || ''}
+                                appointmentDurationMinutes={resolveAppointmentDurationMinutes(
+                                    apt.appointment_duration,
+                                    apt.slot_duration_minutes,
+                                    apt.start_time,
+                                    apt.end_time
+                                )}
+                                callDurationSeconds={apt.call_duration_seconds}
                                 time={_formatTime(apt?.start_time) || ''}
                                 isCurrentCallActive={Boolean(
                                     activeMeetingId && String(activeCallAppointmentId) === String(apt.id)
@@ -264,23 +276,6 @@ export const AppointmentsScreen: React.FC = () => {
                     }}
                     onEndReachedThreshold={0.5}
                     ListEmptyComponent={
-                        <View style={appointmentsStyles.empty}>
-                            <View style={appointmentsStyles.emptyIconWrap}>
-                                <CalendarIcon size={32} color={theme.colors.primary} />
-                            </View>
-                            <Text style={appointmentsStyles.emptyH}>
-                                {activeTab === 'upcoming'
-                                    ? t('appointments.noUpcomingTitle')
-                                    : t('appointments.noCompletedTitle')}
-                            </Text>
-                            <Text style={appointmentsStyles.emptyB}>
-                                {activeTab === 'upcoming'
-                                    ? t('appointments.noUpcomingSubtitle')
-                                    : t('appointments.noCompletedSubtitle')}
-                            </Text>
-                        </View>
-                    }
-                    ListFooterComponent={
                         <View>
                             {isFetchingNextPage && (
                                 <View style={{ paddingVertical: 16, alignItems: 'center' }}>
@@ -295,6 +290,13 @@ export const AppointmentsScreen: React.FC = () => {
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
                 />
             )}
+            <TouchableOpacity
+                style={[appointmentsStyles.fab, { bottom: fabBottom }]}
+                activeOpacity={0.85}
+                onPress={() => navigation.navigate(AppRoute.DOCTOR_SEARCH)}
+            >
+                <PlusIcon size={26} color={theme.colors.surface} />
+            </TouchableOpacity>
         </SafeAreaWrapper>
     );
 };

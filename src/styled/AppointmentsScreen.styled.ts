@@ -374,6 +374,23 @@ export const appointmentsStyles = StyleSheet.create({
     color: theme.colors.primary,
     fontWeight: '700',
   },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: theme.colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: theme.colors.cardShadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 12,
+    zIndex: 100,
+  },
 });
 
 export default appointmentsStyles;

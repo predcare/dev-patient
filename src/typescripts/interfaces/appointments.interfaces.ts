@@ -30,6 +30,7 @@ export interface IMyAppointmentDoc {
   reason: any;
   meeting_id?: string;
   call_duration_seconds?: number;
+  slot_duration_minutes?: number;
   is_active: boolean;
   appointment_duration: number;
   created_at: string;

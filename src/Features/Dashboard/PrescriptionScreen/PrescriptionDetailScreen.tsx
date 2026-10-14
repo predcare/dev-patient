@@ -102,7 +102,6 @@ export const PrescriptionDetailScreen: React.FC = () => {
     <SafeAreaWrapper
       style={prescriptionsStyles.screen}
       showBottomBar={true}
-      activeBottomTab="Reports"
       headerBackgroundColor={theme.colors.surface}
       header={
         <Header

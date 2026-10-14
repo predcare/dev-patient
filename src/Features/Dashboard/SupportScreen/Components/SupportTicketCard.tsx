@@ -10,7 +10,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { CheckIcon, TrashIcon } from '../../../../components/ui/icons';
-import { formatDate, getInitials } from '../../../../lib/common/common.utils';
+import { _toTitleCase, formatDate, getInitials } from '../../../../lib/common/common.utils';
 import supportStyles from '../../../../styled/SupportScreen.styled';
 import theme from '../../../../styled/theme.styled';
 
@@ -37,7 +37,7 @@ export const SupportTicketCard: React.FC<SupportTicketCardProps> = ({
   style,
   disabled = false,
 }) => {
-  const isOpenStatus = status?.toLowerCase() === 'open';
+  const isOpenStatus = status?.toLowerCase() === 'open' || status?.toLowerCase() === 'in_progress';
   const translateX = useRef(new Animated.Value(0)).current;
   const currentOffset = useRef(0);
   const isOpenSwipe = useRef(false);
@@ -63,8 +63,7 @@ export const SupportTicketCard: React.FC<SupportTicketCardProps> = ({
       onMoveShouldSetPanResponder: (_, gestureState) => {
         if (disabled || !onDelete) return false;
         return (
-          Math.abs(gestureState.dx) > 10 &&
-          Math.abs(gestureState.dx) > Math.abs(gestureState.dy)
+          Math.abs(gestureState.dx) > 10 && Math.abs(gestureState.dx) > Math.abs(gestureState.dy)
         );
       },
       onPanResponderGrant: () => {
@@ -79,7 +78,6 @@ export const SupportTicketCard: React.FC<SupportTicketCardProps> = ({
       onPanResponderRelease: (_, gestureState) => {
         const finalX = currentOffset.current + gestureState.dx;
 
-        // If swiping right to close or fast velocity towards right
         if (gestureState.vx > 0.3 || gestureState.dx > 25) {
           snapTo(0);
         } else if (gestureState.vx < -0.3 || finalX < -ACTION_BUTTON_WIDTH / 2) {
@@ -175,7 +173,7 @@ export const SupportTicketCard: React.FC<SupportTicketCardProps> = ({
                 isOpenStatus ? supportStyles.statusTxtOpen : supportStyles.statusTxtClosed,
               ]}
             >
-              {isOpenStatus ? 'Open' : 'Closed'}
+              {isOpenStatus ? `${_toTitleCase(status || '')}` : 'Closed'}
             </Text>
           </View>
         </TouchableOpacity>

@@ -18,7 +18,7 @@ export interface SafeAreaWrapperProps {
   edges?: Array<'top' | 'right' | 'bottom' | 'left'>;
   fullBleed?: boolean;
   showBottomBar?: boolean;
-  activeBottomTab?: TabKey;
+  activeBottomTab?: TabKey | null;
   visibleBottomTabs?: TabKey[];
   onBottomTabPress?: (tabKey: TabKey) => void;
 }

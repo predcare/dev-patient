@@ -9,7 +9,7 @@ import {
   MapPinIcon,
   VideoIcon,
 } from '../../../../components/ui/icons';
-import { getInitials } from '../../../../lib/common/common.utils';
+import { getInitials, shouldHideJoinForCallDuration } from '../../../../lib/common/common.utils';
 import appointmentsStyles from '../../../../styled/AppointmentsScreen.styled';
 import theme from '../../../../styled/theme.styled';
 
@@ -24,6 +24,8 @@ export interface AppointmentCardProps {
   time: string;
   duration: string;
   mode: string;
+  appointmentDurationMinutes?: number | null;
+  callDurationSeconds?: number | null;
   isCurrentCallActive?: boolean;
   onJoinVideo: () => void;
   onReschedule: () => void;
@@ -43,6 +45,8 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
   duration,
   time,
   mode,
+  appointmentDurationMinutes,
+  callDurationSeconds,
   isCurrentCallActive,
   onCancelPress,
   onJoinVideo,
@@ -65,6 +69,13 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
     return t('appointments.joinVideoCall');
   }, [isCurrentCallActive, apptStatus, t]);
 
+  const hideVideoJoin =
+    mode === 'video' &&
+    shouldHideJoinForCallDuration({
+      status: apptStatus,
+      appointmentDurationMinutes,
+      callDurationSeconds,
+    });
 
   const statusConfig = useMemo(() => {
     const s = String(apptStatus || '')
@@ -285,7 +296,9 @@ export const AppointmentCard: React.FC<AppointmentCardProps> = ({
             <ChevronRightIcon size={16} color={theme.colors.primary} />
           </TouchableOpacity>
         )}
-        {mode === 'video' && ['in_progress', 'in-progress', 'confirmed'].includes(apptStatus) && (
+        {mode === 'video' &&
+          ['in_progress', 'in-progress', 'confirmed'].includes(apptStatus) &&
+          !hideVideoJoin && (
           <TouchableOpacity
             style={[appointmentsStyles.btnJoin, appointmentsStyles.btnRejoin]}
             activeOpacity={1}

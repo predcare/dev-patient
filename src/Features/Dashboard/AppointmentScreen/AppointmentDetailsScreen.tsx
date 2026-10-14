@@ -30,6 +30,8 @@ import {
   getDuration,
   getInitials,
   openLocationOnMap,
+  resolveAppointmentDurationMinutes,
+  shouldHideJoinForCallDuration,
 } from '../../../lib/common/common.utils';
 import { showErrorToast } from '../../../lib/common/toast.utils';
 import { replace } from '../../../navigation/navigationRef';
@@ -153,7 +155,16 @@ export const AppointmentDetailsScreen: React.FC = () => {
     return false;
   }, [apptInfo?.appointment_status, apptInfo?.consultation_type]);
 
-  console.log('apptInfo', apptInfo);
+  const hideVideoJoin = shouldHideJoinForCallDuration({
+    status: apptInfo?.appointment_status,
+    appointmentDurationMinutes: resolveAppointmentDurationMinutes(
+      apptInfo?.appointment_duration,
+      apptInfo?.slot_duration_minutes,
+      apptInfo?.start_time,
+      apptInfo?.end_time
+    ),
+    callDurationSeconds: Number(apptInfo?.call_duration_seconds || apptInfo?.call_elapsed_seconds || 0),
+  });
 
   const isCurrentCallActive = Boolean(
     activeMeetingId && String(activeCallAppointmentId) === String(apptInfo?.id || apptId)
@@ -237,7 +248,6 @@ export const AppointmentDetailsScreen: React.FC = () => {
   return (
     <SafeAreaWrapper
       showBottomBar={true}
-      activeBottomTab="Schedule"
       header={
         <Header
           isBackBtn={true}
@@ -324,7 +334,7 @@ export const AppointmentDetailsScreen: React.FC = () => {
                 </Text>
               </Text>
             </View>
-            {isVideoBtnShow && (
+            {isVideoBtnShow && !hideVideoJoin && (
               <TouchableOpacity
                 style={[
                   appointmentDetailsStyles.actionCtaButton,
