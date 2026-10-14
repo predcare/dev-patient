@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import * as RNFSModule from 'react-native-fs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CommonErrorCard from '../../../components/commons/CommonErrorCard/CommonErrorCard';
 import { getBottomBarHeight } from '../../../components/commons/CustomBottomBar/CustomBottomBar';
@@ -32,7 +33,8 @@ import { useDeleteEMR, useGetCatWiseEmrs } from '../../../hooks/react-query/emr/
 import Header from '../../../Layout/Header';
 import SafeAreaWrapper from '../../../Layout/SafeAreaWrapper';
 import { formatDate, getFileType } from '../../../lib/common/common.utils';
-import { showErrorToast, showSuccessToast } from '../../../lib/common/toast.utils';
+import { sanitizeFilename } from '../../../lib/common/file.utils';
+import { showErrorToast, showInfoToast, showSuccessToast } from '../../../lib/common/toast.utils';
 import { AppRoute } from '../../../route';
 import { healthRecordsStyles } from '../../../styled/HealthRecordsScreen.styled';
 import theme from '../../../styled/theme.styled';
@@ -41,8 +43,13 @@ import { useAlertStore } from '../../../zustand/stores/useAlertStore';
 import { useAuthStore } from '../../../zustand/stores/useAuthStore';
 import { useLoadingStore } from '../../../zustand/stores/useLoadingStore';
 import HealthRecordItemCard from './Components/HealthRecordItemCard';
+import EmrDetailsModal from './Modals/EmrDetailsModal';
 import ShareEMRModals from './Modals/ShareEMRModals';
 import HealthRecordFolderSkeleton from './Skeletons/HealthRecordFolderSkeleton';
+
+const getRNFS = (): any => {
+  return (RNFSModule as any)?.default || RNFSModule;
+};
 
 const getCategoryVisualConfig = (idOrName: string = '') => {
   const normalized = idOrName.toLowerCase().replace(/[\s_]+/g, '-');
@@ -112,6 +119,7 @@ export const HealthRecordFolderScreen: React.FC = () => {
   const [search, setSearch] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [shareDoc, setShareDoc] = useState<IEmrListDoc | null>(null);
+  const [selectedDoc, setSelectedDoc] = useState<IEmrListDoc | null>(null);
   const showLoader = useLoadingStore(state => state.showLoader);
   const hideLoader = useLoadingStore(state => state.hideLoader);
   const { showConfirm } = useAlertStore();
@@ -158,15 +166,84 @@ export const HealthRecordFolderScreen: React.FC = () => {
     });
   }, [folderName, navigation]);
 
-  const handleView = useCallback(async (url?: string) => {
-    if (!url) return showErrorToast('No Document Found');
-    try {
-      await Linking.openURL(url);
-    } catch (error) {
+  const handleOpenDocument = useCallback((doc: IEmrListDoc) => {
+    const fullUrl = doc.document_url;
+    if (!fullUrl) {
+      showErrorToast('No Document Found');
+      return;
+    }
+    showInfoToast(`Opening "${doc.title || 'Document'}"...`, 'Opening Document');
+    Linking.openURL(fullUrl).catch(error => {
       console.error('File Open Error', error);
-      showErrorToast('Could not open document');
+      showErrorToast('Could not open document', 'Open Document');
+    });
+  }, []);
+
+  const handleSaveToDevice = useCallback((doc: IEmrListDoc) => {
+    const fullUrl = doc.document_url;
+    if (fullUrl) {
+      Linking.openURL(fullUrl).catch(() => {
+        showInfoToast('Could not download document', 'Download Document');
+      });
+    } else {
+      showSuccessToast(
+        `"${doc.title || 'Document'}" downloaded to your device downloads folder`,
+        'Saved to Device'
+      );
     }
   }, []);
+
+  const handleDownloadDocument = useCallback(async (doc: IEmrListDoc) => {
+    const url = doc.document_url;
+    if (!url) {
+      showErrorToast('Document file is not available', 'Download Document');
+      return;
+    }
+
+    const RNFS = getRNFS();
+    const cleanPath = url.split('?')[0] || '';
+    const ext = (cleanPath.split('.').pop() || 'jpg').toLowerCase();
+    const baseName = (doc.title || doc.document_type || 'Document').replace(/[^A-Za-z0-9_-]/g, '_');
+    const filename = sanitizeFilename(`${baseName}.${ext}`, `Document.${ext}`);
+    const folders = [RNFS.DownloadDirectoryPath, RNFS.DocumentDirectoryPath].filter(Boolean);
+
+    showLoader('Downloading document');
+    try {
+      let savedPath = '';
+      let lastError: unknown = null;
+
+      for (const dir of folders) {
+        try {
+          if (!(await RNFS.exists(dir))) {
+            await RNFS.mkdir(dir);
+          }
+          const destPath = `${dir}/${filename}`;
+          if (await RNFS.exists(destPath)) {
+            await RNFS.unlink(destPath);
+          }
+          const result = await RNFS.downloadFile({ fromUrl: url, toFile: destPath }).promise;
+          if (result.statusCode >= 200 && result.statusCode < 300) {
+            savedPath = destPath;
+            break;
+          }
+          lastError = new Error('Could not download document');
+        } catch (error) {
+          lastError = error;
+        }
+      }
+
+      if (!savedPath) {
+        const message =
+          lastError instanceof Error ? lastError.message : 'Could not download document';
+        showErrorToast(message, 'Download Document');
+        return;
+      }
+
+      showSuccessToast(`${filename} saved to Downloads`, 'Download Document');
+    } finally {
+      hideLoader();
+    }
+  }, [hideLoader, showLoader]);
 
   const handleDeleteEmr = useCallback((id: number) => {
     if (!id) return showErrorToast('Invalid Id');
@@ -217,11 +294,11 @@ export const HealthRecordFolderScreen: React.FC = () => {
           setShareDoc(doc);
         }}
         onView={() => {
-          handleView(doc?.document_url);
+          setSelectedDoc(doc);
         }}
       />
     ),
-    [handleDeleteEmr, handleView, userData?.id]
+    [handleDeleteEmr, userData?.id]
   );
 
   return (
@@ -384,6 +461,15 @@ export const HealthRecordFolderScreen: React.FC = () => {
       >
         <PlusIcon size={28} color="#FFFFFF" strokeWidth={2.5} />
       </TouchableOpacity>
+
+      <EmrDetailsModal
+        visible={Boolean(selectedDoc)}
+        document={selectedDoc}
+        onOpenDocument={handleOpenDocument}
+        onSaveToDevice={handleSaveToDevice}
+        onDownload={handleDownloadDocument}
+        onClose={() => setSelectedDoc(null)}
+      />
 
       <ShareEMRModals
         visible={Boolean(shareDoc)}
