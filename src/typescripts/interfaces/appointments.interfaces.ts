@@ -270,6 +270,7 @@ export interface IBookingData {
   consultationFee: number;
   platformFee: number;
   isFeeHidden: boolean;
+  requirePayment?: boolean;
   consultation_type: string;
   appointment_type: string;
   reason?: string;

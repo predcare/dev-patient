@@ -128,6 +128,19 @@ export const BookAppointmentScreen: React.FC = () => {
         );
     }, [formStates.consultationType, formStates.selectedSlots, formStates.selectedSlot]);
 
+    const isPaymentRequired = useMemo(() => {
+        if (formStates.consultationType !== 'in-person') return true;
+        const isPaymentNotRequired = (slot: ITimeSlotsDoc) =>
+            slot.require_payment === false || String(slot.require_payment) === 'false';
+        if (formStates.selectedSlot && isPaymentNotRequired(formStates.selectedSlot)) {
+            return false;
+        }
+        if (formStates.selectedSlots?.some(isPaymentNotRequired)) {
+            return false;
+        }
+        return true;
+    }, [formStates.consultationType, formStates.selectedSlots, formStates.selectedSlot]);
+
     const consultationFee = useMemo(() => {
         if (!formStates.selectedSlots || formStates.selectedSlots.length === 0) return 0;
         return formStates.selectedSlots.reduce((sum, slot) => {
@@ -236,6 +249,7 @@ export const BookAppointmentScreen: React.FC = () => {
             consultationFee: isFeeHidden ? 0 : consultationFee,
             platformFee: isFeeHidden ? 0 : platformFee,
             isFeeHidden,
+            requirePayment: isPaymentRequired,
             consultation_type: formStates.consultationType,
             appointment_type: formStates.appointmentType,
             reason: formStates.reason,

@@ -36,6 +36,7 @@ export const PaymentScreen: React.FC = () => {
     const isFeeHidden =
         consultationType !== 'video' &&
         Boolean(bookingData.isFeeHidden || bookingData.hideFee || bookingData.hide_fee);
+    const isPaymentRequired = bookingData.requirePayment !== false;
     const totalAmount = isFeeHidden
         ? 0
         : route.params?.totalAmount ||
@@ -156,7 +157,7 @@ export const PaymentScreen: React.FC = () => {
         <SafeAreaWrapper
             header={
                 <Header
-                    title="Payment"
+                    title={isPaymentRequired ? 'Payment' : 'Confirm'}
                     subtitle="Complete appointment booking"
                     isBackBtn={true}
                     onBackPress={handleBack}
@@ -332,18 +333,22 @@ export const PaymentScreen: React.FC = () => {
                         <ActivityIndicator color={theme.colors.surface} />
                     ) : (
                         <Text style={paymentStyles.payButtonText}>
-                            {totalAmount > 0 ? `Pay ₹${totalAmount} & Confirm` : 'Confirm Appointment'}
+                            {isPaymentRequired && totalAmount > 0
+                                ? `Pay ₹${totalAmount} & Confirm`
+                                : 'Confirm Appointment'}
                         </Text>
                     )}
                 </TouchableOpacity>
-                <View style={paymentStyles.securityNotice}>
-                    <View style={paymentStyles.securityHeader}>
-                        <ShieldIcon size={16} color={theme.colors.primary} />
-                        <Text style={paymentStyles.securityText}>100% Secure Payment</Text>
-                        <CheckBadgeIcon size={14} color={theme.colors.success} />
+                {isPaymentRequired ? (
+                    <View style={paymentStyles.securityNotice}>
+                        <View style={paymentStyles.securityHeader}>
+                            <ShieldIcon size={16} color={theme.colors.primary} />
+                            <Text style={paymentStyles.securityText}>100% Secure Payment</Text>
+                            <CheckBadgeIcon size={14} color={theme.colors.success} />
+                        </View>
+                        <Text style={paymentStyles.securitySubtext}>Powered by PredCare Health</Text>
                     </View>
-                    <Text style={paymentStyles.securitySubtext}>Powered by PredCare Health</Text>
-                </View>
+                ) : null}
             </ScrollView>
         </SafeAreaWrapper>
     );
