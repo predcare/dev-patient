@@ -2,8 +2,7 @@ import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 
 const { PiPManager, PredPip } = NativeModules;
 
-const iosEmitter =
-  Platform.OS === 'ios' && PiPManager ? new NativeEventEmitter(PiPManager) : null;
+const iosEmitter = Platform.OS === 'ios' && PiPManager ? new NativeEventEmitter(PiPManager) : null;
 
 const androidEmitter =
   Platform.OS === 'android' && PredPip ? new NativeEventEmitter(PredPip) : null;

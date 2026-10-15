@@ -1,18 +1,22 @@
 import { MeetingConsumer, MeetingProvider } from '@videosdk.live/react-native-sdk';
-import React, { useEffect } from 'react';
+import React, { cloneElement, useEffect } from 'react';
 import { Platform } from 'react-native';
 import MeetingStageOverlay from '../../Features/Dashboard/MeetingScreen/Components/MeetingStageOverlay';
+import { useRegisterMeetingLeave } from '../../hooks/commons/meeting/meetingSessionLeave';
 import useAndroidCallForegroundService from '../../hooks/commons/meeting/useAndroidCallForegroundService';
 import useAndroidPipCameraRestore from '../../hooks/commons/meeting/useAndroidPipCameraRestore';
 import useAndroidPipLifecycle from '../../hooks/commons/meeting/useAndroidPipLifecycle';
 import useMeetingAppState from '../../hooks/commons/meeting/useMeetingAppState';
 import useMeetingCaptureHandoff from '../../hooks/commons/meeting/useMeetingCaptureHandoff';
-import { useRegisterMeetingLeave } from '../../hooks/commons/meeting/meetingSessionLeave';
 import { useMeetingCountdownTicker } from '../../hooks/commons/meeting/useMeetingCountdown';
 import useMeetingParticipants, {
   useDoctorVideoQuality,
 } from '../../hooks/commons/meeting/useMeetingParticipants';
 import usePipRemoteTrack from '../../hooks/commons/meeting/usePipRemoteTrack';
+import {
+  openMeetingStatusOnce,
+  resetMeetingStatusGuard,
+} from '../../hooks/commons/meeting/openMeetingStatus';
 import NativePip from '../../native/NativePip';
 import { useAuthStore } from '../../zustand/stores/useAuthStore';
 import useMeetingStore from '../../zustand/stores/useMeetingStore';
@@ -56,7 +60,6 @@ export const MeetingSessionHost: React.FC = () => {
   const isMuted = useMeetingStore(state => state.isMuted);
   const isCamOn = useMeetingStore(state => state.isCamOn);
   const setCallState = useMeetingStore(state => state.setCallState);
-  const resetCallInfo = useMeetingStore(state => state.resetCallInfo);
   const userData = useAuthStore((state) => state.userData)
 
   const token = callInfo?.token;
@@ -108,10 +111,13 @@ export const MeetingSessionHost: React.FC = () => {
     >
       <MeetingConsumer
         onMeetingJoined={() => {
+          resetMeetingStatusGuard();
           setCallState('WAITING_FOR_DOCTOR');
         }}
-        onMeetingLeft={() => {
-          resetCallInfo();
+        onMeetingLeft={(reason) => {
+          console.log('onMeetingLeft');
+          console.log(reason);
+          openMeetingStatusOnce();
         }}
         onError={({ code, message }) => {
           console.warn(`[VideoSDK] Meeting error (${code}): ${message}`);

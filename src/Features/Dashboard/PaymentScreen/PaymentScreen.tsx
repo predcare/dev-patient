@@ -92,7 +92,7 @@ export const PaymentScreen: React.FC = () => {
         createAppointmentMutation(payloadToSend, {
             onSuccess: async (res: any) => {
                 const data = res?.data;
-                const appointmentId = data?.appointment_id || '';
+                const appointmentId = data?.appointment?.id || '';
                 if (data?.requires_payment && data?.order_id) {
                     const checkoutResult = await openCheckout(
                         {

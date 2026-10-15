@@ -5,8 +5,6 @@ import { leaveActiveMeeting } from '../../../hooks/commons/meeting/meetingSessio
 import { AppointmemntQueryKey } from '../../../hooks/react-query/query.keys';
 import { showInfoToast } from '../../../lib/common/toast.utils';
 import NativePip from '../../../native/NativePip';
-import { navigationRef, resetRoot } from '../../../navigation/navigationRef';
-import { AppRoute } from '../../../route';
 import useIncomingCallStore from '../../../zustand/stores/useIncomingCallStore';
 import { useLoadingStore } from '../../../zustand/stores/useLoadingStore';
 import { useMeetingStore } from '../../../zustand/stores/useMeetingStore';
@@ -77,12 +75,6 @@ const SocketListeners = () => {
       await queryClient.invalidateQueries({
         queryKey: [AppointmemntQueryKey.INFO, incomingApptId],
       });
-
-      if (navigationRef.isReady()) {
-        resetRoot(AppRoute.CONSULTATION_COMPLETED, {
-          appointmentId: incomingApptId,
-        });
-      }
     };
 
     // ---- REGISTER EVENTS ----

@@ -629,53 +629,56 @@ export const AppointmentDetailsScreen: React.FC = () => {
               </View>
             </View>
           ) : null}
-          <View style={appointmentDetailsStyles.card}>
-            <View style={appointmentDetailsStyles.cardHeader}>
-              <View style={appointmentDetailsStyles.cardTitleRow}>
-                <InvoiceIcon size={18} color={theme.colors.primary} />
-                <Text style={appointmentDetailsStyles.cardTitle}>Payment Summary</Text>
+          {Number(apptInfo.appointment_fee || 0) > 0 ? (
+            <View style={appointmentDetailsStyles.card}>
+              <View style={appointmentDetailsStyles.cardHeader}>
+                <View style={appointmentDetailsStyles.cardTitleRow}>
+                  <InvoiceIcon size={18} color={theme.colors.primary} />
+                  <Text style={appointmentDetailsStyles.cardTitle}>Payment Summary</Text>
+                </View>
               </View>
-            </View>
 
-            <View style={appointmentDetailsStyles.billRow}>
-              <Text style={appointmentDetailsStyles.billLabel}>Consultation Fee</Text>
-              <Text style={appointmentDetailsStyles.billValue}>
-                ₹{Number(apptInfo.appointment_fee || 0).toFixed(2)}
-              </Text>
-            </View>
-
-            {apptInfo.fee_type ? (
               <View style={appointmentDetailsStyles.billRow}>
-                <Text style={appointmentDetailsStyles.billLabel}>Fee Type</Text>
+                <Text style={appointmentDetailsStyles.billLabel}>Consultation Fee</Text>
                 <Text style={appointmentDetailsStyles.billValue}>
-                  {apptInfo.fee_type.replace(/_/g, ' ').toUpperCase()}
+                  ₹{Number(apptInfo.appointment_fee || 0).toFixed(2)}
                 </Text>
               </View>
-            ) : null}
 
-            <View style={appointmentDetailsStyles.billTotalRow}>
-              <Text style={appointmentDetailsStyles.billTotalLabel}>Total Amount</Text>
-              <Text style={appointmentDetailsStyles.billTotalValue}>
-                ₹{Number(apptInfo.appointment_fee || 0).toFixed(2)}
-              </Text>
-            </View>
-            <View style={appointmentDetailsStyles.paymentBadgeRow}>
-              <View>
-                <Text style={appointmentDetailsStyles.paymentBadgeLabel}>
-                  Payment Mode: {capitalize(apptInfo.payment_type || 'Cash')}
-                </Text>
-                {apptInfo.transaction_id ? (
-                  <Text
-                    style={[
-                      appointmentDetailsStyles.paymentBadgeLabel,
-                      { fontSize: 11, marginTop: 2 },
-                    ]}
-                  >
-                    Txn ID: {apptInfo.transaction_id}
+              {apptInfo.fee_type ? (
+                <View style={appointmentDetailsStyles.billRow}>
+                  <Text style={appointmentDetailsStyles.billLabel}>Fee Type</Text>
+                  <Text style={appointmentDetailsStyles.billValue}>
+                    {apptInfo.fee_type.replace(/_/g, ' ').toUpperCase()}
                   </Text>
-                ) : null}
-              </View>
+                </View>
+              ) : null}
 
+              <View style={appointmentDetailsStyles.billTotalRow}>
+                <Text style={appointmentDetailsStyles.billTotalLabel}>Total Amount</Text>
+                <Text style={appointmentDetailsStyles.billTotalValue}>
+                  ₹{Number(apptInfo.appointment_fee || 0).toFixed(2)}
+                </Text>
+              </View>
+              <View style={appointmentDetailsStyles.paymentBadgeRow}>
+                <View>
+                  <Text style={appointmentDetailsStyles.paymentBadgeLabel}>
+                    Payment Mode: {capitalize(apptInfo.payment_type || 'Cash')}
+                  </Text>
+                  {apptInfo.transaction_id ? (
+                    <Text
+                      style={[
+                        appointmentDetailsStyles.paymentBadgeLabel,
+                        { fontSize: 11, marginTop: 2 },
+                      ]}
+                    >
+                      Txn ID: {apptInfo.transaction_id}
+                    </Text>
+                  ) : null}
+                </View>
+
+
+              </View>
               <View
                 style={[
                   appointmentDetailsStyles.paymentStatusBadge,
@@ -692,7 +695,28 @@ export const AppointmentDetailsScreen: React.FC = () => {
                 </Text>
               </View>
             </View>
-          </View>
+          ) : (
+            <View style={appointmentDetailsStyles.card}>
+              <View style={appointmentDetailsStyles.paymentBadgeRow}>
+                <Text style={appointmentDetailsStyles.paymentBadgeLabel}>Payment Status</Text>
+                <View
+                  style={[
+                    appointmentDetailsStyles.paymentStatusBadge,
+                    { backgroundColor: paymentStatusConfig.bg },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      appointmentDetailsStyles.paymentStatusText,
+                      { color: paymentStatusConfig.text },
+                    ]}
+                  >
+                    {paymentStatusConfig.label}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
         </ScrollView>
       )}
     </SafeAreaWrapper>

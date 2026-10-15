@@ -53,7 +53,7 @@ const formatCallDuration = (seconds: unknown): string => {
     return `${minutes}m ${remainder}s`;
 };
 
-const SUMMARY_TIMEOUT_SECONDS = 20;
+const SUMMARY_TIMEOUT_SECONDS = 15;
 
 const formatStatusLabel = (status?: string | null): string => {
     if (!status) return '';
