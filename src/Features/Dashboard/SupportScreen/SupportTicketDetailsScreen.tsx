@@ -11,7 +11,7 @@ import {
 } from '../../../hooks/react-query/support-tickets/support-tickets.hooks';
 import Header from '../../../Layout/Header';
 import SafeAreaWrapper from '../../../Layout/SafeAreaWrapper';
-import { formatDate, getInitials } from '../../../lib/common/common.utils';
+import { _toTitleCase, formatDate, getInitials } from '../../../lib/common/common.utils';
 import { showErrorToast, showSuccessToast } from '../../../lib/common/toast.utils';
 import supportStyles, { SupportTicketDetailsStyled } from '../../../styled/SupportScreen.styled';
 import theme from '../../../styled/theme.styled';
@@ -228,7 +228,7 @@ export const SupportTicketDetailsScreen: React.FC = () => {
                   !isClosed ? supportStyles.statusTxtOpen : supportStyles.statusTxtClosed,
                 ]}
               >
-                {!isClosed ? t('support.open') : t('support.closed')}
+                {_toTitleCase(ticketInfo.status || '')}
               </Text>
             </View>
           </View>
