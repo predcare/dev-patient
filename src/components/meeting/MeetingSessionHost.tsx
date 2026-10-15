@@ -1,8 +1,12 @@
 import { MeetingConsumer, MeetingProvider } from '@videosdk.live/react-native-sdk';
-import React, { cloneElement, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
 import MeetingStageOverlay from '../../Features/Dashboard/MeetingScreen/Components/MeetingStageOverlay';
 import { useRegisterMeetingLeave } from '../../hooks/commons/meeting/meetingSessionLeave';
+import {
+  openMeetingStatusOnce,
+  resetMeetingStatusGuard,
+} from '../../hooks/commons/meeting/openMeetingStatus';
 import useAndroidCallForegroundService from '../../hooks/commons/meeting/useAndroidCallForegroundService';
 import useAndroidPipCameraRestore from '../../hooks/commons/meeting/useAndroidPipCameraRestore';
 import useAndroidPipLifecycle from '../../hooks/commons/meeting/useAndroidPipLifecycle';
@@ -13,10 +17,6 @@ import useMeetingParticipants, {
   useDoctorVideoQuality,
 } from '../../hooks/commons/meeting/useMeetingParticipants';
 import usePipRemoteTrack from '../../hooks/commons/meeting/usePipRemoteTrack';
-import {
-  openMeetingStatusOnce,
-  resetMeetingStatusGuard,
-} from '../../hooks/commons/meeting/openMeetingStatus';
 import NativePip from '../../native/NativePip';
 import { useAuthStore } from '../../zustand/stores/useAuthStore';
 import useMeetingStore from '../../zustand/stores/useMeetingStore';
