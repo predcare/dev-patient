@@ -22,6 +22,7 @@ import SafeAreaWrapper from '../../../Layout/SafeAreaWrapper';
 import { resetToLogin } from '../../../lib/common/navigation.utils';
 import { navigationRef } from '../../../navigation/navigationRef';
 import { AppRoute } from '../../../route';
+import { APP_BUILD, APP_VERSION } from '../../../config/constants';
 import settingStyles from '../../../styled/SettingScreen.styled';
 import theme from '../../../styled/theme.styled';
 import { TSupportedLanguage } from '../../../typescripts/types/i18n.types';
@@ -182,7 +183,9 @@ export const SettingScreen: React.FC = () => {
                     />
                 </View>
 
-                <Text style={settingStyles.versionText}>PRED Care v1.0.0</Text>
+                <Text style={settingStyles.versionText}>
+                    PRED Care v{APP_VERSION} (Build {APP_BUILD})
+                </Text>
             </ScrollView>
             {isLanguageModalOpen && (
                 <LanguageSwitcherModal

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Image, Text, View } from 'react-native';
 import { queryClient } from '../../components/providers/ReactQueryProvider';
-import { APP_VERSION } from '../../config/constants';
+import { APP_BUILD, APP_VERSION } from '../../config/constants';
 import { getProfile } from '../../hooks/react-query/profile/profile.funcs';
 import { ProfileQueryKeys } from '../../hooks/react-query/query.keys';
 import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
@@ -171,7 +171,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation, onFinish
 
         <View style={Splashstyles.footer}>
           <Text style={Splashstyles.footerText}>Powered by PRED Care</Text>
-          <Text style={Splashstyles.versionText}>v{APP_VERSION}</Text>
+          <Text style={Splashstyles.versionText}>v{APP_VERSION} (Build {APP_BUILD})</Text>
         </View>
       </View>
     </SafeAreaWrapper>
