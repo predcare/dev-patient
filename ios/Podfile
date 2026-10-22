@@ -50,6 +50,8 @@ target 'predcarepatient' do
           config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1'
         end
 
+        config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
+
         config.build_settings['HEADER_SEARCH_PATHS'] ||= '$(inherited) '
         incall_path = '"$(SRCROOT)/../node_modules/@videosdk.live/react-native-incallmanager/ios/RNInCallManager"'
         unless config.build_settings['HEADER_SEARCH_PATHS'].include?(incall_path)
