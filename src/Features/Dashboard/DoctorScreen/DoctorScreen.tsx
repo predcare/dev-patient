@@ -101,7 +101,7 @@ export const DoctorScreen: React.FC = () => {
                                     })
                                 }
                                 onBookPress={() =>
-                                    handleNavigate('book', {
+                                    handleNavigate('profile', {
                                         doctorId: Number(item?.user_id),
                                         clinicId: Number(item?.clinic?.id),
                                     })

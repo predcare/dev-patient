@@ -65,18 +65,6 @@ export const MyDoctorsSection: React.FC = () => {
     naviagtion.navigate(AppRoute.DOCTORS);
   };
 
-  const handleDoctorPress = (type: string, params: { doctorId: number, clinicId: number }) => {
-    switch (type) {
-      case 'profile':
-        naviagtion.navigate(AppRoute.DOCTOR_DETAILS, { doctorId: params.doctorId });
-        break;
-      case 'book_appointment':
-        naviagtion.navigate(AppRoute.BOOK_APPOINTMENT, params);
-        break;
-      default:
-        break;
-    }
-  };
 
   const handleNavigate = (type: string, options: { doctorId: number; clinicId: number }) => {
     const { clinicId, doctorId } = options;
@@ -164,7 +152,7 @@ export const MyDoctorsSection: React.FC = () => {
 
                 <TouchableOpacity
                   style={[styles.consultBtn, !doc?.next_available_date && { opacity: 0.6 }]}
-                  onPress={() => handleNavigate("book", {
+                  onPress={() => handleNavigate("profile", {
                     doctorId: Number(doc?.user_id),
                     clinicId: Number(doc?.clinic?.id),
                   })}
