@@ -1,10 +1,11 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import dayjs from 'dayjs';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     Image,
+    KeyboardAvoidingView,
     ScrollView,
     Text,
     TextInput,
@@ -83,6 +84,8 @@ export const BookAppointmentScreen: React.FC = () => {
     const router = useRoute();
     const { doctorId, clinicId } = (router.params || {}) as { doctorId: number; clinicId: number };
     const { userData } = useAuthStore(state => state);
+    const formContainerRef = useRef<React.ComponentRef<typeof View>>(null);
+    const [keyboardOffset, setKeyboardOffset] = useState(0);
 
     const [formStates, setFormStates] = useState<IFormStates>({
         selectedDate: '',
@@ -270,389 +273,401 @@ export const BookAppointmentScreen: React.FC = () => {
                 />
             }
         >
-            <ScrollView
-                style={bookAppointmentStyles.scroll}
-                contentContainerStyle={bookAppointmentStyles.scrollContent}
-                showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled"
+            <View
+                ref={formContainerRef}
+                style={bookAppointmentStyles.keyboardView}
+                onLayout={() => formContainerRef.current?.measureInWindow((_x, y) => setKeyboardOffset(y))}
             >
-                {isSummaryPending ? (
-                    <BookingCardSkeleton />
-                ) : (
-                    <View style={bookAppointmentStyles.doctorCard}>
-                        <View style={bookAppointmentStyles.doctorCardHeader}>
-                            <View style={bookAppointmentStyles.cardHeaderLeft}>
-                                <View style={bookAppointmentStyles.cardHeaderIconBadge}>
-                                    <StethoscopeIcon size={13} color={theme.colors.primary} />
-                                </View>
-                                <Text style={bookAppointmentStyles.cardHeaderTitle}>
-                                    {t('doctorDetailsScreen.title', { defaultValue: 'Doctor Profile' })}
-                                </Text>
-                            </View>
-                            <View style={bookAppointmentStyles.verifiedBadge}>
-                                <CheckBadgeIcon size={11} color={theme.colors.primary} />
-                                <Text style={bookAppointmentStyles.verifiedBadgeText}>
-                                    {t('doctorDetailsScreen.verified', { defaultValue: 'Verified' })}
-                                </Text>
-                            </View>
-                        </View>
-
-                        <View style={bookAppointmentStyles.doctorContentRow}>
-                            <View style={bookAppointmentStyles.doctorAvatarWrapper}>
-                                {docSummary?.doctor?.profile_image ? (
-                                    <Image
-                                        source={{ uri: docSummary.doctor.profile_image }}
-                                        style={bookAppointmentStyles.doctorAvatarImage}
-                                    />
-                                ) : (
-                                    <View style={bookAppointmentStyles.doctorAvatar}>
-                                        <Text style={bookAppointmentStyles.doctorAvatarText}>
-                                            {getInitials(docSummary?.doctor?.name || '')}
-                                        </Text>
-                                    </View>
-                                )}
-                                <View style={bookAppointmentStyles.avatarVerifiedBadge}>
-                                    <CheckBadgeIcon size={8} color={theme.colors.surface} />
-                                </View>
-                            </View>
-
-                            <View style={bookAppointmentStyles.doctorDetails}>
-                                <Text style={bookAppointmentStyles.doctorName} numberOfLines={1}>
-                                    {docSummary?.doctor?.name || 'Doctor'}
-                                </Text>
-                                {docSummary?.doctor?.specialization ? (
-                                    <View style={bookAppointmentStyles.doctorSpecializationRow}>
-                                        <StethoscopeIcon size={11} color={theme.colors.primaryDark} />
-                                        <Text style={bookAppointmentStyles.doctorSpecialization} numberOfLines={1}>
-                                            {docSummary.doctor.specialization}
-                                        </Text>
-                                    </View>
-                                ) : null}
-                                <View style={bookAppointmentStyles.doctorMetaRow}>
-                                    {docSummary?.doctor?.experience_years ? (
-                                        <View style={bookAppointmentStyles.doctorMetaBadge}>
-                                            <BriefcaseIcon size={11} color={theme.colors.textMuted} />
-                                            <Text style={bookAppointmentStyles.doctorMetaText}>
-                                                {docSummary.doctor.experience_years} Yrs Exp
-                                            </Text>
-                                        </View>
-                                    ) : null}
-                                    {docSummary?.clinic?.name ? (
-                                        <View style={bookAppointmentStyles.doctorMetaBadge}>
-                                            <ClinicIcon size={11} color={theme.colors.textMuted} />
-                                            <Text style={bookAppointmentStyles.doctorMetaText} numberOfLines={1}>
-                                                {docSummary.clinic.name}
-                                            </Text>
-                                        </View>
-                                    ) : null}
-                                </View>
-                            </View>
-                        </View>
-                    </View>
-                )}
-                <Text style={bookAppointmentStyles.sectionLabel}>
-                    {t('bookAppointmentScreen.patientInfoLabel')}
-                </Text>
-                <View style={bookAppointmentStyles.patientCard}>
-                    <View style={bookAppointmentStyles.patientAvatarWrapper}>
-                        <View style={bookAppointmentStyles.patientAvatar}>
-                            <Text style={bookAppointmentStyles.patientAvatarText}>
-                                {getInitials(userData?.name || '')}
-                            </Text>
-                        </View>
-                    </View>
-                    <View style={bookAppointmentStyles.patientDetails}>
-                        <Text style={bookAppointmentStyles.patientName} numberOfLines={1}>
-                            {userData?.name || 'Patient'}
-                        </Text>
-                        <View style={bookAppointmentStyles.patientIdBadge}>
-                            <Text style={bookAppointmentStyles.patientId} numberOfLines={1}>
-                                Patient ID • {userData?.patient_id || 'N/A'}
-                            </Text>
-                        </View>
-                    </View>
-                    <View style={bookAppointmentStyles.patientActiveBadge}>
-                        <CheckBadgeIcon size={10} color={theme.colors.primary} />
-                        <Text style={bookAppointmentStyles.patientActiveText}>Active</Text>
-                    </View>
-                </View>
-                <Text style={bookAppointmentStyles.sectionLabel}>
-                    {t('bookAppointmentScreen.consultationTypeLabel')}
-                </Text>
-                <View style={bookAppointmentStyles.consultationRow}>
-                    <TouchableOpacity
-                        style={[
-                            bookAppointmentStyles.consultationChip,
-                            formStates.consultationType === 'in-person' &&
-                            bookAppointmentStyles.consultationChipActive,
-                        ]}
-                        onPress={() => handleConsultationTypeChange('in-person')}
-                        activeOpacity={0.8}
-                    >
-                        <CalendarIcon
-                            size={18}
-                            color={
-                                formStates.consultationType === 'in-person'
-                                    ? theme.colors.primaryDark
-                                    : theme.colors.textSecondary
-                            }
-                        />
-                        <Text
-                            style={[
-                                bookAppointmentStyles.consultationChipText,
-                                formStates.consultationType === 'in-person' &&
-                                bookAppointmentStyles.consultationChipTextActive,
-                            ]}
-                        >
-                            In-Person
-                        </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={[
-                            bookAppointmentStyles.consultationChip,
-                            formStates.consultationType === 'video' &&
-                            bookAppointmentStyles.consultationChipActive,
-                        ]}
-                        onPress={() => handleConsultationTypeChange('video')}
-                        activeOpacity={0.8}
-                    >
-                        <VideoIcon
-                            size={18}
-                            color={
-                                formStates.consultationType === 'video'
-                                    ? theme.colors.primaryDark
-                                    : theme.colors.textSecondary
-                            }
-                        />
-                        <Text
-                            style={[
-                                bookAppointmentStyles.consultationChipText,
-                                formStates.consultationType === 'video' &&
-                                bookAppointmentStyles.consultationChipTextActive,
-                            ]}
-                        >
-                            Video Consult
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-                <Text style={bookAppointmentStyles.fieldLabel}>
-                    Reason for Visit <Text style={bookAppointmentStyles.optionalHint}>(optional)</Text>
-                </Text>
-                <TextInput
-                    placeholder={t('bookAppointmentScreen.reasonPlaceholder')}
-                    placeholderTextColor={theme.colors.textMuted}
-                    style={bookAppointmentStyles.reasonInput}
-                    multiline
-                    numberOfLines={3}
-                    textAlignVertical="top"
-                    value={formStates.reason}
-                    onChangeText={text => updateForm('reason', text)}
-                />
-                <Text style={bookAppointmentStyles.sectionLabel}>
-                    {t('bookAppointmentScreen.selectDateLabel')}
-                </Text>
-                {isAvailableDatesPending ? (
-                    <BookingSlotsSkeleton datesOnly />
-                ) : !availableDatesRes || availableDatesRes?.length === 0 ? (
-                    <Text
-                        style={{
-                            fontSize: 13,
-                            color: theme.colors.textMuted,
-                            fontStyle: 'italic',
-                            marginBottom: 12,
-                        }}
-                    >
-                        {t('bookAppointmentScreen.noDatesFound')}
-                    </Text>
-                ) : (
-                    <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        keyboardShouldPersistTaps="handled"
-                        contentContainerStyle={bookAppointmentStyles.dateRow}
-                    >
-                        {availableDatesRes &&
-                            availableDatesRes?.slice(0, 3)?.map((dateStr, idx) => {
-                                const active = dateStr === formStates.selectedDate;
-                                const formatted = formatDateChip(dateStr as string);
-                                return (
-                                    <TouchableOpacity
-                                        key={`${dateStr}-${idx}`}
-                                        style={[
-                                            bookAppointmentStyles.dateChipCard,
-                                            active && bookAppointmentStyles.dateChipCardActive,
-                                        ]}
-                                        onPress={() => handleDateChange(dateStr)}
-                                        activeOpacity={0.8}
-                                    >
-                                        <Text
-                                            style={[
-                                                bookAppointmentStyles.dateChipTopText,
-                                                active && bookAppointmentStyles.dateChipTopTextActive,
-                                            ]}
-                                        >
-                                            {formatted.labelTop}
-                                        </Text>
-                                        <Text
-                                            style={[
-                                                bookAppointmentStyles.dateChipBottomText,
-                                                active && bookAppointmentStyles.dateChipBottomTextActive,
-                                            ]}
-                                        >
-                                            {formatted.labelBottom}
-                                        </Text>
-                                    </TouchableOpacity>
-                                );
-                            })}
-                        <TouchableOpacity
-                            style={bookAppointmentStyles.calendarIconBtn}
-                            onPress={() => updateForm('showCalendarModal', true)}
-                            activeOpacity={0.8}
-                        >
-                            <CalendarIcon size={22} color={theme.colors.primaryDark} />
-                        </TouchableOpacity>
-                    </ScrollView>
-                )}
-
-                {formStates.selectedDate && (
-                    <>
-                        <Text style={bookAppointmentStyles.sectionLabel}>
-                            {t('bookAppointmentScreen.selectTimeLabel')}
-                        </Text>
-                        <TimeSlotPicker
-                            availSlots={slotsRes?.slots || []}
-                            selectedSlots={formStates.selectedSlots}
-                            multiSelect={false}
-                            onSelectSlots={handleSlotSelect}
-                            isLoading={isSlotsPending}
-                        />
-                    </>
-                )}
-
-                <View style={bookAppointmentStyles.summaryBox}>
-                    <Text style={bookAppointmentStyles.summaryTitle}>
-                        {t('bookAppointmentScreen.appointmentSummary')}
-                    </Text>
-
-                    <View style={bookAppointmentStyles.summaryRow}>
-                        <Text style={bookAppointmentStyles.summaryLabel}>
-                            {t('bookAppointmentScreen.doctorLabel')}
-                        </Text>
-                        <Text style={bookAppointmentStyles.summaryValue}>
-                            {docSummary?.doctor?.name || 'N/A'}
-                        </Text>
-                    </View>
-
-                    <View style={bookAppointmentStyles.summaryRow}>
-                        <Text style={bookAppointmentStyles.summaryLabel}>
-                            {t('bookAppointmentScreen.clinicLabel')}
-                        </Text>
-                        <Text style={bookAppointmentStyles.summaryValue}>
-                            {docSummary?.clinic?.name || 'N/A'}
-                        </Text>
-                    </View>
-
-                    <View style={bookAppointmentStyles.summaryRow}>
-                        <Text style={bookAppointmentStyles.summaryLabel}>
-                            {t('bookAppointmentScreen.consultationLabel')}
-                        </Text>
-                        <Text style={bookAppointmentStyles.summaryValue}>
-                            {formStates.consultationType === 'in-person' ? 'In-Person' : 'Video Call'}
-                        </Text>
-                    </View>
-
-                    <View style={bookAppointmentStyles.summaryRow}>
-                        <Text style={bookAppointmentStyles.summaryLabel}>
-                            {t('bookAppointmentScreen.dateLabel')}
-                        </Text>
-                        <Text style={bookAppointmentStyles.summaryValue}>
-                            {formStates.selectedDate
-                                ? formatDateChip(formStates.selectedDate).full
-                                : t('bookAppointmentScreen.notSelected')}
-                        </Text>
-                    </View>
-
-                    <View style={bookAppointmentStyles.summaryRow}>
-                        <Text style={bookAppointmentStyles.summaryLabel}>
-                            {t('bookAppointmentScreen.timeLabel')}
-                        </Text>
-                        <Text style={bookAppointmentStyles.summaryValue}>
-                            {formStates.selectedSlots.length > 0
-                                ? `${formatTime12h(formStates.selectedSlots[0].from)} - ${formatTime12h(
-                                    formStates.selectedSlots[formStates.selectedSlots.length - 1].to
-                                )}${formStates.selectedSlots.length > 1
-                                    ? ` (${formStates.selectedSlots.length} slots)`
-                                    : ''
-                                }`
-                                : t('bookAppointmentScreen.notSelected')}
-                        </Text>
-                    </View>
-
-                    {!isFeeHidden && consultationFee > 0 && (
-                        <View style={bookAppointmentStyles.summaryRow}>
-                            <Text style={bookAppointmentStyles.summaryLabel}>
-                                {t('bookAppointmentScreen.consultationFee')}
-                            </Text>
-                            <Text style={bookAppointmentStyles.summaryValue}>₹{consultationFee}</Text>
-                        </View>
-                    )}
-
-                    {!isFeeHidden && consultationFee > 0 && (
-                        <View style={bookAppointmentStyles.summaryRow}>
-                            <Text style={bookAppointmentStyles.summaryLabel}>
-                                {t('bookAppointmentScreen.platformFee')}
-                            </Text>
-                            {isPlatformFeeSlabsPending ? (
-                                <ActivityIndicator size="small" color={theme.colors.primaryDark} />
-                            ) : (
-                                <Text style={bookAppointmentStyles.summaryValue}>₹{platformFee}</Text>
-                            )}
-                        </View>
-                    )}
-
-                    {!isFeeHidden && consultationFee > 0 && <View style={bookAppointmentStyles.divider} />}
-
-                    {!isFeeHidden && consultationFee > 0 && (
-                        <View style={bookAppointmentStyles.summaryRow}>
-                            <Text style={bookAppointmentStyles.totalLabel}>
-                                {t('bookAppointmentScreen.totalAmount')}
-                            </Text>
-                            {isPlatformFeeSlabsPending ? (
-                                <ActivityIndicator size="small" color={theme.colors.primaryDark} />
-                            ) : (
-                                <Text style={bookAppointmentStyles.totalValue}>₹{totalAmount}</Text>
-                            )}
-                        </View>
-                    )}
-                </View>
-            </ScrollView>
-
-            <View style={bookAppointmentStyles.footer}>
-                <TouchableOpacity
-                    style={[
-                        bookAppointmentStyles.proceedBtn,
-                        (!formStates.selectedDate ||
-                            formStates.selectedSlots.length === 0 ||
-                            (!isFeeHidden && isPlatformFeeSlabsPending)) && { opacity: 0.6 },
-                    ]}
-                    disabled={
-                        !formStates.selectedDate ||
-                        formStates.selectedSlots.length === 0 ||
-                        (!isFeeHidden && isPlatformFeeSlabsPending)
-                    }
-                    activeOpacity={0.85}
-                    onPress={handleProceed}
+                <KeyboardAvoidingView
+                    style={bookAppointmentStyles.keyboardView}
+                    behavior="padding"
+                    keyboardVerticalOffset={keyboardOffset}
                 >
-                    {!isFeeHidden && isPlatformFeeSlabsPending ? (
-                        <ActivityIndicator color={theme.colors.surface} />
-                    ) : (
-                        <Text style={bookAppointmentStyles.proceedBtnText}>
-                            {t('bookAppointmentScreen.bookAppointmentBtn')}{' '}
-                            {!isFeeHidden && totalAmount > 0 && `• ₹${totalAmount}`}
+                    <ScrollView
+                        style={bookAppointmentStyles.scroll}
+                        contentContainerStyle={bookAppointmentStyles.scrollContent}
+                        showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
+                    >
+                        {isSummaryPending ? (
+                            <BookingCardSkeleton />
+                        ) : (
+                            <View style={bookAppointmentStyles.doctorCard}>
+                                <View style={bookAppointmentStyles.doctorCardHeader}>
+                                    <View style={bookAppointmentStyles.cardHeaderLeft}>
+                                        <View style={bookAppointmentStyles.cardHeaderIconBadge}>
+                                            <StethoscopeIcon size={13} color={theme.colors.primary} />
+                                        </View>
+                                        <Text style={bookAppointmentStyles.cardHeaderTitle}>
+                                            {t('doctorDetailsScreen.title', { defaultValue: 'Doctor Profile' })}
+                                        </Text>
+                                    </View>
+                                    <View style={bookAppointmentStyles.verifiedBadge}>
+                                        <CheckBadgeIcon size={11} color={theme.colors.primary} />
+                                        <Text style={bookAppointmentStyles.verifiedBadgeText}>
+                                            {t('doctorDetailsScreen.verified', { defaultValue: 'Verified' })}
+                                        </Text>
+                                    </View>
+                                </View>
+
+                                <View style={bookAppointmentStyles.doctorContentRow}>
+                                    <View style={bookAppointmentStyles.doctorAvatarWrapper}>
+                                        {docSummary?.doctor?.profile_image ? (
+                                            <Image
+                                                source={{ uri: docSummary.doctor.profile_image }}
+                                                style={bookAppointmentStyles.doctorAvatarImage}
+                                            />
+                                        ) : (
+                                            <View style={bookAppointmentStyles.doctorAvatar}>
+                                                <Text style={bookAppointmentStyles.doctorAvatarText}>
+                                                    {getInitials(docSummary?.doctor?.name || '')}
+                                                </Text>
+                                            </View>
+                                        )}
+                                        <View style={bookAppointmentStyles.avatarVerifiedBadge}>
+                                            <CheckBadgeIcon size={8} color={theme.colors.surface} />
+                                        </View>
+                                    </View>
+
+                                    <View style={bookAppointmentStyles.doctorDetails}>
+                                        <Text style={bookAppointmentStyles.doctorName} numberOfLines={1}>
+                                            {docSummary?.doctor?.name || 'Doctor'}
+                                        </Text>
+                                        {docSummary?.doctor?.specialization ? (
+                                            <View style={bookAppointmentStyles.doctorSpecializationRow}>
+                                                <StethoscopeIcon size={11} color={theme.colors.primaryDark} />
+                                                <Text style={bookAppointmentStyles.doctorSpecialization} numberOfLines={1}>
+                                                    {docSummary.doctor.specialization}
+                                                </Text>
+                                            </View>
+                                        ) : null}
+                                        <View style={bookAppointmentStyles.doctorMetaRow}>
+                                            {docSummary?.doctor?.experience_years ? (
+                                                <View style={bookAppointmentStyles.doctorMetaBadge}>
+                                                    <BriefcaseIcon size={11} color={theme.colors.textMuted} />
+                                                    <Text style={bookAppointmentStyles.doctorMetaText}>
+                                                        {docSummary.doctor.experience_years} Yrs Exp
+                                                    </Text>
+                                                </View>
+                                            ) : null}
+                                            {docSummary?.clinic?.name ? (
+                                                <View style={bookAppointmentStyles.doctorMetaBadge}>
+                                                    <ClinicIcon size={11} color={theme.colors.textMuted} />
+                                                    <Text style={bookAppointmentStyles.doctorMetaText} numberOfLines={1}>
+                                                        {docSummary.clinic.name}
+                                                    </Text>
+                                                </View>
+                                            ) : null}
+                                        </View>
+                                    </View>
+                                </View>
+                            </View>
+                        )}
+                        <Text style={bookAppointmentStyles.sectionLabel}>
+                            {t('bookAppointmentScreen.patientInfoLabel')}
                         </Text>
-                    )}
-                </TouchableOpacity>
+                        <View style={bookAppointmentStyles.patientCard}>
+                            <View style={bookAppointmentStyles.patientAvatarWrapper}>
+                                <View style={bookAppointmentStyles.patientAvatar}>
+                                    <Text style={bookAppointmentStyles.patientAvatarText}>
+                                        {getInitials(userData?.name || '')}
+                                    </Text>
+                                </View>
+                            </View>
+                            <View style={bookAppointmentStyles.patientDetails}>
+                                <Text style={bookAppointmentStyles.patientName} numberOfLines={1}>
+                                    {userData?.name || 'Patient'}
+                                </Text>
+                                <View style={bookAppointmentStyles.patientIdBadge}>
+                                    <Text style={bookAppointmentStyles.patientId} numberOfLines={1}>
+                                        Patient ID • {userData?.patient_id || 'N/A'}
+                                    </Text>
+                                </View>
+                            </View>
+                            <View style={bookAppointmentStyles.patientActiveBadge}>
+                                <CheckBadgeIcon size={10} color={theme.colors.primary} />
+                                <Text style={bookAppointmentStyles.patientActiveText}>Active</Text>
+                            </View>
+                        </View>
+                        <Text style={bookAppointmentStyles.sectionLabel}>
+                            {t('bookAppointmentScreen.consultationTypeLabel')}
+                        </Text>
+                        <View style={bookAppointmentStyles.consultationRow}>
+                            <TouchableOpacity
+                                style={[
+                                    bookAppointmentStyles.consultationChip,
+                                    formStates.consultationType === 'in-person' &&
+                                    bookAppointmentStyles.consultationChipActive,
+                                ]}
+                                onPress={() => handleConsultationTypeChange('in-person')}
+                                activeOpacity={0.8}
+                            >
+                                <CalendarIcon
+                                    size={18}
+                                    color={
+                                        formStates.consultationType === 'in-person'
+                                            ? theme.colors.primaryDark
+                                            : theme.colors.textSecondary
+                                    }
+                                />
+                                <Text
+                                    style={[
+                                        bookAppointmentStyles.consultationChipText,
+                                        formStates.consultationType === 'in-person' &&
+                                        bookAppointmentStyles.consultationChipTextActive,
+                                    ]}
+                                >
+                                    In-Person
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[
+                                    bookAppointmentStyles.consultationChip,
+                                    formStates.consultationType === 'video' &&
+                                    bookAppointmentStyles.consultationChipActive,
+                                ]}
+                                onPress={() => handleConsultationTypeChange('video')}
+                                activeOpacity={0.8}
+                            >
+                                <VideoIcon
+                                    size={18}
+                                    color={
+                                        formStates.consultationType === 'video'
+                                            ? theme.colors.primaryDark
+                                            : theme.colors.textSecondary
+                                    }
+                                />
+                                <Text
+                                    style={[
+                                        bookAppointmentStyles.consultationChipText,
+                                        formStates.consultationType === 'video' &&
+                                        bookAppointmentStyles.consultationChipTextActive,
+                                    ]}
+                                >
+                                    Video Consult
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                        <Text style={bookAppointmentStyles.fieldLabel}>
+                            Reason for Visit <Text style={bookAppointmentStyles.optionalHint}>(optional)</Text>
+                        </Text>
+                        <TextInput
+                            placeholder={t('bookAppointmentScreen.reasonPlaceholder')}
+                            placeholderTextColor={theme.colors.textMuted}
+                            style={bookAppointmentStyles.reasonInput}
+                            multiline
+                            numberOfLines={3}
+                            textAlignVertical="top"
+                            value={formStates.reason}
+                            onChangeText={text => updateForm('reason', text)}
+                        />
+                        <Text style={bookAppointmentStyles.sectionLabel}>
+                            {t('bookAppointmentScreen.selectDateLabel')}
+                        </Text>
+                        {isAvailableDatesPending ? (
+                            <BookingSlotsSkeleton datesOnly />
+                        ) : !availableDatesRes || availableDatesRes?.length === 0 ? (
+                            <Text
+                                style={{
+                                    fontSize: 13,
+                                    color: theme.colors.textMuted,
+                                    fontStyle: 'italic',
+                                    marginBottom: 12,
+                                }}
+                            >
+                                {t('bookAppointmentScreen.noDatesFound')}
+                            </Text>
+                        ) : (
+                            <ScrollView
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                keyboardShouldPersistTaps="handled"
+                                contentContainerStyle={bookAppointmentStyles.dateRow}
+                            >
+                                {availableDatesRes &&
+                                    availableDatesRes?.slice(0, 3)?.map((dateStr, idx) => {
+                                        const active = dateStr === formStates.selectedDate;
+                                        const formatted = formatDateChip(dateStr as string);
+                                        return (
+                                            <TouchableOpacity
+                                                key={`${dateStr}-${idx}`}
+                                                style={[
+                                                    bookAppointmentStyles.dateChipCard,
+                                                    active && bookAppointmentStyles.dateChipCardActive,
+                                                ]}
+                                                onPress={() => handleDateChange(dateStr)}
+                                                activeOpacity={0.8}
+                                            >
+                                                <Text
+                                                    style={[
+                                                        bookAppointmentStyles.dateChipTopText,
+                                                        active && bookAppointmentStyles.dateChipTopTextActive,
+                                                    ]}
+                                                >
+                                                    {formatted.labelTop}
+                                                </Text>
+                                                <Text
+                                                    style={[
+                                                        bookAppointmentStyles.dateChipBottomText,
+                                                        active && bookAppointmentStyles.dateChipBottomTextActive,
+                                                    ]}
+                                                >
+                                                    {formatted.labelBottom}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                <TouchableOpacity
+                                    style={bookAppointmentStyles.calendarIconBtn}
+                                    onPress={() => updateForm('showCalendarModal', true)}
+                                    activeOpacity={0.8}
+                                >
+                                    <CalendarIcon size={22} color={theme.colors.primaryDark} />
+                                </TouchableOpacity>
+                            </ScrollView>
+                        )}
+
+                        {formStates.selectedDate && (
+                            <>
+                                <Text style={bookAppointmentStyles.sectionLabel}>
+                                    {t('bookAppointmentScreen.selectTimeLabel')}
+                                </Text>
+                                <TimeSlotPicker
+                                    availSlots={slotsRes?.slots || []}
+                                    selectedSlots={formStates.selectedSlots}
+                                    multiSelect={false}
+                                    onSelectSlots={handleSlotSelect}
+                                    isLoading={isSlotsPending}
+                                />
+                            </>
+                        )}
+
+                        <View style={bookAppointmentStyles.summaryBox}>
+                            <Text style={bookAppointmentStyles.summaryTitle}>
+                                {t('bookAppointmentScreen.appointmentSummary')}
+                            </Text>
+
+                            <View style={bookAppointmentStyles.summaryRow}>
+                                <Text style={bookAppointmentStyles.summaryLabel}>
+                                    {t('bookAppointmentScreen.doctorLabel')}
+                                </Text>
+                                <Text style={bookAppointmentStyles.summaryValue}>
+                                    {docSummary?.doctor?.name || 'N/A'}
+                                </Text>
+                            </View>
+
+                            <View style={bookAppointmentStyles.summaryRow}>
+                                <Text style={bookAppointmentStyles.summaryLabel}>
+                                    {t('bookAppointmentScreen.clinicLabel')}
+                                </Text>
+                                <Text style={bookAppointmentStyles.summaryValue}>
+                                    {docSummary?.clinic?.name || 'N/A'}
+                                </Text>
+                            </View>
+
+                            <View style={bookAppointmentStyles.summaryRow}>
+                                <Text style={bookAppointmentStyles.summaryLabel}>
+                                    {t('bookAppointmentScreen.consultationLabel')}
+                                </Text>
+                                <Text style={bookAppointmentStyles.summaryValue}>
+                                    {formStates.consultationType === 'in-person' ? 'In-Person' : 'Video Call'}
+                                </Text>
+                            </View>
+
+                            <View style={bookAppointmentStyles.summaryRow}>
+                                <Text style={bookAppointmentStyles.summaryLabel}>
+                                    {t('bookAppointmentScreen.dateLabel')}
+                                </Text>
+                                <Text style={bookAppointmentStyles.summaryValue}>
+                                    {formStates.selectedDate
+                                        ? formatDateChip(formStates.selectedDate).full
+                                        : t('bookAppointmentScreen.notSelected')}
+                                </Text>
+                            </View>
+
+                            <View style={bookAppointmentStyles.summaryRow}>
+                                <Text style={bookAppointmentStyles.summaryLabel}>
+                                    {t('bookAppointmentScreen.timeLabel')}
+                                </Text>
+                                <Text style={bookAppointmentStyles.summaryValue}>
+                                    {formStates.selectedSlots.length > 0
+                                        ? `${formatTime12h(formStates.selectedSlots[0].from)} - ${formatTime12h(
+                                            formStates.selectedSlots[formStates.selectedSlots.length - 1].to
+                                        )}${formStates.selectedSlots.length > 1
+                                            ? ` (${formStates.selectedSlots.length} slots)`
+                                            : ''
+                                        }`
+                                        : t('bookAppointmentScreen.notSelected')}
+                                </Text>
+                            </View>
+
+                            {!isFeeHidden && consultationFee > 0 && (
+                                <View style={bookAppointmentStyles.summaryRow}>
+                                    <Text style={bookAppointmentStyles.summaryLabel}>
+                                        {t('bookAppointmentScreen.consultationFee')}
+                                    </Text>
+                                    <Text style={bookAppointmentStyles.summaryValue}>₹{consultationFee}</Text>
+                                </View>
+                            )}
+
+                            {!isFeeHidden && consultationFee > 0 && (
+                                <View style={bookAppointmentStyles.summaryRow}>
+                                    <Text style={bookAppointmentStyles.summaryLabel}>
+                                        {t('bookAppointmentScreen.platformFee')}
+                                    </Text>
+                                    {isPlatformFeeSlabsPending ? (
+                                        <ActivityIndicator size="small" color={theme.colors.primaryDark} />
+                                    ) : (
+                                        <Text style={bookAppointmentStyles.summaryValue}>₹{platformFee}</Text>
+                                    )}
+                                </View>
+                            )}
+
+                            {!isFeeHidden && consultationFee > 0 && <View style={bookAppointmentStyles.divider} />}
+
+                            {!isFeeHidden && consultationFee > 0 && (
+                                <View style={bookAppointmentStyles.summaryRow}>
+                                    <Text style={bookAppointmentStyles.totalLabel}>
+                                        {t('bookAppointmentScreen.totalAmount')}
+                                    </Text>
+                                    {isPlatformFeeSlabsPending ? (
+                                        <ActivityIndicator size="small" color={theme.colors.primaryDark} />
+                                    ) : (
+                                        <Text style={bookAppointmentStyles.totalValue}>₹{totalAmount}</Text>
+                                    )}
+                                </View>
+                            )}
+                        </View>
+                    </ScrollView>
+
+                    <View style={bookAppointmentStyles.footer}>
+                        <TouchableOpacity
+                            style={[
+                                bookAppointmentStyles.proceedBtn,
+                                (!formStates.selectedDate ||
+                                    formStates.selectedSlots.length === 0 ||
+                                    (!isFeeHidden && isPlatformFeeSlabsPending)) && { opacity: 0.6 },
+                            ]}
+                            disabled={
+                                !formStates.selectedDate ||
+                                formStates.selectedSlots.length === 0 ||
+                                (!isFeeHidden && isPlatformFeeSlabsPending)
+                            }
+                            activeOpacity={0.85}
+                            onPress={handleProceed}
+                        >
+                            {!isFeeHidden && isPlatformFeeSlabsPending ? (
+                                <ActivityIndicator color={theme.colors.surface} />
+                            ) : (
+                                <Text style={bookAppointmentStyles.proceedBtnText}>
+                                    {t('bookAppointmentScreen.bookAppointmentBtn')}{' '}
+                                    {!isFeeHidden && totalAmount > 0 && `• ₹${totalAmount}`}
+                                </Text>
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                </KeyboardAvoidingView>
             </View>
             <CalendarDatePickerModal
                 visible={formStates.showCalendarModal}

@@ -1,12 +1,13 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigation } from '@react-navigation/native';
 import dayjs from 'dayjs';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     Image,
+    KeyboardAvoidingView,
     Platform,
     ScrollView,
     Text,
@@ -46,6 +47,8 @@ export const ProfileSetupScreen: React.FC = () => {
     const [showStatePicker, setShowStatePicker] = useState<boolean>(false);
     const [showCityPicker, setShowCityPicker] = useState<boolean>(false);
     const [showUploadOptions, setShowUploadOptions] = useState<boolean>(false);
+    const formContainerRef = useRef<React.ComponentRef<typeof View>>(null);
+    const [keyboardOffset, setKeyboardOffset] = useState(0);
 
     const { data: profileData } = useProfile();
     const { mutate: updateProfileMutation, isPending } = useUpdateProfile();
@@ -308,11 +311,22 @@ export const ProfileSetupScreen: React.FC = () => {
                 />
             }
         >
-            <ScrollView
-                contentContainerStyle={[memberStyles.scrollContent, { paddingHorizontal: 20 }]}
-                showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled"
+            <View
+                ref={formContainerRef}
+                style={memberStyles.keyboardView}
+                onLayout={() => formContainerRef.current?.measureInWindow((_x, y) => setKeyboardOffset(y))}
             >
+                <KeyboardAvoidingView
+                    style={memberStyles.keyboardView}
+                    behavior="padding"
+                    keyboardVerticalOffset={keyboardOffset}
+                >
+                    <ScrollView
+                        style={memberStyles.keyboardView}
+                        contentContainerStyle={[memberStyles.scrollContent, { paddingHorizontal: 20 }]}
+                        showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
+                    >
                 <View style={memberStyles.profilePicSection}>
                     <TouchableOpacity
                         style={memberStyles.profilePicContainer}
@@ -627,7 +641,9 @@ export const ProfileSetupScreen: React.FC = () => {
                         <Text style={memberStyles.saveButtonText}>{t('profileSetup.updateProfile')}</Text>
                     )}
                 </TouchableOpacity>
-            </ScrollView>
+                    </ScrollView>
+                </KeyboardAvoidingView>
+            </View>
             <PredDatePickerModal
                 visible={showDatePicker}
                 value={currentDob || new Date(1995, 0, 1)}

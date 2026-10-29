@@ -57,6 +57,7 @@ export const StepDocumentDetails: React.FC<StepDocumentDetailsProps> = ({
 
   return (
     <ScrollView
+      style={uploadRecordStyles.keyboardView}
       contentContainerStyle={uploadRecordStyles.step3Scroll}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"

@@ -1,8 +1,8 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigation } from '@react-navigation/native';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Platform, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Text, View } from 'react-native';
 import { queryClient } from '../../../components/providers/ReactQueryProvider';
 import { MAX_COMPRESS_FILE_BYTES } from '../../../config/constants';
 import { useCompressFile } from '../../../hooks/commons/useCompressFile';
@@ -30,6 +30,8 @@ import {
 export const UploadHealthRecordScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
+  const formContainerRef = useRef<React.ComponentRef<typeof View>>(null);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
   const { hideLoader, showLoader } = useLoadingStore();
   const appointmentId = useMeetingStore(state => state.appointmentId);
   const { mutate: uploadEmrMutation, isPending: isUploading } = useUploadEMR();
@@ -196,17 +198,29 @@ export const UploadHealthRecordScreen: React.FC = () => {
         />
       )}
       {currentStep === 3 && (
-        <StepDocumentDetails
-          control={control}
-          errors={errors}
-          selectedCategory={selectedCategory}
-          file={attachedFile}
-          shareDoctorIds={shareDoctorIds}
-          onToggleDoctor={handleToggleDoctor}
-          onChangeCategoryPress={() => setCurrentStep(1)}
-          onSubmit={handleSubmit(onSubmit)}
-          isSubmitting={isUploading}
-        />
+        <View
+          ref={formContainerRef}
+          style={uploadRecordStyles.keyboardView}
+          onLayout={() => formContainerRef.current?.measureInWindow((_x, y) => setKeyboardOffset(y))}
+        >
+          <KeyboardAvoidingView
+            style={uploadRecordStyles.keyboardView}
+            behavior="padding"
+            keyboardVerticalOffset={keyboardOffset}
+          >
+            <StepDocumentDetails
+              control={control}
+              errors={errors}
+              selectedCategory={selectedCategory}
+              file={attachedFile}
+              shareDoctorIds={shareDoctorIds}
+              onToggleDoctor={handleToggleDoctor}
+              onChangeCategoryPress={() => setCurrentStep(1)}
+              onSubmit={handleSubmit(onSubmit)}
+              isSubmitting={isUploading}
+            />
+          </KeyboardAvoidingView>
+        </View>
       )}
     </SafeAreaWrapper>
   );

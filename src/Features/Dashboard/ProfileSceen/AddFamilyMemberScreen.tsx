@@ -1,11 +1,12 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import dayjs from 'dayjs';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
+    KeyboardAvoidingView,
     ScrollView,
     Text,
     TextInput,
@@ -60,6 +61,8 @@ export const AddNewMemberScreen: React.FC = () => {
     const [showGenderPicker, setShowGenderPicker] = useState<boolean>(false);
     const hideLoader = useLoadingStore(state => state.hideLoader);
     const showLoader = useLoadingStore(state => state.showLoader);
+    const formContainerRef = useRef<React.ComponentRef<typeof View>>(null);
+    const [keyboardOffset, setKeyboardOffset] = useState(0);
     const {
         control,
         handleSubmit,
@@ -170,14 +173,25 @@ export const AddNewMemberScreen: React.FC = () => {
                 />
             }
         >
-            {memberId && isGetFamilyMemberInfoLoading ? (
-                <AddFamilyMemberSkeleton />
-            ) : (
-                <ScrollView
-                    contentContainerStyle={memberStyles.scrollContent}
-                    showsVerticalScrollIndicator={false}
-                    keyboardShouldPersistTaps="handled"
+            <View
+                ref={formContainerRef}
+                style={memberStyles.keyboardView}
+                onLayout={() => formContainerRef.current?.measureInWindow((_x, y) => setKeyboardOffset(y))}
+            >
+                <KeyboardAvoidingView
+                    style={memberStyles.keyboardView}
+                    behavior="padding"
+                    keyboardVerticalOffset={keyboardOffset}
                 >
+                    {memberId && isGetFamilyMemberInfoLoading ? (
+                        <AddFamilyMemberSkeleton />
+                    ) : (
+                        <ScrollView
+                            style={memberStyles.keyboardView}
+                            contentContainerStyle={memberStyles.scrollContent}
+                            showsVerticalScrollIndicator={false}
+                            keyboardShouldPersistTaps="handled"
+                        >
                     <View style={memberStyles.inheritedBanner}>
                         <InfoCircleIcon size={18} color={theme.colors.primaryDark} />
                         <Text style={memberStyles.inheritedText}>{t('addNewMember.inheritedInfoBanner')}</Text>
@@ -375,8 +389,10 @@ export const AddNewMemberScreen: React.FC = () => {
                             </Text>
                         )}
                     </TouchableOpacity>
-                </ScrollView>
-            )}
+                        </ScrollView>
+                    )}
+                </KeyboardAvoidingView>
+            </View>
             <CustomDropDownPicker
                 visible={showRelationPicker}
                 title={t('addNewMember.relation')}

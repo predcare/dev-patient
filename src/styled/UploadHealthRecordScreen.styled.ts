@@ -6,6 +6,9 @@ export const uploadRecordStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
+  keyboardView: {
+    flex: 1,
+  },
   headerBadge: {
     backgroundColor: theme.colors.primarySoft,
     paddingHorizontal: 12,

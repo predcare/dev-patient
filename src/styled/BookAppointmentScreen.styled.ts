@@ -6,6 +6,9 @@ export const bookAppointmentStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
+  keyboardView: {
+    flex: 1,
+  },
   scroll: {
     flex: 1,
   },

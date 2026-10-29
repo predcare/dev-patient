@@ -6,6 +6,9 @@ export const memberStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
+  keyboardView: {
+    flex: 1,
+  },
   scrollContent: {
     paddingBottom: 32,
   },

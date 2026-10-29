@@ -1,15 +1,18 @@
+import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  FlatList,
   Modal,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  ViewStyle,
 } from 'react-native';
+import { CalendarIcon } from '../../ui/icons';
 import { theme } from '../../../styled/theme.styled';
 
 export interface PredDatePickerModalProps {
@@ -26,9 +29,10 @@ export interface PredDatePickerModalProps {
   closeOnTouchOutside?: boolean;
 }
 
-const ITEM_HEIGHT = 44;
-const VISIBLE_ITEMS = 3;
-const WHEEL_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
+const ITEM_HEIGHT = 46;
+const VISIBLE_ITEMS = 5;
+const WHEEL_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS; // 230px
+const PADDING_VERTICAL = ITEM_HEIGHT * Math.floor(VISIBLE_ITEMS / 2); // 92px
 
 const MONTH_NAMES = [
   'January',
@@ -49,63 +53,119 @@ interface WheelColumnProps<T> {
   data: T[];
   selectedIndex: number;
   onSelect: (index: number) => void;
-  renderLabel: (item: T) => string;
+  renderLabel?: (item: T) => string;
+  visible?: boolean;
+  style?: ViewStyle;
 }
 
-function WheelColumn<T>({ data, selectedIndex, onSelect, renderLabel }: WheelColumnProps<T>) {
-  const flatListRef = useRef<FlatList>(null);
+function WheelColumn<T>({
+  data,
+  selectedIndex,
+  onSelect,
+  renderLabel,
+  visible,
+  style,
+}: WheelColumnProps<T>) {
+  const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
+  const isUserScrolling = useRef(false);
+  const lastReportedIndex = useRef(selectedIndex);
 
+  // Sync scroll position when selectedIndex changes externally (not during user drag/momentum)
   useEffect(() => {
-    if (flatListRef.current && selectedIndex >= 0 && selectedIndex < data.length) {
-      flatListRef.current.scrollToOffset({
-        offset: selectedIndex * ITEM_HEIGHT,
-        animated: true,
-      });
+    if (isUserScrolling.current) return;
+    if (selectedIndex >= 0 && selectedIndex < data.length) {
+      if (lastReportedIndex.current !== selectedIndex) {
+        lastReportedIndex.current = selectedIndex;
+        scrollRef.current?.scrollTo({
+          y: selectedIndex * ITEM_HEIGHT,
+          animated: true,
+        });
+      }
     }
   }, [selectedIndex, data.length]);
 
+  // When modal becomes visible, ensure exact alignment without jump
+  useEffect(() => {
+    if (visible) {
+      lastReportedIndex.current = selectedIndex;
+      const timer = setTimeout(() => {
+        scrollRef.current?.scrollTo({
+          y: Math.max(0, selectedIndex * ITEM_HEIGHT),
+          animated: false,
+        });
+      }, 40);
+      return () => clearTimeout(timer);
+    }
+  }, [visible]);
+
+  const commitIndex = (index: number) => {
+    const clamped = Math.max(0, Math.min(data.length - 1, index));
+    if (clamped !== lastReportedIndex.current) {
+      lastReportedIndex.current = clamped;
+      onSelect(clamped);
+    }
+  };
+
   const handleMomentumScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    isUserScrolling.current = false;
     const offsetY = e.nativeEvent.contentOffset.y;
     const index = Math.round(offsetY / ITEM_HEIGHT);
-    const clampedIndex = Math.max(0, Math.min(index, data.length - 1));
-    if (clampedIndex !== selectedIndex) {
-      onSelect(clampedIndex);
+    commitIndex(index);
+  };
+
+  const handleScrollEndDrag = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const velocityY = e.nativeEvent.velocity?.y ?? 0;
+    // If released gently with low momentum, handle snapping immediately
+    if (Math.abs(velocityY) < 0.1) {
+      isUserScrolling.current = false;
+      const offsetY = e.nativeEvent.contentOffset.y;
+      const index = Math.round(offsetY / ITEM_HEIGHT);
+      const clamped = Math.max(0, Math.min(data.length - 1, index));
+      scrollRef.current?.scrollTo({
+        y: clamped * ITEM_HEIGHT,
+        animated: true,
+      });
+      commitIndex(clamped);
     }
   };
 
   const handleItemPress = (index: number) => {
-    if (index !== selectedIndex) {
-      onSelect(index);
-      flatListRef.current?.scrollToOffset({
-        offset: index * ITEM_HEIGHT,
-        animated: true,
-      });
-    }
+    isUserScrolling.current = false;
+    commitIndex(index);
+    scrollRef.current?.scrollTo({
+      y: index * ITEM_HEIGHT,
+      animated: true,
+    });
   };
 
   return (
-    <View style={PredDatePickerstyles.columnContainer}>
-      <FlatList
-        ref={flatListRef}
-        data={data}
-        keyExtractor={(_, i) => i.toString()}
+    <View style={[PredDatePickerstyles.columnContainer, style]}>
+      <ScrollView
+        ref={scrollRef}
         showsVerticalScrollIndicator={false}
         snapToInterval={ITEM_HEIGHT}
+        snapToAlignment="center"
         decelerationRate="fast"
-        keyboardShouldPersistTaps="handled"
-        onMomentumScrollEnd={handleMomentumScrollEnd}
-        getItemLayout={(_, index) => ({
-          length: ITEM_HEIGHT,
-          offset: ITEM_HEIGHT * index,
-          index,
-        })}
-        contentContainerStyle={{
-          paddingVertical: ITEM_HEIGHT, // Center single active item in middle row
+        nestedScrollEnabled={true}
+        overScrollMode="never"
+        scrollEventThrottle={16}
+        contentOffset={{ x: 0, y: Math.max(0, selectedIndex * ITEM_HEIGHT) }}
+        onScrollBeginDrag={() => {
+          isUserScrolling.current = true;
         }}
-        renderItem={({ item, index }) => {
-          const isSelected = index === selectedIndex;
+        onMomentumScrollEnd={handleMomentumScrollEnd}
+        onScrollEndDrag={handleScrollEndDrag}
+        contentContainerStyle={{
+          paddingVertical: PADDING_VERTICAL,
+        }}
+      >
+        {data.map((item, index) => {
+          const distance = Math.abs(index - selectedIndex);
+          const isSelected = distance === 0;
+
           return (
             <TouchableOpacity
+              key={`${item}-${index}`}
               activeOpacity={0.7}
               style={PredDatePickerstyles.wheelItem}
               onPress={() => handleItemPress(index)}
@@ -115,16 +175,18 @@ function WheelColumn<T>({ data, selectedIndex, onSelect, renderLabel }: WheelCol
                   PredDatePickerstyles.wheelText,
                   isSelected
                     ? PredDatePickerstyles.selectedWheelText
-                    : PredDatePickerstyles.unselectedWheelText,
+                    : distance === 1
+                    ? PredDatePickerstyles.nearWheelText
+                    : PredDatePickerstyles.farWheelText,
                 ]}
                 numberOfLines={1}
               >
-                {renderLabel(item)}
+                {renderLabel ? renderLabel(item) : String(item)}
               </Text>
             </TouchableOpacity>
           );
-        }}
-      />
+        })}
+      </ScrollView>
     </View>
   );
 }
@@ -194,6 +256,13 @@ export const PredDatePickerModal: React.FC<PredDatePickerModalProps> = React.mem
       }
     }, [daysInMonth, selectedDay]);
 
+    // Live formatted display date for preview header
+    const formattedDisplayDate = useMemo(() => {
+      const maxDays = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+      const validDay = Math.min(selectedDay, maxDays);
+      return dayjs(new Date(selectedYear, selectedMonth, validDay)).format('DD MMMM YYYY');
+    }, [selectedYear, selectedMonth, selectedDay]);
+
     // Trigger optional real-time onChange callback
     const handleDateChange = useCallback(
       (newDay: number, newMonth: number, newYear: number) => {
@@ -243,38 +312,56 @@ export const PredDatePickerModal: React.FC<PredDatePickerModalProps> = React.mem
           <TouchableWithoutFeedback>
             <View style={PredDatePickerstyles.cardContainer}>
               <Text style={PredDatePickerstyles.modalTitle}>{title}</Text>
-              <View style={PredDatePickerstyles.columnHeaderRow}>
-                <Text style={PredDatePickerstyles.columnHeaderText}>Day</Text>
-                <Text style={PredDatePickerstyles.columnHeaderText}>Month</Text>
-                <Text style={PredDatePickerstyles.columnHeaderText}>Year</Text>
+
+              {/* Formatted live preview badge */}
+              <View style={PredDatePickerstyles.dateBadge}>
+                <CalendarIcon size={14} color={theme.colors.primary} />
+                <Text style={PredDatePickerstyles.dateBadgeText}>{formattedDisplayDate}</Text>
               </View>
+
+              {/* Column headers */}
+              <View style={PredDatePickerstyles.columnHeaderRow}>
+                <Text style={[PredDatePickerstyles.columnHeaderText, { flex: 1 }]}>Day</Text>
+                <Text style={[PredDatePickerstyles.columnHeaderText, { flex: 1.8 }]}>Month</Text>
+                <Text style={[PredDatePickerstyles.columnHeaderText, { flex: 1.2 }]}>Year</Text>
+              </View>
+
+              {/* Wheels */}
               <View style={PredDatePickerstyles.pickerWrapper}>
                 <View style={PredDatePickerstyles.selectionHighlightPill} pointerEvents="none" />
 
                 <View style={PredDatePickerstyles.wheelsRow}>
                   <WheelColumn
+                    style={PredDatePickerstyles.dayColumn}
                     data={days}
                     selectedIndex={dayIndex}
                     onSelect={handleDaySelect}
-                    renderLabel={item => item.toString()}
+                    renderLabel={item => String(item).padStart(2, '0')}
+                    visible={visible}
                   />
                   <WheelColumn
+                    style={PredDatePickerstyles.monthColumn}
                     data={MONTH_NAMES}
                     selectedIndex={selectedMonth}
                     onSelect={handleMonthSelect}
                     renderLabel={item => item}
+                    visible={visible}
                   />
                   <WheelColumn
+                    style={PredDatePickerstyles.yearColumn}
                     data={years}
                     selectedIndex={yearIndex}
                     onSelect={handleYearSelect}
-                    renderLabel={item => item.toString()}
+                    renderLabel={item => String(item)}
+                    visible={visible}
                   />
                 </View>
               </View>
+
+              {/* Action Buttons */}
               <View style={PredDatePickerstyles.footerRow}>
                 <TouchableOpacity
-                  style={PredDatePickerstyles.actionBtn}
+                  style={PredDatePickerstyles.cancelBtn}
                   onPress={onCancel}
                   activeOpacity={0.7}
                 >
@@ -282,9 +369,9 @@ export const PredDatePickerModal: React.FC<PredDatePickerModalProps> = React.mem
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={PredDatePickerstyles.actionBtn}
+                  style={PredDatePickerstyles.confirmBtn}
                   onPress={handleConfirmPress}
-                  activeOpacity={0.7}
+                  activeOpacity={0.85}
                 >
                   <Text style={PredDatePickerstyles.confirmBtnText}>{confirmText}</Text>
                 </TouchableOpacity>
@@ -300,59 +387,82 @@ export const PredDatePickerModal: React.FC<PredDatePickerModalProps> = React.mem
 export const PredDatePickerstyles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.45)',
+    backgroundColor: 'rgba(15, 23, 42, 0.55)',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
   cardContainer: {
-    width: '90%',
-    maxWidth: 340,
+    width: '92%',
+    maxWidth: 360,
     backgroundColor: theme.colors.surface,
     borderRadius: 24,
     paddingTop: 22,
-    paddingBottom: 18,
+    paddingBottom: 20,
     paddingHorizontal: 20,
-    shadowColor: theme.colors.cardShadow,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowColor: theme.colors.cardShadow || '#0F172A',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
+    elevation: 10,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: theme.colors.textPrimary,
     textAlign: 'center',
+    marginBottom: 8,
+  },
+  dateBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    gap: 6,
+    backgroundColor: theme.colors.primarySoft || '#F0FDFA',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(13, 148, 136, 0.18)',
+  },
+  dateBadgeText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: theme.colors.primaryDark || '#0F766E',
   },
   columnHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    marginBottom: 6,
+    paddingHorizontal: 8,
+    marginBottom: 4,
   },
   columnHeaderText: {
-    flex: 1,
     textAlign: 'center',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: theme.colors.textMuted,
+    color: theme.colors.textMuted || '#94A3B8',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   pickerWrapper: {
     height: WHEEL_HEIGHT,
     position: 'relative',
     justifyContent: 'center',
     marginVertical: 4,
+    overflow: 'hidden',
   },
   selectionHighlightPill: {
     position: 'absolute',
-    left: 4,
-    right: 4,
-    top: ITEM_HEIGHT,
+    left: 0,
+    right: 0,
+    top: ITEM_HEIGHT * 2,
     height: ITEM_HEIGHT,
     backgroundColor: theme.colors.primarySoft || '#F0FDFA',
     borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: 'rgba(13, 148, 136, 0.22)',
     zIndex: 0,
   },
   wheelsRow: {
@@ -361,8 +471,16 @@ export const PredDatePickerstyles = StyleSheet.create({
     zIndex: 1,
   },
   columnContainer: {
-    flex: 1,
     height: WHEEL_HEIGHT,
+  },
+  dayColumn: {
+    flex: 1,
+  },
+  monthColumn: {
+    flex: 1.8,
+  },
+  yearColumn: {
+    flex: 1.2,
   },
   wheelItem: {
     height: ITEM_HEIGHT,
@@ -374,36 +492,59 @@ export const PredDatePickerstyles = StyleSheet.create({
     textAlign: 'center',
   },
   selectedWheelText: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
-    color: theme.colors.primary,
+    color: theme.colors.primaryDark || '#0D9488',
   },
-  unselectedWheelText: {
-    fontSize: 15,
+  nearWheelText: {
+    fontSize: 14.5,
+    fontWeight: '500',
+    color: theme.colors.textPrimary || '#1E293B',
+    opacity: 0.55,
+  },
+  farWheelText: {
+    fontSize: 13.5,
     fontWeight: '400',
     color: theme.colors.textMuted || '#94A3B8',
+    opacity: 0.28,
   },
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 18,
-    paddingHorizontal: 8,
+    marginTop: 20,
+    gap: 12,
   },
-  actionBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+  cancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.surfaceSecondary || '#F1F5F9',
   },
   cancelBtnText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-    color: theme.colors.textSlate || '#64748B',
+    color: theme.colors.textSecondary || '#475569',
+  },
+  confirmBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.primaryDark || '#0D9488',
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
   },
   confirmBtnText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
-    color: theme.colors.primary,
+    color: theme.colors.surface || '#FFFFFF',
   },
 });
 
