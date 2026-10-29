@@ -6,6 +6,9 @@ export const supportStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
+  keyboardView: {
+    flex: 1,
+  },
   hdrIcon: {
     width: 36,
     height: 36,

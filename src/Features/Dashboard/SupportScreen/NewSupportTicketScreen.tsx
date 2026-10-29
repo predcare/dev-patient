@@ -1,11 +1,12 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Image,
+  KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
@@ -66,6 +67,8 @@ export const NewSupportTicketScreen: React.FC = () => {
   const { t } = useTranslation();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const formContainerRef = useRef<React.ComponentRef<typeof View>>(null);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
 
   const [showCatModal, setShowCatModal] = useState<boolean>(false);
   const [showUploadOptions, setShowUploadOptions] = useState<boolean>(false);
@@ -272,14 +275,25 @@ export const NewSupportTicketScreen: React.FC = () => {
         />
       }
     >
-      <ScrollView
-        contentContainerStyle={[
-          supportStyles.scroll,
-          { paddingBottom: Math.max(insets.bottom, 24) + 20 },
-        ]}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+      <View
+        ref={formContainerRef}
+        style={supportStyles.keyboardView}
+        onLayout={() => formContainerRef.current?.measureInWindow((_x, y) => setKeyboardOffset(y))}
       >
+        <KeyboardAvoidingView
+          style={supportStyles.keyboardView}
+          behavior="padding"
+          keyboardVerticalOffset={keyboardOffset}
+        >
+          <ScrollView
+            style={supportStyles.keyboardView}
+            contentContainerStyle={[
+              supportStyles.scroll,
+              { paddingBottom: Math.max(insets.bottom, 24) + 20 },
+            ]}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
         <Text style={supportStyles.intro}>{t('support.introText')}</Text>
 
         <View style={supportStyles.formCard}>
@@ -375,7 +389,9 @@ export const NewSupportTicketScreen: React.FC = () => {
             <Text style={supportStyles.submitTxt}>{t('support.submitTicket')}</Text>
           )}
         </TouchableOpacity>
-      </ScrollView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </View>
       <CategorySelectModal
         visible={showCatModal}
         categories={categories || []}
