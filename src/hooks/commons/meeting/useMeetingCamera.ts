@@ -1,8 +1,23 @@
-import { useMeeting } from '@videosdk.live/react-native-sdk';
-import { useCallback } from 'react';
+import { MediaStream, useMeeting } from '@videosdk.live/react-native-sdk';
+import { useCallback, useRef } from 'react';
 import useMeetingStore from '../../../zustand/stores/useMeetingStore';
+import { createCameraTrack } from './meetingMediaTracks';
+
+const TOGGLE_LOCK_MS = 400;
+
+/** A camera track at the current video tier; undefined lets the SDK open its default camera. */
+const createTierCameraTrack = async (): Promise<MediaStream | undefined> => {
+  try {
+    return await createCameraTrack(useMeetingStore.getState().sendTier);
+  } catch (err) {
+    console.warn('[useMeetingCamera] createCameraTrack error:', err);
+    return undefined;
+  }
+};
 
 export const useMeetingCamera = () => {
+  const toggleLockRef = useRef(false);
+
   const { toggleMic: sdkToggleMic, toggleWebcam: sdkToggleWebcam, changeWebcam: sdkChangeWebcam } =
     useMeeting({});
 
@@ -13,40 +28,70 @@ export const useMeetingCamera = () => {
   const setIsCamOn = useMeetingStore(state => state.setIsCamOn);
   const setIsFrontCamera = useMeetingStore(state => state.setIsFrontCamera);
 
-  const toggleMic = useCallback(async () => {
+  // Ignore taps while a toggle is still in flight (double taps on a slow network).
+  const runLocked = useCallback(async (action: () => Promise<void>) => {
+    if (toggleLockRef.current) return;
+    toggleLockRef.current = true;
     try {
-      const nextMuted = !isMuted;
-      setIsMuted(nextMuted);
-      if (sdkToggleMic) {
-        await sdkToggleMic();
-      }
-    } catch (err) {
-      console.error('[useMeetingCamera] toggleMic error:', err);
+      await action();
+    } finally {
+      setTimeout(() => {
+        toggleLockRef.current = false;
+      }, TOGGLE_LOCK_MS);
     }
-  }, [isMuted, setIsMuted, sdkToggleMic]);
+  }, []);
 
-  const toggleCamera = useCallback(async () => {
-    try {
-      const nextCamOn = !isCamOn;
-      setIsCamOn(nextCamOn);
-      if (sdkToggleWebcam) {
-        await sdkToggleWebcam();
-      }
-    } catch (err) {
-      console.error('[useMeetingCamera] toggleCamera error:', err);
-    }
-  }, [isCamOn, setIsCamOn, sdkToggleWebcam]);
+  const toggleMic = useCallback(
+    () =>
+      runLocked(async () => {
+        try {
+          const nextMuted = !isMuted;
+          setIsMuted(nextMuted);
+          if (sdkToggleMic) {
+            await sdkToggleMic();
+          }
+        } catch (err) {
+          console.error('[useMeetingCamera] toggleMic error:', err);
+        }
+      }),
+    [isMuted, runLocked, setIsMuted, sdkToggleMic]
+  );
 
-  const flipCamera = useCallback(async () => {
-    try {
-      setIsFrontCamera(!isFrontCamera);
-      if (sdkChangeWebcam) {
-        await sdkChangeWebcam();
-      }
-    } catch (err) {
-      console.error('[useMeetingCamera] flipCamera error:', err);
-    }
-  }, [isFrontCamera, setIsFrontCamera, sdkChangeWebcam]);
+  const toggleCamera = useCallback(
+    () =>
+      runLocked(async () => {
+        try {
+          const nextCamOn = !isCamOn;
+          // Turning on: open the camera at the current tier, not the SDK's HD default.
+          const track = nextCamOn ? await createTierCameraTrack() : undefined;
+          setIsCamOn(nextCamOn);
+          if (sdkToggleWebcam) {
+            await sdkToggleWebcam(track);
+          }
+        } catch (err) {
+          console.error('[useMeetingCamera] toggleCamera error:', err);
+        }
+      }),
+    [isCamOn, runLocked, setIsCamOn, sdkToggleWebcam]
+  );
+
+  const flipCamera = useCallback(
+    () =>
+      runLocked(async () => {
+        try {
+          setIsFrontCamera(!isFrontCamera);
+          if (!sdkChangeWebcam) return;
+          if (!useMeetingStore.getState().isCamOn) return;
+          // createCameraTrack reads the new isFrontCamera, so this opens the other camera at the
+          // current tier. If that fails, fall back to the SDK's next-device switch.
+          const track = await createTierCameraTrack();
+          await sdkChangeWebcam(track);
+        } catch (err) {
+          console.error('[useMeetingCamera] flipCamera error:', err);
+        }
+      }),
+    [isFrontCamera, runLocked, setIsFrontCamera, sdkChangeWebcam]
+  );
 
   return {
     isMuted,

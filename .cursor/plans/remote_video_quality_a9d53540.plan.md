@@ -4,10 +4,10 @@ overview: The doctor’s video looks soft because this app never asks VideoSDK f
 todos:
   - id: request-high-layer
     content: Add useDoctorVideoQuality and call setQuality('high') once per doctor track from MeetingSessionController
-    status: pending
+    status: completed
   - id: stable-remote-url
     content: Memoize the remote MediaStream URL in DoctorStageView, InAppPipWindow, and AndroidPipStage
-    status: pending
+    status: completed
 isProject: false
 ---
 

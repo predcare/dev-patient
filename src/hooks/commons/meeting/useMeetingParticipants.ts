@@ -1,12 +1,17 @@
 import { useMeeting, useParticipant } from '@videosdk.live/react-native-sdk';
 import { useEffect, useMemo } from 'react';
+import { MeetingCallState } from '../../../zustand/interfaces/meeting.interfaces';
 import useMeetingStore from '../../../zustand/stores/useMeetingStore';
+import { logMeetingRecovery } from './meetingRecoveryLog';
+
+const RECONNECT_STATES: MeetingCallState[] = ['RECONNECTING', 'DISCONNECTED'];
 
 export const useMeetingParticipants = () => {
   const { participants, localParticipant } = useMeeting({});
   const setDoctorParticipant = useMeetingStore(state => state.setDoctorParticipant);
   const setCallState = useMeetingStore(state => state.setCallState);
   const currentCallState = useMeetingStore(state => state.callState);
+  const bumpRemoteVideoEpoch = useMeetingStore(state => state.bumpRemoteVideoEpoch);
 
   // Identify remote participant (Doctor)
   const doctorId = useMemo(() => {
@@ -19,6 +24,19 @@ export const useMeetingParticipants = () => {
     return null;
   }, [participants, localParticipant?.id]);
 
+  // The SFU can pause the doctor's video on a weak link and resume it with the same track;
+  // re-attach the views on resume so they do not stay frozen or black. Registered once here
+  // (this hook lives in the controller), not in every useDoctorStream caller.
+  useParticipant(doctorId || '', {
+    onStreamPaused: ({ kind, reason }) => {
+      logMeetingRecovery('doctor stream paused', { kind, reason });
+    },
+    onStreamResumed: ({ kind, reason }) => {
+      logMeetingRecovery('doctor stream resumed', { kind, reason });
+      if (kind === 'video') bumpRemoteVideoEpoch();
+    },
+  });
+
   // Sync state machine when doctor joins/leaves
   useEffect(() => {
     if (doctorId) {
@@ -26,7 +44,8 @@ export const useMeetingParticipants = () => {
       if (currentCallState === 'WAITING_FOR_DOCTOR' || currentCallState === 'CONNECTING') {
         setCallState('CONNECTED');
       }
-    } else {
+    } else if (!RECONNECT_STATES.includes(currentCallState)) {
+      // During a reconnect the participant list empties briefly; keep the doctor until it settles.
       setDoctorParticipant({ id: null, webcamOn: false });
       if (currentCallState === 'CONNECTED') {
         setCallState('WAITING_FOR_DOCTOR');
@@ -77,28 +96,6 @@ export const useDoctorStream = (doctorId: string | null) => {
     micOn,
     displayName,
   };
-};
-
-export const useDoctorVideoQuality = (doctorId: string | null) => {
-  const { webcamOn, webcamStream, setQuality } = useParticipant(doctorId || '');
-  const trackId = webcamStream?.track?.id ?? null;
-
-  useEffect(() => {
-    if (!doctorId || !webcamOn || !trackId || typeof setQuality !== 'function') {
-      return;
-    }
-
-    let cancelled = false;
-    setQuality('high').catch(error => {
-      if (!cancelled) {
-        console.warn('[useDoctorVideoQuality] setQuality(high) failed:', error);
-      }
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [doctorId, webcamOn, trackId, setQuality]);
 };
 
 export default useMeetingParticipants;

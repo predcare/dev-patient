@@ -13,6 +13,8 @@ const PIP_ELIGIBLE_STATES: MeetingCallState[] = [
   'WAITING_FOR_DOCTOR',
   'CONNECTED',
   'RECONNECTING',
+  // Rejoining after a drop: keep the call alive while a fresh session starts.
+  'DISCONNECTED',
 ];
 
 const goToMeetingScreen = () => {

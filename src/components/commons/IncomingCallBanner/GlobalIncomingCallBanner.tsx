@@ -1,6 +1,8 @@
 import React from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { queryClient } from '../../../components/providers/ReactQueryProvider';
+import { setPendingTracks } from '../../../hooks/commons/meeting/meetingMediaTracks';
+import { openJoinTracks, releaseJoinTracks } from '../../../hooks/commons/meeting/useJoinVideoCall';
 import useDevicePermissions from '../../../hooks/commons/useDevicePermissions';
 import {
   getApptInfo,
@@ -43,6 +45,11 @@ export const GlobalIncomingCallBanner: React.FC = () => {
       return;
     }
 
+    // Open the mic and camera while the appointment and token load; handed to the provider on
+    // success, released on any failure.
+    const tracksPromise = openJoinTracks();
+    let tracksHandedOver = false;
+
     try {
       showLoader('Joining Video Call...');
 
@@ -65,6 +72,8 @@ export const GlobalIncomingCallBanner: React.FC = () => {
         return;
       }
 
+      setPendingTracks(await tracksPromise);
+      tracksHandedOver = true;
       setCallInfo({
         token: tokenRes.data.token,
         meeting_id: tokenRes.data.meeting_id,
@@ -81,6 +90,7 @@ export const GlobalIncomingCallBanner: React.FC = () => {
       console.error('[GlobalIncomingCallBanner] Join failed:', error);
       showErrorToast('Failed to join the call. Please try again.');
     } finally {
+      if (!tracksHandedOver) releaseJoinTracks(await tracksPromise);
       hideLoader();
     }
   };

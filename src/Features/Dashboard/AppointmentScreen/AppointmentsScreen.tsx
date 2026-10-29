@@ -15,11 +15,9 @@ import SafeAreaWrapper from '../../../Layout/SafeAreaWrapper';
 import CommonErrorCard from '../../../components/commons/CommonErrorCard/CommonErrorCard';
 import { getBottomBarHeight } from '../../../components/commons/CustomBottomBar/CustomBottomBar';
 import { PlusIcon } from '../../../components/ui/icons';
-import useMeetingPermissions from '../../../hooks/commons/meeting/useMeetingPermissions';
-import useMeetingPip from '../../../hooks/commons/meeting/useMeetingPip';
+import useJoinVideoCall from '../../../hooks/commons/meeting/useJoinVideoCall';
 import {
     useCancelMyAppt,
-    useGetToken,
     useMyAppointmentsInfinite,
 } from '../../../hooks/react-query/appointments/appointments.hooks';
 import {
@@ -46,17 +44,15 @@ export const AppointmentsScreen: React.FC = () => {
     const navigation = useNavigation();
     const insets = useSafeAreaInsets();
     const fabBottom = getBottomBarHeight(insets.bottom) + 16;
-    const { restoreToMeeting } = useMeetingPip();
+    const { joinVideoCall } = useJoinVideoCall();
+    const activeMeetingId = useMeetingStore(state => state.callInfo?.meetingId);
+    const activeCallAppointmentId = useMeetingStore(state => state.callInfo?.appointment?.id);
     const [activeTab, setActiveTab] = useState<'upcoming' | 'completed'>('upcoming');
     const [refreshing, setRefreshing] = useState(false);
     const showLoader = useLoadingStore(state => state.showLoader);
     const hideLoader = useLoadingStore(state => state.hideLoader);
     const { showConfirm } = useAlertStore(state => state);
     const { mutate: cancelAppt } = useCancelMyAppt();
-    const { mutate: getToken } = useGetToken();
-    const setCallInfo = useMeetingStore(state => state.setCallInfo);
-    const activeMeetingId = useMeetingStore(state => state.callInfo?.meetingId);
-    const activeCallAppointmentId = useMeetingStore(state => state.callInfo?.appointment?.id);
 
     const statusParam = useMemo(() => {
         return activeTab === 'upcoming'
@@ -126,49 +122,8 @@ export const AppointmentsScreen: React.FC = () => {
         });
     };
 
-    const { requestPermissions } = useMeetingPermissions();
-
     const handleJoinVideoCall = async (apt: IMyAppointmentDoc) => {
-        if (!apt?.id) return;
-        if (activeMeetingId && String(activeCallAppointmentId) === String(apt.id)) {
-            restoreToMeeting();
-            return;
-        }
-
-        const hasPermissions = await requestPermissions();
-        if (!hasPermissions) {
-            showErrorToast(
-                'Camera and microphone permissions are required to join the video consultation.'
-            );
-            return;
-        }
-
-        showLoader("Joining Video Call...");
-        getToken(
-            {
-                appointmentId: String(apt.id),
-            },
-            {
-                onSuccess: async res => {
-                    const videoCallData = res?.data
-                    if (res?.data && res?.success) {
-                        setCallInfo({
-                            token: videoCallData?.token,
-                            meeting_id: videoCallData?.meeting_id,
-                            appointment: videoCallData?.appointment,
-                            doctorInfo: {
-                                name: videoCallData?.doctor?.name,
-                                doctorId: videoCallData?.doctor?.id
-                            },
-                        });
-                        navigation.navigate(AppRoute.MEETING);
-                    }
-                },
-                onSettled: () => {
-                    hideLoader();
-                },
-            }
-        );
+        await joinVideoCall(apt?.id);
     };
 
     return (

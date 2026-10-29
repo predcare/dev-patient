@@ -1,5 +1,5 @@
 import { MediaStream, RTCView } from '@videosdk.live/react-native-sdk';
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { memo, useEffect, useMemo, useRef } from 'react';
 import {
   Animated,
   PanResponder,
@@ -30,13 +30,18 @@ export const InAppPipWindow: React.FC = () => {
   const callInfo = useMeetingStore(state => state.callInfo);
   const doctorParticipantId = useMeetingStore(state => state.doctorParticipantId);
   const doctorInfo = useMeetingStore(state => state.doctorInfo);
+  const isAudioOnly = useMeetingStore(state => state.videoTier === 'audio');
+  const remoteVideoEpoch = useMeetingStore(state => state.remoteVideoEpoch);
   const { restoreToMeeting } = useMeetingPip();
   const { endCall } = useMeetingConnection();
   const { webcamStream, webcamOn } = useDoctorStream(doctorParticipantId);
-  const remoteTrack = webcamOn && webcamStream ? webcamStream.track : null;
+  const remoteTrack = !isAudioOnly && webcamOn && webcamStream ? webcamStream.track : null;
+  // remoteVideoEpoch: a resumed stream or a reconnect can keep the same track object,
+  // so the view needs a fresh URL / remount to show frames again.
   const remoteStreamURL = useMemo(
     () => (remoteTrack ? new MediaStream([remoteTrack]).toURL() : null),
-    [remoteTrack],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [remoteTrack, remoteVideoEpoch],
   );
 
   const doctorName = doctorInfo?.name || 'Doctor';
@@ -128,6 +133,7 @@ export const InAppPipWindow: React.FC = () => {
           <View style={inAppPipStyles.videoContainer}>
             {remoteStreamURL ? (
               <RTCView
+                key={remoteVideoEpoch}
                 streamURL={remoteStreamURL}
                 objectFit="cover"
                 style={StyleSheet.absoluteFill}
@@ -169,4 +175,4 @@ export const InAppPipWindow: React.FC = () => {
   );
 };
 
-export default InAppPipWindow;
+export default memo(InAppPipWindow);

@@ -13,10 +13,8 @@ import {
   StethoscopeIcon,
   VideoIcon,
 } from '../../../../components/ui/icons';
-import useMeetingPermissions from '../../../../hooks/commons/meeting/useMeetingPermissions';
-import useMeetingPip from '../../../../hooks/commons/meeting/useMeetingPip';
+import useJoinVideoCall from '../../../../hooks/commons/meeting/useJoinVideoCall';
 import {
-  useGetToken,
   useMyAppointments,
 } from '../../../../hooks/react-query/appointments/appointments.hooks';
 import {
@@ -26,12 +24,10 @@ import {
   resolveAppointmentDurationMinutes,
   shouldHideJoinForCallDuration,
 } from '../../../../lib/common/common.utils';
-import { showErrorToast } from '../../../../lib/common/toast.utils';
 import { AppRoute } from '../../../../route';
 import { UpcomingApptStyles } from '../../../../styled/DashboardScreen.styled';
 import theme from '../../../../styled/theme.styled';
 import { IMyAppointmentDoc } from '../../../../typescripts/interfaces/appointments.interfaces';
-import { useLoadingStore } from '../../../../zustand/stores/useLoadingStore';
 import { useMeetingStore } from '../../../../zustand/stores/useMeetingStore';
 
 const getStatusBadgeInfo = (status?: string | null) => {
@@ -146,12 +142,7 @@ const AppointmentCardSkeleton: React.FC = () => {
 export const UpcomingAppointmentsCard: React.FC = () => {
   const navigation = useNavigation<any>();
   const { t } = useTranslation();
-  const { restoreToMeeting } = useMeetingPip();
-  const { requestPermissions } = useMeetingPermissions();
-  const { mutate: getToken } = useGetToken();
-  const showLoader = useLoadingStore(state => state.showLoader);
-  const hideLoader = useLoadingStore(state => state.hideLoader);
-  const setCallInfo = useMeetingStore(state => state.setCallInfo);
+  const { joinVideoCall } = useJoinVideoCall();
   const activeMeetingId = useMeetingStore(state => state.callInfo?.meetingId);
   const activeCallAppointmentId = useMeetingStore(state => state.callInfo?.appointment?.id);
 
@@ -209,59 +200,9 @@ export const UpcomingAppointmentsCard: React.FC = () => {
 
   const handleJoinVideoCall = useCallback(
     async (appointment: IMyAppointmentDoc) => {
-      if (!appointment?.id) return;
-
-      if (activeMeetingId && String(activeCallAppointmentId) === String(appointment.id)) {
-        restoreToMeeting();
-        return;
-      }
-
-      const hasPermissions = await requestPermissions();
-      if (!hasPermissions) {
-        showErrorToast(
-          'Camera and microphone permissions are required to join the video consultation.'
-        );
-        return;
-      }
-
-      showLoader('Joining Video Call...');
-      getToken(
-        { appointmentId: String(appointment.id) },
-        {
-          onSuccess: async res => {
-            const videoCallData = res?.data;
-            if (videoCallData && res?.success) {
-              setCallInfo({
-                token: videoCallData?.token,
-                meeting_id: videoCallData?.meeting_id,
-                appointment: videoCallData?.appointment,
-                doctorInfo: {
-                  name: videoCallData?.doctor?.name,
-                  doctorId: videoCallData?.doctor?.id,
-                },
-              });
-              hideLoader();
-              navigation.navigate(AppRoute.MEETING);
-            }
-          },
-          onError: () => {
-            hideLoader();
-          },
-        }
-      );
+      await joinVideoCall(appointment?.id);
     },
-    [
-      activeMeetingId,
-      activeCallAppointmentId,
-      restoreToMeeting,
-      requestPermissions,
-      getToken,
-      setCallInfo,
-      showLoader,
-      hideLoader,
-      t,
-      navigation,
-    ]
+    [joinVideoCall]
   );
 
   return (

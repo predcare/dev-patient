@@ -12,7 +12,13 @@ const MEETING_NOTIFICATION_ID = 'meeting-ongoing';
 
 // Android 12+ only allows starting the service while the app is in the foreground, which is
 // the case once the meeting has been joined.
-const SERVICE_STATES: MeetingCallState[] = ['WAITING_FOR_DOCTOR', 'CONNECTED', 'RECONNECTING'];
+// DISCONNECTED: rejoining after a drop, keep the call alive while a fresh session starts.
+const SERVICE_STATES: MeetingCallState[] = [
+  'WAITING_FOR_DOCTOR',
+  'CONNECTED',
+  'RECONNECTING',
+  'DISCONNECTED',
+];
 
 const startMeetingService = async (doctorName?: string) => {
   const channelId = await createMeetingOngoingChannel();

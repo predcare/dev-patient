@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
+import { MEETING_OFFLINE_GRACE_MS } from '../../../config/meeting.constants';
+import { endMeetingCall } from '../../../hooks/commons/meeting/meetingSessionLeave';
 import { navigate } from '../../../navigation/navigationRef';
 import { AppRoute } from '../../../route';
 import { noInternetBlockerStyles as styles } from '../../../styled/NoInternetBlocker.styled';
@@ -32,10 +34,10 @@ export const GlobalNoInternetBlocker: React.FC = () => {
   const insets = useSafeAreaInsets();
   const isOffline = useNetworkStore(state => state.isOffline);
   const setNetworkState = useNetworkStore(state => state.setNetworkState);
-  const meetingCallState = useMeetingStore(state => state.callState);
-  const resetMeetingStore = useMeetingStore(state => state.resetMeetingStore);
+  const meetingId = useMeetingStore(state => state.callInfo?.meetingId);
 
   const [isRetrying, setIsRetrying] = useState(false);
+  const [isGraceOver, setIsGraceOver] = useState(false);
   const opacity = useRef(new Animated.Value(0)).current;
 
   const handleManualRetry = async () => {
@@ -53,16 +55,31 @@ export const GlobalNoInternetBlocker: React.FC = () => {
     }
   };
 
-  const isInsideMeeting = meetingCallState !== 'IDLE' && meetingCallState !== 'ENDED';
+  // A live session exists, including while it reconnects after a drop.
+  const isInsideMeeting = Boolean(meetingId);
+  // During a call, short blips are shown as "Reconnecting" in the meeting header instead.
+  const isBlocking = isOffline && (!isInsideMeeting || isGraceOver);
 
-  const handleEmergencyLeaveMeeting = () => {
-    resetMeetingStore();
+  const handleEmergencyLeaveMeeting = async () => {
+    // Leaves the session (with a timeout while offline) and opens Consultation Completed.
+    await endMeetingCall();
+    if (!useMeetingStore.getState().callInfo?.meetingId) return;
+    useMeetingStore.getState().resetCallInfo();
     navigate(AppRoute.HOME);
   };
 
+  useEffect(() => {
+    if (!isOffline || !meetingId) {
+      setIsGraceOver(false);
+      return;
+    }
+    const timerId = setTimeout(() => setIsGraceOver(true), MEETING_OFFLINE_GRACE_MS);
+    return () => clearTimeout(timerId);
+  }, [isOffline, meetingId]);
+
   // Intercept Android hardware back button so user cannot escape broken screens while offline
   useEffect(() => {
-    if (!isOffline) return;
+    if (!isBlocking) return;
 
     const backSubscription = BackHandler.addEventListener('hardwareBackPress', () => {
       // Consume the event to prevent back-navigation
@@ -72,11 +89,11 @@ export const GlobalNoInternetBlocker: React.FC = () => {
     return () => {
       backSubscription.remove();
     };
-  }, [isOffline]);
+  }, [isBlocking]);
 
   // Smooth fade animation
   useEffect(() => {
-    if (isOffline) {
+    if (isBlocking) {
       Animated.timing(opacity, {
         toValue: 1,
         duration: 250,
@@ -89,9 +106,9 @@ export const GlobalNoInternetBlocker: React.FC = () => {
         useNativeDriver: true,
       }).start();
     }
-  }, [isOffline, opacity]);
+  }, [isBlocking, opacity]);
 
-  if (!isOffline) {
+  if (!isBlocking) {
     return null;
   }
 

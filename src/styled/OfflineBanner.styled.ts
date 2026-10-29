@@ -30,6 +30,11 @@ export const offlineBannerStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#EF4444',
   },
+  bannerUnstable: {
+    backgroundColor: '#B45309', // Amber warning
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+  },
   bannerOnline: {
     backgroundColor: '#0F766E', // Deep Teal Primary
     borderWidth: 1,

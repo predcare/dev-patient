@@ -3,11 +3,19 @@ import { useEffect, useRef } from 'react';
 import { AppState, Platform } from 'react-native';
 import useMeetingStore from '../../../zustand/stores/useMeetingStore';
 import { registerMeetingCaptureHandoff } from './meetingCaptureHandoff';
+import { createCameraTrack } from './meetingMediaTracks';
 
 const CAMERA_RELEASE_MS = 400;
 const CAMERA_REACQUIRE_MS = 250;
 
 const delay = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
+
+/** Re-open the camera at the current video tier; undefined lets the SDK use its default camera. */
+const createTierCameraTrack = () =>
+  createCameraTrack(useMeetingStore.getState().sendTier).catch(error => {
+    console.warn('[useMeetingCaptureHandoff] createCameraTrack error:', error);
+    return undefined;
+  });
 
 const waitUntilAppActive = (timeoutMs = 3000) =>
   new Promise<void>(resolve => {
@@ -64,13 +72,13 @@ export const useMeetingCaptureHandoff = () => {
           }
           await delay(CAMERA_RELEASE_MS);
         }
-        await enableWebcamRef.current();
+        await enableWebcamRef.current(await createTierCameraTrack());
         bumpCameraSessionEpoch();
       } catch (e) {
         console.warn('[useMeetingCaptureHandoff] restoreWebcam error:', e);
         try {
           await delay(300);
-          await enableWebcamRef.current();
+          await enableWebcamRef.current(await createTierCameraTrack());
           bumpCameraSessionEpoch();
         } catch (retryErr) {
           console.warn('[useMeetingCaptureHandoff] restoreWebcam retry error:', retryErr);
@@ -105,13 +113,13 @@ export const useMeetingCaptureHandoff = () => {
         await waitUntilAppActive();
         await delay(CAMERA_REACQUIRE_MS);
         try {
-          await enableWebcamRef.current();
+          await enableWebcamRef.current(await createTierCameraTrack());
           bumpCameraSessionEpoch();
         } catch (e) {
           console.warn('[useMeetingCaptureHandoff] enableWebcam error:', e);
           try {
             await delay(300);
-            await enableWebcamRef.current();
+            await enableWebcamRef.current(await createTierCameraTrack());
             bumpCameraSessionEpoch();
           } catch (retryErr) {
             console.warn('[useMeetingCaptureHandoff] enableWebcam retry error:', retryErr);

@@ -11,6 +11,35 @@ export const meetingStyles = StyleSheet.create({
     backgroundColor: '#1E293B',
     position: 'relative',
   },
+  // Full-screen stage: the doctor's video sits behind the status bar and nav bar.
+  stageOverlay: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    zIndex: 9999,
+    elevation: 9999,
+    backgroundColor: '#0F172A',
+  },
+  fullScreenStage: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: '#1E293B',
+  },
+  // Header, self-view and controls float over the video inside the safe area.
+  stageContent: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  stageControls: {
+    flex: 1,
+    position: 'relative',
+    backgroundColor: 'transparent',
+  },
   videoPlaceholder: {
     flex: 1,
     alignItems: 'center',

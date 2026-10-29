@@ -1,5 +1,5 @@
-import React from 'react';
-import { StatusBar, StyleSheet, View } from 'react-native';
+import React, { memo } from 'react';
+import { StatusBar, View } from 'react-native';
 import SafeAreaWrapper from '../../../../Layout/SafeAreaWrapper';
 import useMeetingConnection from '../../../../hooks/commons/meeting/useMeetingConnection';
 import meetingStyles from '../../../../styled/MeetingScreen.styled';
@@ -12,13 +12,16 @@ export const MeetingStageOverlay: React.FC = () => {
   const { endCall } = useMeetingConnection();
 
   return (
-    <View style={[StyleSheet.absoluteFill, { zIndex: 9999, elevation: 9999, backgroundColor: '#0F172A' }]}>
-      <SafeAreaWrapper style={meetingStyles.container} backgroundColor="#0F172A">
-        <StatusBar barStyle="light-content" />
-        <View style={meetingStyles.videoContainer}>
-          {/* Full-screen Remote Doctor Stage */}
-          <DoctorStageView />
+    <View style={meetingStyles.stageOverlay}>
+      <StatusBar barStyle="light-content" />
 
+      {/* Full-screen remote doctor video, edge to edge behind the system bars */}
+      <View style={meetingStyles.fullScreenStage}>
+        <DoctorStageView />
+      </View>
+
+      <SafeAreaWrapper style={meetingStyles.stageContent} backgroundColor="transparent">
+        <View style={meetingStyles.stageControls} pointerEvents="box-none">
           {/* Top Header with Doctor Info & Real-Time Countdown */}
           <MeetingHeader />
 
@@ -33,4 +36,4 @@ export const MeetingStageOverlay: React.FC = () => {
   );
 };
 
-export default MeetingStageOverlay;
+export default memo(MeetingStageOverlay);

@@ -1,10 +1,12 @@
-import React, { useEffect } from 'react';
 import NetInfo from '@react-native-community/netinfo';
 import { onlineManager } from '@tanstack/react-query';
+import React, { useEffect } from 'react';
 import { useNetworkStore } from '../../../zustand/stores/useNetworkStore';
 
 export const NetworkEventListener: React.FC = () => {
   const setNetworkState = useNetworkStore(state => state.setNetworkState);
+  // Online but too weak to work reliably (weak link, slow API, weak call).
+  // useUnstableConnectionMonitor();
 
   useEffect(() => {
     // 1. Sync TanStack Query's onlineManager with NetInfo

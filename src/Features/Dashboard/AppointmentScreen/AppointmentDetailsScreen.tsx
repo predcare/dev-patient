@@ -15,11 +15,9 @@ import {
   StethoscopeIcon,
   VideoIcon,
 } from '../../../components/ui/icons';
-import useMeetingPermissions from '../../../hooks/commons/meeting/useMeetingPermissions';
-import useMeetingPip from '../../../hooks/commons/meeting/useMeetingPip';
+import useJoinVideoCall from '../../../hooks/commons/meeting/useJoinVideoCall';
 import {
   useGetApptInfo,
-  useGetToken,
 } from '../../../hooks/react-query/appointments/appointments.hooks';
 import Header from '../../../Layout/Header';
 import SafeAreaWrapper from '../../../Layout/SafeAreaWrapper';
@@ -33,12 +31,10 @@ import {
   resolveAppointmentDurationMinutes,
   shouldHideJoinForCallDuration,
 } from '../../../lib/common/common.utils';
-import { showErrorToast } from '../../../lib/common/toast.utils';
 import { replace } from '../../../navigation/navigationRef';
 import { AppRoute } from '../../../route';
 import { appointmentDetailsStyles } from '../../../styled/AppointmentDetailsScreen.styled';
 import theme from '../../../styled/theme.styled';
-import { useLoadingStore } from '../../../zustand/stores/useLoadingStore';
 import { useMeetingStore } from '../../../zustand/stores/useMeetingStore';
 import AppointmentDetailsSkeleton from './Skeletons/AppointmentDetailsSkeleton';
 
@@ -48,12 +44,7 @@ export const AppointmentDetailsScreen: React.FC = () => {
   const route = useRoute<any>();
   const apptId = route.params?.appointmentId;
   const [refreshing, setRefreshing] = useState(false);
-  const { restoreToMeeting } = useMeetingPip();
-  const { requestPermissions } = useMeetingPermissions();
-  const { mutate: getToken } = useGetToken();
-  const showLoader = useLoadingStore(state => state.showLoader);
-  const hideLoader = useLoadingStore(state => state.hideLoader);
-  const setCallInfo = useMeetingStore(state => state.setCallInfo);
+  const { joinVideoCall } = useJoinVideoCall();
   const activeMeetingId = useMeetingStore(state => state.callInfo?.meetingId);
   const activeCallAppointmentId = useMeetingStore(state => state.callInfo?.appointment?.id);
 
@@ -184,48 +175,7 @@ export const AppointmentDetailsScreen: React.FC = () => {
   }, [isCurrentCallActive, apptInfo?.appointment_status, t]);
 
   const handleJoinVideoCall = async () => {
-    const targetId = apptInfo?.id || apptId;
-    if (!targetId) return;
-
-    if (activeMeetingId && String(activeCallAppointmentId) === String(targetId)) {
-      restoreToMeeting();
-      return;
-    }
-
-    const hasPermissions = await requestPermissions();
-    if (!hasPermissions) {
-      showErrorToast(
-        'Camera and microphone permissions are required to join the video consultation.'
-      );
-      return;
-    }
-
-    showLoader('Joining Video Call...');
-    getToken(
-      {
-        appointmentId: String(targetId),
-      },
-      {
-        onSuccess: async res => {
-          const videoCallData = res?.data;
-          if (videoCallData && res?.success) {
-            setCallInfo({
-              token: videoCallData?.token,
-              meeting_id: videoCallData?.meeting_id,
-              appointment: videoCallData?.appointment,
-              doctorInfo: {
-                name: videoCallData?.doctor?.name,
-                doctorId: videoCallData?.doctor?.id,
-              },
-            });
-            navigation.navigate(AppRoute.MEETING);
-          }
-        },
-        onSettled: () => {
-          hideLoader();
-        },
-      }
-    );
+    await joinVideoCall(apptInfo?.id || apptId);
   };
 
   const handleOpenClinicMap = () => {

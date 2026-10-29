@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef } from 'react';
+import { AppState } from 'react-native';
 import { showInfoToast } from '../../../lib/common/toast.utils';
 import useMeetingStore from '../../../zustand/stores/useMeetingStore';
 
 const TWO_MINUTES_SECONDS = 120;
-
 
 export const useMeetingCountdownTicker = (onTimeUp?: () => void) => {
   const doctorParticipantId = useMeetingStore(state => state.doctorParticipantId);
@@ -28,28 +28,42 @@ export const useMeetingCountdownTicker = (onTimeUp?: () => void) => {
       showInfoToast('2 min pending');
     };
 
-    notifyTwoMinPending(useMeetingStore.getState().remainingSeconds);
+    const startRemaining = useMeetingStore.getState().remainingSeconds;
+    notifyTwoMinPending(startRemaining);
 
-    if (useMeetingStore.getState().remainingSeconds <= 0) {
+    if (startRemaining <= 0) {
       return;
     }
 
-    const interval = setInterval(() => {
+    // Count down from an end timestamp so slow or skipped ticks (background, busy JS thread) catch up.
+    const endsAt = Date.now() + startRemaining * 1000;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    const tick = () => {
       const current = useMeetingStore.getState().remainingSeconds;
-      if (current <= 1) {
-        setRemainingSeconds(0);
+      const next = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+      if (next !== current) {
+        setRemainingSeconds(next);
+        notifyTwoMinPending(next);
+      }
+      if (next === 0) {
+        if (intervalId) clearInterval(intervalId);
+        intervalId = null;
         if (current > 0 && onTimeUpRef.current) {
           onTimeUpRef.current();
         }
-        clearInterval(interval);
-        return;
       }
-      const next = current - 1;
-      setRemainingSeconds(next);
-      notifyTwoMinPending(next);
-    }, 1000);
+    };
 
-    return () => clearInterval(interval);
+    intervalId = setInterval(tick, 1000);
+    const appStateSub = AppState.addEventListener('change', state => {
+      if (state === 'active' && intervalId) tick();
+    });
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+      appStateSub.remove();
+    };
   }, [bothConnected, setRemainingSeconds]);
 };
 

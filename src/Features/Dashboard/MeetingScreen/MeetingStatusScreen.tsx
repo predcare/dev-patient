@@ -18,9 +18,8 @@ import {
     StethoscopeIcon,
     VideoIcon,
 } from '../../../components/ui/icons';
-import useMeetingPermissions from '../../../hooks/commons/meeting/useMeetingPermissions';
-import useMeetingPip from '../../../hooks/commons/meeting/useMeetingPip';
-import { useGetApptInfo, useGetToken } from '../../../hooks/react-query/appointments/appointments.hooks';
+import useJoinVideoCall from '../../../hooks/commons/meeting/useJoinVideoCall';
+import { useGetApptInfo } from '../../../hooks/react-query/appointments/appointments.hooks';
 import Header from '../../../Layout/Header';
 import SafeAreaWrapper from '../../../Layout/SafeAreaWrapper';
 import {
@@ -31,9 +30,6 @@ import {
     resolveAppointmentDurationMinutes,
     shouldHideJoinForCallDuration,
 } from '../../../lib/common/common.utils';
-import { showErrorToast } from '../../../lib/common/toast.utils';
-import { useLoadingStore } from '../../../zustand/stores/useLoadingStore';
-import { useMeetingStore } from '../../../zustand/stores/useMeetingStore';
 import {
     AppRoute,
     ConsultationCompletedScreenNavigationProp,
@@ -66,14 +62,7 @@ export const MeetingStatusScreen: React.FC = () => {
     const { t } = useTranslation();
     const navigation = useNavigation<ConsultationCompletedScreenNavigationProp>();
     const route = useRoute<ConsultationCompletedScreenRouteProp>();
-    const { restoreToMeeting } = useMeetingPip();
-    const { requestPermissions } = useMeetingPermissions();
-    const { mutate: getToken } = useGetToken();
-    const showLoaderOverlay = useLoadingStore(state => state.showLoader);
-    const hideLoader = useLoadingStore(state => state.hideLoader);
-    const setCallInfo = useMeetingStore(state => state.setCallInfo);
-    const activeMeetingId = useMeetingStore(state => state.callInfo?.meetingId);
-    const activeCallAppointmentId = useMeetingStore(state => state.callInfo?.appointment?.id);
+    const { joinVideoCall } = useJoinVideoCall();
     const appointmentId = route.params?.appointmentId;
     const hasAppointmentId = appointmentId !== undefined && appointmentId !== null && `${appointmentId}` !== '';
     const hasLeftRef = useRef(false);
@@ -108,50 +97,12 @@ export const MeetingStatusScreen: React.FC = () => {
         const targetId = apptInfo?.id;
         if (!targetId || hasLeftRef.current) return;
 
-        if (activeMeetingId && String(activeCallAppointmentId) === String(targetId)) {
-            hasLeftRef.current = true;
-            restoreToMeeting();
-            return;
-        }
-
-        const hasPermissions = await requestPermissions();
-        if (!hasPermissions) {
-            showErrorToast(
-                'Camera and microphone permissions are required to join the video consultation.'
-            );
-            return;
-        }
-
+        // Block double taps while joining; allow another try if it did not leave this screen.
         hasLeftRef.current = true;
-        showLoaderOverlay('Joining Video Call...');
-        getToken(
-            { appointmentId: String(targetId) },
-            {
-                onSuccess: async res => {
-                    const videoCallData = res?.data;
-                    if (videoCallData && res?.success) {
-                        setCallInfo({
-                            token: videoCallData?.token,
-                            meeting_id: videoCallData?.meeting_id,
-                            appointment: videoCallData?.appointment,
-                            doctorInfo: {
-                                name: videoCallData?.doctor?.name,
-                                doctorId: videoCallData?.doctor?.id,
-                            },
-                        });
-                        navigation.navigate(AppRoute.MEETING);
-                        return;
-                    }
-                    hasLeftRef.current = false;
-                },
-                onError: () => {
-                    hasLeftRef.current = false;
-                },
-                onSettled: () => {
-                    hideLoader();
-                },
-            }
-        );
+        const result = await joinVideoCall(targetId);
+        if (result === 'denied' || result === 'failed') {
+            hasLeftRef.current = false;
+        }
     };
 
     useEffect(() => {

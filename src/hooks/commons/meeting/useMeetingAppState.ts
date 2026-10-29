@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { AppState, AppStateStatus, Platform } from 'react-native';
 import NativePip from '../../../native/NativePip';
 import useMeetingStore from '../../../zustand/stores/useMeetingStore';
+import { createCameraTrack } from './meetingMediaTracks';
 
 export const useMeetingAppState = () => {
   const { disableWebcam, enableWebcam } = useMeeting({});
@@ -54,7 +55,11 @@ export const useMeetingAppState = () => {
         if (!wasCamOnRef.current) return;
 
         try {
-          await enableWebcam();
+          // Re-open at the current video tier, not the SDK's HD default.
+          const track = await createCameraTrack(useMeetingStore.getState().sendTier).catch(
+            () => undefined,
+          );
+          await enableWebcam(track);
         } catch (e) {
           console.warn('[useMeetingAppState] enableWebcam error on foreground:', e);
         }

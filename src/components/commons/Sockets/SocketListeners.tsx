@@ -1,10 +1,9 @@
 import { useEffect } from 'react';
 import { queryClient } from '../../../components/providers/ReactQueryProvider';
 import { SocketEvents } from '../../../config/socket.constants';
-import { leaveActiveMeeting } from '../../../hooks/commons/meeting/meetingSessionLeave';
+import { endMeetingCall } from '../../../hooks/commons/meeting/meetingSessionLeave';
 import { AppointmemntQueryKey } from '../../../hooks/react-query/query.keys';
 import { showInfoToast } from '../../../lib/common/toast.utils';
-import NativePip from '../../../native/NativePip';
 import useIncomingCallStore from '../../../zustand/stores/useIncomingCallStore';
 import { useLoadingStore } from '../../../zustand/stores/useLoadingStore';
 import { useMeetingStore } from '../../../zustand/stores/useMeetingStore';
@@ -13,7 +12,6 @@ import { useSocketStore } from '../../../zustand/stores/useSocketStore';
 const SocketListeners = () => {
   const socketConnection = useSocketStore(state => state.socketConnection);
   const showCallBanner = useIncomingCallStore(state => state.showCallBanner);
-  const activeMeetingId = useMeetingStore(state => state.callInfo?.meetingId);
 
   useEffect(() => {
     if (!socketConnection) return;
@@ -24,6 +22,7 @@ const SocketListeners = () => {
       meetingId: string;
       callType: string;
     }) => {
+      const activeMeetingId = useMeetingStore.getState().callInfo?.meetingId;
       if (activeMeetingId && payload.meetingId) {
         return null;
       }
@@ -60,11 +59,8 @@ const SocketListeners = () => {
 
       if (!isCallActiveForThisAppt) return;
 
-      await leaveActiveMeeting();
-      NativePip.exitPipMode();
-      NativePip.setMeetingScreenState(false);
-
-      useMeetingStore.getState().resetCallInfo();
+      // Marks the end as intentional (no rejoin), leaves, and opens Consultation Completed.
+      await endMeetingCall();
       useLoadingStore.getState().hideLoader();
 
       showInfoToast('Consultation time has ended. The call has ended.', 'Time Up');
