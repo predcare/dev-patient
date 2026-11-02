@@ -6,6 +6,13 @@ import notifee, {
 import { Platform } from 'react-native';
 
 export const NOTIFICATION_CHANNELS = {
+  // The id must match default_notification_channel_id in AndroidManifest.xml.
+  DEFAULT: {
+    id: 'default_channel_id',
+    name: 'General',
+    description: 'General updates from PRED Care',
+    importance: AndroidImportance.HIGH,
+  },
   DOWNLOADS: {
     id: 'pdf_downloads',
     name: 'Document Downloads',
@@ -44,6 +51,13 @@ export const initNotificationChannels = async (): Promise<void> => {
   if (Platform.OS !== 'android') return;
 
   try {
+    await notifee.createChannel({
+      id: NOTIFICATION_CHANNELS.DEFAULT.id,
+      name: NOTIFICATION_CHANNELS.DEFAULT.name,
+      description: NOTIFICATION_CHANNELS.DEFAULT.description,
+      importance: NOTIFICATION_CHANNELS.DEFAULT.importance,
+      visibility: AndroidVisibility.PUBLIC,
+    });
     await notifee.createChannel({
       id: NOTIFICATION_CHANNELS.DOWNLOADS.id,
       name: NOTIFICATION_CHANNELS.DOWNLOADS.name,

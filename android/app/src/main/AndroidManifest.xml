@@ -129,5 +129,15 @@
         android:exported="false"
         android:foregroundServiceType="camera|microphone"
         tools:replace="android:foregroundServiceType" />
+    <!-- ============================================
+         PUSH NOTIFICATION DEFAULTS (FCM)
+    ============================================= -->
+    <meta-data
+        android:name="com.google.firebase.messaging.default_notification_channel_id"
+        android:value="default_channel_id"
+        tools:replace="android:value" />
+    <meta-data
+        android:name="com.google.firebase.messaging.default_notification_icon"
+        android:resource="@mipmap/ic_launcher" />
     </application>
 </manifest>

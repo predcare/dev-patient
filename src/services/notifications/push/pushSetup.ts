@@ -5,6 +5,7 @@ import {
   setBackgroundMessageHandler,
 } from '@react-native-firebase/messaging';
 import { requestNotificationPermission } from '../notification.core';
+import { displayPush } from './pushDisplay';
 
 // Runs outside React, so it's registered from index.js.
 export const registerBackgroundPushHandler = () => {
@@ -16,7 +17,5 @@ export const setupPush = async () => {
   await requestNotificationPermission();
   const token = await getToken(getMessaging());
   if (__DEV__) console.log('FCM token:', token);
-  return onMessage(getMessaging(), async message => {
-    if (__DEV__) console.log('Push in foreground:', message);
-  });
+  return onMessage(getMessaging(), displayPush);
 };
