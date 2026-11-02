@@ -4,6 +4,7 @@ export const STORAGE_KEYS = {
   AUTH_TOKEN: '@auth_token',
   USER_DATA: '@auth_storage',
   FCM_TOKEN: '@fcm_token',
+  DEVICE_ID: '@device_id',
 } as const;
 
 export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS] | string;

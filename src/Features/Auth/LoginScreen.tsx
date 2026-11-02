@@ -21,6 +21,7 @@ import { MailIcon, PhoneIcon } from '../../components/ui/icons';
 import { useReSendOtp, useSendOtp, useVerifyOTP } from '../../hooks/react-query/auth/auth.hooks';
 import { fetchProfileQuery } from '../../hooks/react-query/profile/profile.hooks';
 import { setItem, STORAGE_KEYS } from '../../lib/common/asyncStorage';
+import { useDeviceInfo } from '../../hooks/commons/useDeviceInfo';
 import { showErrorToast } from '../../lib/common/toast.utils';
 import { LoginFormSchema, TLoginFormSchemaType } from '../../lib/schemas/auth.schema';
 import { Assets } from '../../resources/assets';
@@ -51,6 +52,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: propNaviga
   const { mutate: sendOtpMutation, isPending: sendOtpPending } = useSendOtp();
   const { mutate: resendOtpMutation, isPending: resendOtpPending } = useReSendOtp();
   const { mutate: verifyOtpMutation, isPending: verifyOtpPending } = useVerifyOTP();
+  const { getDeviceInfo } = useDeviceInfo();
 
   const {
     control,
@@ -151,6 +153,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: propNaviga
     if (!identifier) return;
 
     const cleanIdentifier = identifier.trim();
+    const deviceInfo = await getDeviceInfo();
 
     const payload = {
       ...(loginMode === 'email'
@@ -158,12 +161,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: propNaviga
         : { phone_number: cleanIdentifier }),
       otp: _data.otp,
       user_type: 'patient',
-      device_id: "",
-      device_name: "",
-      platform: "",
-      fcm_token: "",
-      os_version: "",
-      app_version: "",
+      ...deviceInfo,
     };
 
     verifyOtpMutation(payload, {

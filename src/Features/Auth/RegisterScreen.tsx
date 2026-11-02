@@ -26,6 +26,7 @@ import {
 } from '../../hooks/react-query/auth/auth.hooks';
 import { fetchProfileQuery } from '../../hooks/react-query/profile/profile.hooks';
 import { setItem, STORAGE_KEYS } from '../../lib/common/asyncStorage';
+import { useDeviceInfo } from '../../hooks/commons/useDeviceInfo';
 import { PatientRegisterSchema, TPatientRegisterSchemaType } from '../../lib/schemas/auth.schema';
 import { Assets } from '../../resources/assets';
 import {
@@ -104,6 +105,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: prop
   // Mutations
   const { mutate: register, isPending: isRegistering } = usePatientRegister();
   const { mutate: verifyOtp, isPending: isVerifying } = usePatientVerifyOTP();
+  const { getDeviceInfo } = useDeviceInfo();
   const { mutate: resendOtp, isPending: isResending } = useReSendOtp();
 
   const submitRegistration = useCallback(
@@ -160,18 +162,14 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: prop
     );
   };
 
-  const onVerifyOtpSubmit = (formData: TPatientRegisterSchemaType) => {
+  const onVerifyOtpSubmit = async (formData: TPatientRegisterSchemaType) => {
+    const deviceInfo = await getDeviceInfo();
     verifyOtp(
       {
         email: formData.email,
         phone_number: formData.phone_number,
         otp: formData.otp || '123456',
-        device_id: "",
-        device_name: "",
-        platform: "",
-        fcm_token: "",
-        os_version: "",
-        app_version: "",
+        ...deviceInfo,
       },
       {
         onSuccess: async res => {
