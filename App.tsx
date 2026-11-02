@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { StatusBar, useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import BackdropLoader from './src/components/commons/BackdropLoader/BackdropLoader';
@@ -17,9 +18,28 @@ import ReactQueryProvider from './src/components/providers/ReactQueryProvider';
 import { LanguageProvider } from './src/contexts/LanguageContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import NotificationEventListener from './src/services/notifications/components/NotificationEventListener';
+import { setupPush } from './src/services/notifications/push/pushSetup';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
+
+  useEffect(() => {
+    let cancelled = false;
+    let unsubscribe: (() => void) | undefined;
+
+    setupPush()
+      .then(stopListening => {
+        if (cancelled) stopListening();
+        else unsubscribe = stopListening;
+      })
+      .catch(err => console.warn('[Push] Setup failed:', err));
+
+    return () => {
+      cancelled = true;
+      unsubscribe?.();
+    };
+  }, []);
+
   return (
     <ReactQueryProvider>
       <SafeAreaProvider>

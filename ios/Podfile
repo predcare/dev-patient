@@ -30,6 +30,8 @@ target 'predcarepatient' do
 
   pod 'react-native-webrtc', :path => '../node_modules/@videosdk.live/react-native-webrtc'
 
+  use_frameworks! :linkage => :dynamic
+
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.
@@ -52,10 +54,20 @@ target 'predcarepatient' do
 
         config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
 
-        config.build_settings['HEADER_SEARCH_PATHS'] ||= '$(inherited) '
+        # This setting is an Array with dynamic frameworks, so don't interpolate it into a string.
+        header_paths = Array(config.build_settings['HEADER_SEARCH_PATHS'] || '$(inherited)')
         incall_path = '"$(SRCROOT)/../node_modules/@videosdk.live/react-native-incallmanager/ios/RNInCallManager"'
-        unless config.build_settings['HEADER_SEARCH_PATHS'].include?(incall_path)
-          config.build_settings['HEADER_SEARCH_PATHS'] = "#{config.build_settings['HEADER_SEARCH_PATHS']} #{incall_path}"
+        header_paths << incall_path unless header_paths.include?(incall_path)
+        config.build_settings['HEADER_SEARCH_PATHS'] = header_paths
+
+        # Dynamic frameworks must link everything they use, but these podspecs don't declare it.
+        undeclared_frameworks = {
+          'react-native-razorpay' => ['Razorpay', 'RazorpayCore'],
+          'react-native-image-picker' => ['MobileCoreServices'],
+          'RNSound' => ['AVFoundation'],
+        }[target.name]
+        if undeclared_frameworks
+          config.build_settings['OTHER_LDFLAGS'] = ['$(inherited)'] + undeclared_frameworks.flat_map { |name| ['-framework', name] }
         end
       end
     end
