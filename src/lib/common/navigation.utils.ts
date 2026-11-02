@@ -53,6 +53,13 @@ export const resetToLogin = (navigation?: GenericNavigation): void => {
   resetAndNavigate(navigation, 'Login');
 };
 
+/**
+ * Stores a route for SplashScreen to open, for example from a notification tap during startup.
+ */
+export function setTargetRoute(route: { name: string; params?: any }): void {
+  pendingRoute = route;
+}
+
 export function consumeTargetRoute(): { name: string; params?: any } {
   const route = pendingRoute || { name: AppRoute.HOME };
   pendingRoute = null;

@@ -1,6 +1,8 @@
 import notifee, { Event, EventType } from '@notifee/react-native';
+import { getInitialNotification, getMessaging } from '@react-native-firebase/messaging';
 import { handleDownloadNotificationPress } from './handlers/downloadNotification.handler';
 import { handleMeetingNotificationPress } from './handlers/meetingNotification.handler';
+import { handlePushNotificationPress } from './handlers/pushNotification.handler';
 import { NotificationCategory, PdfDownloadNotificationData } from './notification.types';
 
 /**
@@ -15,6 +17,12 @@ export const routeNotificationPress = async (event: Event): Promise<void> => {
   }
 
   const data = detail.notification.data;
+
+  // Backend pushes carry event_action; the types below are for notifications the app creates.
+  if (data.event_action) {
+    handlePushNotificationPress(data);
+    return;
+  }
 
   switch (data.type) {
     case NotificationCategory.PDF_DOWNLOAD:
@@ -34,10 +42,51 @@ export const routeNotificationPress = async (event: Event): Promise<void> => {
       handleMeetingNotificationPress();
       break;
 
+    // Anything else is a backend push shown by displayPush while the app was open.
     default:
-      console.log('[NotificationDispatcher] Unhandled notification type:', data.type);
+      handlePushNotificationPress(data);
       break;
   }
+};
+
+let initialNotificationCheck: Promise<void> | null = null;
+
+/**
+ * Handles the notification tap that opened the app, if any. It runs once and never rejects,
+ * so SplashScreen can safely wait for it before choosing the first screen.
+ */
+export const processInitialNotification = (): Promise<void> => {
+  initialNotificationCheck ??= (async () => {
+    // Notifee sees banners shown by displayPush; Firebase sees those shown by the phone.
+    const [notifeeInitial, firebaseInitial] = await Promise.all([
+      notifee.getInitialNotification().catch(err => {
+        console.warn('[NotificationDispatcher] Notifee initial notification error:', err);
+        return null;
+      }),
+      getInitialNotification(getMessaging()).catch(err => {
+        console.warn('[NotificationDispatcher] Firebase initial notification error:', err);
+        return null;
+      }),
+    ]);
+
+    try {
+      if (notifeeInitial?.notification?.data) {
+        await routeNotificationPress({
+          type: EventType.PRESS,
+          detail: {
+            notification: notifeeInitial.notification,
+            pressAction: notifeeInitial.pressAction,
+          },
+        });
+      } else if (firebaseInitial) {
+        handlePushNotificationPress(firebaseInitial.data);
+      }
+    } catch (err) {
+      console.warn('[NotificationDispatcher] Initial notification press failed:', err);
+    }
+  })();
+
+  return initialNotificationCheck;
 };
 
 /**

@@ -10,6 +10,8 @@ export const displayPush = async (message: RemoteMessage) => {
   await notifee.displayNotification({
     title: message.notification.title,
     body: message.notification.body,
+    // Needed so tapping the banner can open the right screen.
+    data: message.data,
     android: {
       channelId: NOTIFICATION_CHANNELS.DEFAULT.id,
       smallIcon: 'ic_launcher',

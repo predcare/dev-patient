@@ -1,7 +1,7 @@
-import notifee, { EventType } from '@notifee/react-native';
+import notifee from '@notifee/react-native';
 import React, { useEffect } from 'react';
 import { initNotificationChannels } from '../notification.core';
-import { routeNotificationPress } from '../notificationDispatcher';
+import { processInitialNotification, routeNotificationPress } from '../notificationDispatcher';
 
 /**
  * Headless listener component that manages notification lifecycles:
@@ -15,22 +15,7 @@ export const NotificationEventListener: React.FC = () => {
     initNotificationChannels();
 
     // 2. Handle cold start if app opened via notification tap
-    notifee
-      .getInitialNotification()
-      .then(initial => {
-        if (initial?.notification?.data) {
-          routeNotificationPress({
-            type: EventType.PRESS,
-            detail: {
-              notification: initial.notification,
-              pressAction: initial.pressAction,
-            },
-          });
-        }
-      })
-      .catch(err => {
-        console.warn('[NotificationEventListener] getInitialNotification error:', err);
-      });
+    processInitialNotification();
 
     // 3. Subscribe to foreground notification events
     const unsubscribe = notifee.onForegroundEvent(event => {

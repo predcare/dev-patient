@@ -8,6 +8,7 @@ import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import { getItem, STORAGE_KEYS } from '../../lib/common/asyncStorage';
 import { consumeTargetRoute, resetAndNavigate, resetToLogin, resetToMainTabs } from '../../lib/common/navigation.utils';
 import { AppRoute, SplashScreenNavigationProp, SplashScreenRouteProp } from '../../route';
+import { processInitialNotification } from '../../services/notifications/notificationDispatcher';
 import { Splashstyles } from '../../styled/SplashScreen.styled';
 import { useAuthStore } from '../../zustand/stores/useAuthStore';
 
@@ -92,6 +93,9 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation, onFinish
     const startAuthentication = async () => {
       if (!isMounted) return;
       const patientData = await authenticateAndLoad();
+      // Always consumed, so a route from a tap is dropped unless the branch below opens it.
+      await processInitialNotification();
+      const target = consumeTargetRoute();
       if (onFinish) {
         onFinish();
       } else if (navigation) {
@@ -101,9 +105,9 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation, onFinish
           } else if (!patientData.has_accepted_policies) {
             resetAndNavigate(navigation, AppRoute.POLICY_ACCEPTANCE);
           } else {
-            const target = consumeTargetRoute();
             if (target && target.name !== AppRoute.HOME) {
-              navigation?.reset({ index: 0, routes: [target as any] });
+              // Home sits underneath so the target screen's back button has somewhere to go.
+              navigation?.reset({ index: 1, routes: [{ name: AppRoute.HOME }, target as any] });
             } else {
               resetToMainTabs(navigation);
             }
