@@ -26,6 +26,7 @@ import {
 } from '../../hooks/react-query/auth/auth.hooks';
 import { fetchProfileQuery } from '../../hooks/react-query/profile/profile.hooks';
 import { setItem, STORAGE_KEYS } from '../../lib/common/asyncStorage';
+import { syncPushToken } from '../../services/calls/deviceSync';
 import { useDeviceInfo } from '../../hooks/commons/useDeviceInfo';
 import { PatientRegisterSchema, TPatientRegisterSchemaType } from '../../lib/schemas/auth.schema';
 import { Assets } from '../../resources/assets';
@@ -181,6 +182,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation: prop
               if (profileRes?.data) {
                 userData = profileRes.data;
                 setUserData(profileRes.data);
+                // Register only sends the FCM token; this also sends the iOS VoIP token.
+                syncPushToken();
               }
             } catch (err) {
               console.error('Failed to fetch profile after login:', err);

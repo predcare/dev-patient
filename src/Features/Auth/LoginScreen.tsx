@@ -21,6 +21,7 @@ import { MailIcon, PhoneIcon } from '../../components/ui/icons';
 import { useReSendOtp, useSendOtp, useVerifyOTP } from '../../hooks/react-query/auth/auth.hooks';
 import { fetchProfileQuery } from '../../hooks/react-query/profile/profile.hooks';
 import { setItem, STORAGE_KEYS } from '../../lib/common/asyncStorage';
+import { syncPushToken } from '../../services/calls/deviceSync';
 import { useDeviceInfo } from '../../hooks/commons/useDeviceInfo';
 import { showErrorToast } from '../../lib/common/toast.utils';
 import { LoginFormSchema, TLoginFormSchemaType } from '../../lib/schemas/auth.schema';
@@ -177,6 +178,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation: propNaviga
               if (profileRes?.data) {
                 userData = profileRes.data;
                 setUserData(profileRes.data);
+                // Login only sends the FCM token; this also sends the iOS VoIP token.
+                syncPushToken();
               }
             } catch (err) {
               console.error('Failed to fetch patient profile after login:', err);

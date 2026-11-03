@@ -37,7 +37,12 @@ export const useAuthStore = create<TAuthState>()(
           userData: null,
           isLoggedIn: false,
         });
-        await clearStorageExcept([STORAGE_KEYS.FCM_TOKEN, STORAGE_KEYS.DEVICE_ID, storageKey]);
+        await clearStorageExcept([
+          STORAGE_KEYS.FCM_TOKEN,
+          STORAGE_KEYS.DEVICE_ID,
+          STORAGE_KEYS.VOIP_TOKEN,
+          storageKey,
+        ]);
       },
     }),
     {

@@ -1,11 +1,11 @@
 import { Platform } from 'react-native';
 import { getDeviceInfo } from '../../hooks/commons/useDeviceInfo';
-import { getItem, setItem } from '../../lib/common/asyncStorage';
+import { getItem, setItem, STORAGE_KEYS } from '../../lib/common/asyncStorage';
 import { useAuthStore } from '../../zustand/stores/useAuthStore';
 import axiosInstance from '../api/apiClient';
 import { endpoints } from '../api/endpoints';
 
-const VOIP_TOKEN_KEY = '@voip_token';
+const VOIP_TOKEN_KEY = STORAGE_KEYS.VOIP_TOKEN;
 // What was last sent successfully. Logout clears it, so the next login sends once.
 const SYNCED_KEY = '@push_token_synced';
 let queue: Promise<void> = Promise.resolve();
