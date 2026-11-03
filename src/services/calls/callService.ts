@@ -5,7 +5,7 @@ import { navigationRef } from '../../navigation/navigationRef';
 import { AppRoute } from '../../route';
 import { useIncomingCallStore } from '../../zustand/stores/useIncomingCallStore';
 import { useMeetingStore } from '../../zustand/stores/useMeetingStore';
-import { showAndroidRing, showMissedCall, stopAndroidRing } from './androidRing';
+import { showMissedCall, stopAndroidRing } from './androidRing';
 import type { CallCancel, IncomingCall, PushData } from './call.types';
 import { canShowSystemCall, ensureCallKeep } from './callKeepSetup';
 import { callFromPush } from './callPayload';
@@ -15,6 +15,8 @@ import { joinIncomingCall } from './joinIncomingCall';
 // push that arrives twice rings once.
 const calls = new Map<string, IncomingCall>();
 const finished = new Set<string>();
+// Calls currently on the system call screen (Android Phone app or CallKit).
+const onSystemScreen = new Set<string>();
 let pendingAnswer: IncomingCall | null = null;
 let joinWhenActive: ReturnType<typeof AppState.addEventListener> | null = null;
 let listening = false;
@@ -35,22 +37,27 @@ const isBannerShowing = (appointmentId: string) => {
   return store.visible && String(store.appointmentId) === appointmentId;
 };
 
-// Fallback only, when the system call screen can't be shown (Android calling account off).
-const showBanner = (call: IncomingCall) => {
-  // The socket may already show it for this appointment.
-  if (isBannerShowing(call.appointmentId)) return;
-  useIncomingCallStore.getState().showCallBanner({
-    appointmentId: call.appointmentId,
-    meetingId: call.meetingId,
-    doctorName: call.callerName,
-    callType: 'Incoming Video Call...',
-  });
+const isRinging = (appointmentId: string) =>
+  [...calls.values()].some(
+    call => call.appointmentId === appointmentId && onSystemScreen.has(call.callId),
+  );
+
+// One sound per call: while the system call screen rings, the socket's in-app banner (which plays
+// its own ringtone) is hidden. The socket code isn't changed; this reacts to the store instead.
+const hideBannerWhileRinging = () => {
+  const store = useIncomingCallStore.getState();
+  if (store.visible && isRinging(String(store.appointmentId))) store.hideCallBanner();
 };
+useIncomingCallStore.subscribe(hideBannerWhileRinging);
 
 // Keeps a call shown natively (iOS VoIP push) so Answer can find its appointment.
 export const rememberCall = (data: PushData): void => {
   const call = callFromPush(data);
-  if (call && !finished.has(call.callId)) calls.set(call.callId, call);
+  if (call && !finished.has(call.callId)) {
+    calls.set(call.callId, call);
+    onSystemScreen.add(call.callId);
+    hideBannerWhileRinging();
+  }
 };
 
 export const ringIncomingCall = async (call: IncomingCall): Promise<void> => {
@@ -63,28 +70,30 @@ export const ringIncomingCall = async (call: IncomingCall): Promise<void> => {
   if (Platform.OS === 'ios' && !isAppActive()) return;
 
   await ensureCallKeep();
-  if (await canShowSystemCall()) {
-    // Android Phone app screen or iOS CallKit, in every app state.
-    try {
-      RNCallKeep.displayIncomingCall(call.callId, 'PRED Care', call.callerName, 'generic', true);
-      return;
-    } catch (err) {
-      console.warn('[CallService] displayIncomingCall failed:', err);
-    }
+  // Android ignores the call when the PRED Care calling account is off or the phone permission is
+  // missing. Then the socket's banner (if any) stays, so the patient still sees something.
+  const systemScreenAvailable = await canShowSystemCall();
+  if (!systemScreenAvailable) {
+    console.warn(
+      '[CallService] PRED Care calling account is off or phone permission is missing: Android will not show this call.',
+    );
   }
 
-  // Android calling account is off: today's rings.
-  if (isAppActive()) {
-    showBanner(call);
-  } else if (Platform.OS === 'android') {
-    await showAndroidRing(call);
+  // The system call screen (Android Phone app or iOS CallKit) in every app state; no Notifee ring.
+  try {
+    RNCallKeep.displayIncomingCall(call.callId, 'PRED Care', call.callerName, 'generic', true);
+    if (systemScreenAvailable) onSystemScreen.add(call.callId);
+  } catch (err) {
+    console.warn('[CallService] displayIncomingCall failed:', err);
   }
+  hideBannerWhileRinging();
 };
 
 // Clears the ring everywhere. Takes the appointment too, because a fresh background JS instance
 // (for example a Decline press after the app was closed) has an empty `calls` map.
 const stopRinging = async (callId: string, appointmentId?: string): Promise<void> => {
   finished.add(callId);
+  onSystemScreen.delete(callId);
   const call = calls.get(callId);
   calls.delete(callId);
 

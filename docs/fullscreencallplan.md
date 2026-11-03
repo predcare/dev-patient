@@ -5,6 +5,7 @@
 **Builds on:** [callkeepringingplan.md](./callkeepringingplan.md). Push ringing in `src/services/calls/` is already in the app.
 **Goal:** every incoming doctor call shows the phone's own call screen through `react-native-callkeep`, whether the app is open, in the background or closed. No hand-made call screen and no in-app banner.
 **Checked on:** 2026-11-03.
+**Fix plan:** [callscreenfixplan.md](./callscreenfixplan.md) covers why closed and background calls still show the Notifee ring, and how to fix it.
 
 ## What changes
 
