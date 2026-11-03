@@ -9,12 +9,16 @@ import { showAndroidRing, showMissedCall, stopAndroidRing } from './androidRing'
 import type { CallCancel, IncomingCall, PushData } from './call.types';
 import { canShowSystemCall, ensureCallKeep } from './callKeepSetup';
 import { callFromPush } from './callPayload';
+import { getHandledCall, isCallHandled, loadHandledCalls, markCallHandled } from './handledCalls';
+import type { HandledState } from './handledCalls';
 import { joinIncomingCall } from './joinIncomingCall';
 
 // Every ring goes through here, whatever started it. Calls are keyed by the backend uuid, so a
-// push that arrives twice rings once.
+// push that arrives twice rings once. Calls already dealt with are kept in handledCalls, which
+// survives restarts, so an old notification handed back at launch never rings or joins again.
 const calls = new Map<string, IncomingCall>();
-const finished = new Set<string>();
+// Ends a ring whose cancel push never arrives.
+const ringTimers = new Map<string, ReturnType<typeof setTimeout>>();
 // Calls currently on the system call screen (Android Phone app or CallKit).
 const onSystemScreen = new Set<string>();
 // An answered call waiting for the app to come to the front.
@@ -53,21 +57,43 @@ const hideBannerWhileRinging = () => {
 };
 useIncomingCallStore.subscribe(hideBannerWhileRinging);
 
+// When the ring time is up and nobody answered, the ring is cleared everywhere: otherwise the call
+// stays "ringing" here, its system call is never ended, and later in-app banners for the same
+// appointment stay hidden.
+const endRingWhenExpired = (call: IncomingCall) => {
+  if (ringTimers.has(call.callId)) return;
+  const delay = Math.max(call.expiresAtMs + CLOCK_ALLOWANCE_MS - Date.now(), 0);
+  ringTimers.set(
+    call.callId,
+    setTimeout(async () => {
+      ringTimers.delete(call.callId);
+      if (!calls.has(call.callId) || pendingAnswer?.call.callId === call.callId) return;
+      const showMissed = Platform.OS === 'android' && !isAppActive();
+      await stopRinging(call.callId, call.appointmentId);
+      if (showMissed) await showMissedCall(call);
+    }, delay),
+  );
+};
+
 // Keeps a call shown natively (iOS VoIP push) so Answer can find its appointment.
 export const rememberCall = (data: PushData): void => {
   const call = callFromPush(data);
-  if (call && !finished.has(call.callId)) {
+  if (call && !isCallHandled(call.callId)) {
     calls.set(call.callId, call);
     onSystemScreen.add(call.callId);
+    // An already-expired call is left for replayInitialCallEvents to answer or end.
+    if (!isCallExpired(call)) endRingWhenExpired(call);
     hideBannerWhileRinging();
   }
 };
 
 export const ringIncomingCall = async (call: IncomingCall): Promise<void> => {
-  if (calls.has(call.callId) || finished.has(call.callId) || isCallExpired(call)) return;
+  await loadHandledCalls();
+  if (calls.has(call.callId) || isCallHandled(call.callId) || isCallExpired(call)) return;
   // Already in a consultation.
   if (useMeetingStore.getState().callInfo?.meetingId) return;
   calls.set(call.callId, call);
+  endRingWhenExpired(call);
 
   // iOS with the app in the background: the backend's alert (or, later, its VoIP push) rings.
   if (Platform.OS === 'ios' && !isAppActive()) return;
@@ -89,7 +115,7 @@ export const ringIncomingCall = async (call: IncomingCall): Promise<void> => {
     hideBannerWhileRinging();
     await showAndroidRing(call);
     // Cancelled or declined while the notification was being shown.
-    if (finished.has(call.callId)) await stopAndroidRing(call.callId);
+    if (isCallHandled(call.callId)) await stopAndroidRing(call.callId);
     return;
   }
 
@@ -125,22 +151,38 @@ const clearPendingAnswer = () => {
   answerTimer = null;
 };
 
-// Keeps an answer for ANSWER_JOIN_WINDOW_MS. When the window passes, the answer is dropped and the
-// system call (still showing as connected) is ended.
-const holdAnswer = (call: IncomingCall) => {
+// Keeps an answer until ANSWER_JOIN_WINDOW_MS after `answeredAt`. When the window passes, the answer
+// is dropped and the system call (still showing as connected) is ended. `answeredAt` is the time of
+// the Answer press, so holding the same answer again never makes the window longer.
+const holdAnswer = (call: IncomingCall, answeredAt: number) => {
   clearPendingAnswer();
-  pendingAnswer = { call, answeredAt: Date.now() };
+  pendingAnswer = { call, answeredAt };
   answerTimer = setTimeout(() => {
     if (pendingAnswer?.call.callId === call.callId) stopRinging(call.callId, call.appointmentId);
-  }, ANSWER_JOIN_WINDOW_MS);
+  }, Math.max(answeredAt + ANSWER_JOIN_WINDOW_MS - Date.now(), 0));
 };
 
 // Clears the ring everywhere. Takes the appointment too, because a fresh background JS instance
 // (for example a Decline press after the app was closed) has an empty `calls` map.
-const stopRinging = async (callId: string, appointmentId?: string): Promise<void> => {
-  if (pendingAnswer && matchesCall(pendingAnswer.call, callId, appointmentId)) clearPendingAnswer();
-  finished.add(callId);
+// `outcome` 'answered' is for an Answer whose join hasn't run yet; anything else ends the call for good.
+const stopRinging = async (
+  callId: string,
+  appointmentId?: string,
+  outcome: HandledState = 'done',
+  answeredAt?: number,
+): Promise<void> => {
+  if (
+    outcome === 'done' &&
+    pendingAnswer &&
+    matchesCall(pendingAnswer.call, callId, appointmentId)
+  ) {
+    clearPendingAnswer();
+  }
+  markCallHandled(callId, outcome, answeredAt);
   onSystemScreen.delete(callId);
+  const timer = ringTimers.get(callId);
+  if (timer) clearTimeout(timer);
+  ringTimers.delete(callId);
   const call = calls.get(callId);
   calls.delete(callId);
 
@@ -149,9 +191,14 @@ const stopRinging = async (callId: string, appointmentId?: string): Promise<void
     useIncomingCallStore.getState().hideCallBanner();
   }
 
+  await endSystemCall(callId);
+};
+
+// Removes the ring notification (Android) and closes the system call screen (and the Phone app's
+// in-call screen after Answer).
+const endSystemCall = async (callId: string): Promise<void> => {
   if (Platform.OS === 'android') await stopAndroidRing(callId);
   try {
-    // Closes the system call screen (and the Phone app's in-call screen after Answer).
     RNCallKeep.reportEndCallWithUUID(callId, REMOTE_ENDED);
   } catch {
     // No system call to end.
@@ -175,78 +222,113 @@ export const cancelCall = async ({ callId, appointmentId }: CallCancel): Promise
 
   // A cancel can reach a fresh background instance that never saw the ring.
   if (matches.length === 0 && callId) {
-    if (Platform.OS === 'android') await stopAndroidRing(callId);
-    try {
-      RNCallKeep.reportEndCallWithUUID(callId, REMOTE_ENDED);
-    } catch {
-      // No system call to end.
-    }
+    markCallHandled(callId, 'done');
+    await endSystemCall(callId);
   }
 };
 
 // The backend has no decline route, so this only stops this phone ringing.
 export const declineCall = async (callId: string, known?: IncomingCall): Promise<void> => {
+  await loadHandledCalls();
   const key = callId.toLowerCase();
-  if (finished.has(key)) return;
+  if (isCallHandled(key)) {
+    // Already dealt with (or answered and about to join): only make sure no system call is left.
+    if (getHandledCall(key)?.state === 'done') endSystemCall(key);
+    return;
+  }
   await stopRinging(key, known?.appointmentId);
 };
 
-const startJoin = async (call: IncomingCall) => {
+const isStartingUp = () => {
   const route = navigationRef.isReady() ? navigationRef.getCurrentRoute()?.name : undefined;
-  if (!route || route === AppRoute.SPLASH) {
+  return !route || route === AppRoute.SPLASH;
+};
+
+const startJoin = async (call: IncomingCall, answeredAt: number) => {
+  if (isStartingUp()) {
     // Cold start: SplashScreen joins after it has checked the login.
-    holdAnswer(call);
+    holdAnswer(call, answeredAt);
     return;
   }
+  markCallHandled(call.callId, 'done');
   await joinIncomingCall(call.appointmentId, call.callerName);
 };
 
-export const answerCall = async (callId: string, known?: IncomingCall): Promise<void> => {
+const showCallEndedToast = () =>
+  showInfoToast('The doctor is no longer calling. Open the appointment to join.', 'Call ended');
+
+/**
+ * Answer on the call notification, the system call screen or a tap on the call alert. Also runs for
+ * the notification that launched the app, which on Android can be an old one handed back again
+ * (JS reload, relaunch): a call already dealt with is ignored, and an expired one never joins.
+ * `allowLate` is for answers replayed from before JS started, already checked against their window.
+ */
+export const answerCall = async (
+  callId: string,
+  known?: IncomingCall,
+  { allowLate = false }: { allowLate?: boolean } = {},
+): Promise<void> => {
+  await loadHandledCalls();
   const key = callId.toLowerCase();
   const call = known ?? calls.get(key);
-  if (!call || finished.has(key) || pendingAnswer?.call.callId === key) return;
+  if (!call || pendingAnswer?.call.callId === key) return;
 
-  if (isCallExpired(call) && !isAppActive()) {
+  const handled = getHandledCall(key);
+  if (handled?.state === 'done') return;
+
+  // Answered already, but the JS instance that took the Answer is gone (Android starts the app's
+  // UI after the background handler stopped the ring). Join only within the original window.
+  if (handled?.state === 'answered') {
+    if (Date.now() - handled.at > ANSWER_JOIN_WINDOW_MS) {
+      markCallHandled(key, 'done');
+      return;
+    }
+  } else if (!allowLate && isCallExpired(call)) {
     // Answered so late that the doctor has likely gone; the patient can join from the appointment.
+    // Checked in every app state: the app is already active while a cold start replays the
+    // notification that opened it.
     await stopRinging(key, call.appointmentId);
-    showInfoToast('The doctor is no longer calling. Open the appointment to join.', 'Call ended');
+    showCallEndedToast();
     return;
   }
+  const answeredAt = handled?.at ?? Date.now();
 
   if (isAppActive()) {
     // Ends the system call. The consultation then runs in the app's own video call screen.
-    await stopRinging(key, call.appointmentId);
-    await startJoin(call);
+    await stopRinging(key, call.appointmentId, 'answered', answeredAt);
+    await startJoin(call, answeredAt);
     return;
   }
 
   if (Platform.OS === 'android') {
     // The Answer tap on PRED Care's notification is opening the app (after the unlock, if locked):
     // stop the ring now and join as soon as the app is in front.
-    await stopRinging(key, call.appointmentId);
+    await stopRinging(key, call.appointmentId, 'answered', answeredAt);
   } else {
     // iOS, locked or in the background: CallKit stays on the connected call until the app is in
     // front (tapping PRED Care there opens it). Kept so a later cancel can find it.
     calls.set(key, call);
   }
-  holdAnswer(call);
+  holdAnswer(call, answeredAt);
   joinWhenActive = AppState.addEventListener('change', state => {
-    if (state !== 'active') return;
+    // During a cold start SplashScreen takes the answer once the login is checked.
+    if (state !== 'active' || isStartingUp()) return;
     const waiting = consumePendingAnswer();
-    if (waiting) startJoin(waiting);
+    if (waiting) joinIncomingCall(waiting.appointmentId, waiting.callerName);
   });
 };
 
 /**
  * The answered call to join now, if it's still within ANSWER_JOIN_WINDOW_MS. Either way the pending
- * answer is cleared and its system call ended, so opening the app later never joins by itself.
+ * answer is cleared, its system call ended and the call marked done, so opening the app later (or a
+ * replay of the same notification) never joins by itself.
  */
 export const consumePendingAnswer = (): IncomingCall | null => {
   const pending = pendingAnswer;
   clearPendingAnswer();
   if (!pending) return null;
   const { call, answeredAt } = pending;
-  if (!finished.has(call.callId)) stopRinging(call.callId, call.appointmentId);
+  stopRinging(call.callId, call.appointmentId);
   if (Date.now() - answeredAt > ANSWER_JOIN_WINDOW_MS) return null;
   return call;
 };
@@ -258,6 +340,7 @@ type InitialEvent = { name: string; data: any };
  * was ready (closed app, locked phone). SplashScreen awaits this before consumePendingAnswer.
  */
 export const replayInitialCallEvents = async (): Promise<void> => {
+  await loadHandledCalls();
   try {
     const events = ((await RNCallKeep.getInitialEvents()) ?? []) as InitialEvent[];
     RNCallKeep.clearInitialEvents();
@@ -272,8 +355,11 @@ export const replayInitialCallEvents = async (): Promise<void> => {
         // Only a call this instance knows, answered while it could still be joined. Anything else
         // (unknown or too old) just has its system call ended, so it doesn't join by itself.
         const call = calls.get(String(callUUID).toLowerCase());
-        if (call && Date.now() <= call.expiresAtMs + ANSWER_JOIN_WINDOW_MS) await answerCall(callUUID);
-        else await declineCall(callUUID);
+        if (call && Date.now() <= call.expiresAtMs + ANSWER_JOIN_WINDOW_MS) {
+          await answerCall(callUUID, undefined, { allowLate: true });
+        } else {
+          await declineCall(callUUID);
+        }
       }
       if (event.name === 'RNCallKeepPerformEndCallAction') await declineCall(callUUID);
     }
@@ -289,7 +375,7 @@ export const replayInitialCallEvents = async (): Promise<void> => {
 export const startCallKeepListeners = async (): Promise<void> => {
   if (listening) return;
   listening = true;
-  await ensureCallKeep();
+  await Promise.all([ensureCallKeep(), loadHandledCalls()]);
   RNCallKeep.addEventListener('didDisplayIncomingCall', ({ payload }) => {
     rememberCall(payload as PushData);
   });

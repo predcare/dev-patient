@@ -5,9 +5,10 @@ import { setPendingTracks } from '../../hooks/commons/meeting/meetingMediaTracks
 import { openJoinTracks, releaseJoinTracks } from '../../hooks/commons/meeting/useJoinVideoCall';
 import { getApptInfo, getApptToken } from '../../hooks/react-query/appointments/appointments.funcs';
 import { AppointmemntQueryKey } from '../../hooks/react-query/query.keys';
-import { showErrorToast } from '../../lib/common/toast.utils';
+import { showErrorToast, showInfoToast } from '../../lib/common/toast.utils';
 import { navigate } from '../../navigation/navigationRef';
 import { AppRoute } from '../../route';
+import { ConsultStatus } from '../../typescripts/enums';
 import { useLoadingStore } from '../../zustand/stores/useLoadingStore';
 import { useMeetingStore } from '../../zustand/stores/useMeetingStore';
 
@@ -15,6 +16,13 @@ const CALL_PERMISSIONS =
   Platform.OS === 'ios'
     ? [PERMISSIONS.IOS.CAMERA, PERMISSIONS.IOS.MICROPHONE]
     : [PERMISSIONS.ANDROID.CAMERA, PERMISSIONS.ANDROID.RECORD_AUDIO];
+
+// An appointment in one of these states has no call left to join.
+const ENDED_STATUSES: string[] = [
+  ConsultStatus.COMPLETED,
+  ConsultStatus.CANCELLED,
+  ConsultStatus.NO_SHOW,
+];
 
 const hasCallPermissions = async (): Promise<boolean> => {
   const result = await requestMultiple(CALL_PERMISSIONS);
@@ -29,6 +37,9 @@ const hasCallPermissions = async (): Promise<boolean> => {
  * outside React. The meeting token always comes from getApptToken, never from the push.
  */
 export const joinIncomingCall = async (appointmentId: string, doctorName: string): Promise<void> => {
+  // Already in a consultation (for example the same answer reaching here twice).
+  if (useMeetingStore.getState().callInfo?.meetingId) return;
+
   if (!(await hasCallPermissions())) {
     showErrorToast('Please allow microphone and camera permissions to join the call');
     return;
@@ -46,10 +57,18 @@ export const joinIncomingCall = async (appointmentId: string, doctorName: string
     const apptResponse = await queryClient.fetchQuery({
       queryKey: [AppointmemntQueryKey.INFO, appointmentId],
       queryFn: () => getApptInfo(appointmentId),
+      // Never a cached copy: the appointment's status decides whether there is still a call.
+      staleTime: 0,
     });
     const apptInfo = apptResponse?.data;
     if (!apptInfo) {
       showErrorToast('Failed to load appointment details');
+      return;
+    }
+
+    const status = String(apptInfo.appointment_status || '').toLowerCase();
+    if (ENDED_STATUSES.includes(status)) {
+      showInfoToast('This consultation has already ended.', 'Call ended');
       return;
     }
 

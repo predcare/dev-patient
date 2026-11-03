@@ -1,7 +1,9 @@
 package com.predcarepatient
 
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
+import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.Lifecycle
 import com.facebook.react.ReactActivity
@@ -38,6 +40,31 @@ class MainActivity : ReactActivity() {
    */
   override fun createReactActivityDelegate(): ReactActivityDelegate =
       DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
+
+  override fun onCreate(savedInstanceState: Bundle?) {
+    dropReplayedNotification(intent, savedInstanceState)
+    super.onCreate(savedInstanceState)
+  }
+
+  // singleTask: a notification tap while the activity exists arrives here. Without setIntent,
+  // getIntent() keeps the first launch's notification, and Notifee/Firebase would hand that old
+  // notification back as the launch tap after a JS reload.
+  override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    setIntent(intent)
+  }
+
+  // Opening from Recents, or Android restoring the activity after it killed the app, starts it with
+  // the original launch intent, including the extras of the notification that first opened it
+  // (for example an old incoming call's Answer). That isn't a new tap, so the extras are removed
+  // and the old call can't join again.
+  private fun dropReplayedNotification(intent: Intent?, savedInstanceState: Bundle?) {
+    if (intent == null) return
+    val fromHistory = intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0
+    if (fromHistory || savedInstanceState != null) {
+      intent.replaceExtras(Bundle())
+    }
+  }
 
   override fun onResume() {
     super.onResume()

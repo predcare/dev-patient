@@ -21,7 +21,7 @@ interface IncomingCallStoreState {
   toggleCallBanner: () => void;
 }
 
-const DEFAULT_DOCTOR_NAME = 'Dr. Sahil Mallick';
+const DEFAULT_DOCTOR_NAME = 'Your doctor';
 const DEFAULT_CALL_TYPE = 'Incoming Video Call...';
 
 export const useIncomingCallStore = create<IncomingCallStoreState>(set => ({
