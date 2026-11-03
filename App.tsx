@@ -18,6 +18,7 @@ import ReactQueryProvider from './src/components/providers/ReactQueryProvider';
 import { LanguageProvider } from './src/contexts/LanguageContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import NotificationEventListener from './src/services/notifications/components/NotificationEventListener';
+import { startCallKeepListeners } from './src/services/calls/callService';
 import { setupPush } from './src/services/notifications/push/pushSetup';
 
 function App() {
@@ -33,6 +34,9 @@ function App() {
         else unsubscribe = stopListening;
       })
       .catch(err => console.warn('[Push] Setup failed:', err));
+
+    // Android: Telecom answer and end events for incoming calls (e.g. a Bluetooth headset).
+    startCallKeepListeners().catch(err => console.warn('[CallKeep] Listener setup failed:', err));
 
     return () => {
       cancelled = true;

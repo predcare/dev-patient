@@ -32,6 +32,15 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- ============================================
+         INCOMING CALL RINGING (react-native-callkeep, self-managed)
+    ============================================= -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <!-- CallKeep's manifest adds these; self-managed incoming calls don't use them. -->
+    <uses-permission android:name="android.permission.CALL_PHONE" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" tools:node="remove" />
+
+    <!-- ============================================
          BLUETOOTH (For headsets and audio routing)
     ============================================= -->
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
@@ -129,6 +138,19 @@
         android:exported="false"
         android:foregroundServiceType="camera|microphone"
         tools:replace="android:foregroundServiceType" />
+    <!-- ============================================
+         INCOMING CALL CONNECTION SERVICE (react-native-callkeep)
+    ============================================= -->
+    <service
+        android:name="io.wazo.callkeep.VoiceConnectionService"
+        android:label="PRED Care"
+        android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE"
+        android:foregroundServiceType="phoneCall|microphone|camera"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="android.telecom.ConnectionService" />
+        </intent-filter>
+    </service>
     <!-- ============================================
          PUSH NOTIFICATION DEFAULTS (FCM)
     ============================================= -->

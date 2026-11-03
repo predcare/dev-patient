@@ -2,6 +2,8 @@ import { setTargetRoute } from '../../../lib/common/navigation.utils';
 import { navigate, navigationRef, resetRoot } from '../../../navigation/navigationRef';
 import { AppRoute } from '../../../route';
 import { useAuthStore } from '../../../zustand/stores/useAuthStore';
+import { callFromPush } from '../../calls/callPayload';
+import { answerCall } from '../../calls/callService';
 import { NotificationEventActions, PushNotificationData } from '../notification.types';
 
 const APPOINTMENT_ACTIONS: string[] = [
@@ -49,6 +51,13 @@ const resolvePushRoute = (data: PushNotificationData = {}): { name: string; para
 };
 
 export const handlePushNotificationPress = (data?: PushNotificationData): void => {
+  // A tap on the incoming call notification (the iOS system alert) answers the call.
+  const incomingCall = callFromPush(data);
+  if (incomingCall) {
+    answerCall(incomingCall.callId, incomingCall);
+    return;
+  }
+
   const route = resolvePushRoute(data);
   const currentRoute = navigationRef.isReady() ? navigationRef.getCurrentRoute()?.name : undefined;
 

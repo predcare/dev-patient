@@ -31,6 +31,7 @@
     "react-hook-form": "^7.89.0",
     "react-i18next": "^17.0.15",
     "react-native": "0.87.1",
+    "react-native-callkeep": "^4.6.1",
     "react-native-compressor": "^2.0.3",
     "react-native-file-viewer": "^2.1.5",
     "react-native-fs": "^2.20.0",

@@ -8,6 +8,9 @@ import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import { getItem, STORAGE_KEYS } from '../../lib/common/asyncStorage';
 import { consumeTargetRoute, resetAndNavigate, resetToLogin, resetToMainTabs } from '../../lib/common/navigation.utils';
 import { AppRoute, SplashScreenNavigationProp, SplashScreenRouteProp } from '../../route';
+import { consumePendingAnswer } from '../../services/calls/callService';
+import { syncPushToken } from '../../services/calls/deviceSync';
+import { joinIncomingCall } from '../../services/calls/joinIncomingCall';
 import { processInitialNotification } from '../../services/notifications/notificationDispatcher';
 import { Splashstyles } from '../../styled/SplashScreen.styled';
 import { useAuthStore } from '../../zustand/stores/useAuthStore';
@@ -78,6 +81,8 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation, onFinish
 
         if (res?.data) {
           setUserData(res.data);
+          // Keeps the backend's FCM token current, so call pushes reach this phone.
+          syncPushToken();
           return res.data;
         } else {
           logout();
@@ -95,6 +100,8 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation, onFinish
       const patientData = await authenticateAndLoad();
       // Always consumed, so a route from a tap is dropped unless the branch below opens it.
       await processInitialNotification();
+      // Set when the app was opened by answering an incoming call.
+      const pendingCall = consumePendingAnswer();
       const target = consumeTargetRoute();
       if (onFinish) {
         onFinish();
@@ -110,6 +117,10 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation, onFinish
               navigation?.reset({ index: 1, routes: [{ name: AppRoute.HOME }, target as any] });
             } else {
               resetToMainTabs(navigation);
+            }
+            // The patient answered a call before the app had started.
+            if (pendingCall) {
+              joinIncomingCall(pendingCall.appointmentId, pendingCall.callerName);
             }
           }
         } else {

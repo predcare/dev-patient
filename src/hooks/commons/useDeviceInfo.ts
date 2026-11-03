@@ -23,7 +23,7 @@ const getDeviceId = async (): Promise<string> => {
   return newId;
 };
 
-const getDeviceInfo = async (): Promise<TDeviceInfo> => {
+export const getDeviceInfo = async (): Promise<TDeviceInfo> => {
   const [deviceId, fcmToken] = await Promise.all([getDeviceId(), getSavedPushToken()]);
 
   if (Platform.OS === 'android') {

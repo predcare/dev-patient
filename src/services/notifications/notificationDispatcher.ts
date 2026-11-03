@@ -1,5 +1,8 @@
 import notifee, { Event, EventType } from '@notifee/react-native';
 import { getInitialNotification, getMessaging } from '@react-native-firebase/messaging';
+import { CALL_ACTION_ANSWER, CALL_ACTION_DECLINE } from '../calls/androidRing';
+import { callFromPush } from '../calls/callPayload';
+import { answerCall, declineCall } from '../calls/callService';
 import { handleDownloadNotificationPress } from './handlers/downloadNotification.handler';
 import { handleMeetingNotificationPress } from './handlers/meetingNotification.handler';
 import { handlePushNotificationPress } from './handlers/pushNotification.handler';
@@ -11,6 +14,18 @@ import { NotificationCategory, PdfDownloadNotificationData } from './notificatio
  */
 export const routeNotificationPress = async (event: Event): Promise<void> => {
   const { type, detail } = event;
+
+  // Incoming call ring: Answer and Decline buttons (ACTION_PRESS) and a tap on the notification.
+  const incomingCall = callFromPush(detail.notification?.data);
+  if (incomingCall) {
+    const actionId = detail.pressAction?.id;
+    if (actionId === CALL_ACTION_DECLINE) {
+      await declineCall(incomingCall.callId, incomingCall);
+    } else if (actionId === CALL_ACTION_ANSWER || type === EventType.PRESS) {
+      await answerCall(incomingCall.callId, incomingCall);
+    }
+    return;
+  }
 
   if (type !== EventType.PRESS || !detail.notification?.data) {
     return;
