@@ -2030,6 +2030,8 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - RNVoipPushNotification (3.3.3):
+    - React-Core
   - SocketRocket (0.7.1):
     - ReactNativeDependencies
   - SwiftProtobuf (1.38.1)
@@ -2145,6 +2147,7 @@ DEPENDENCIES:
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSound (from `../node_modules/react-native-sound`)
   - RNSVG (from `../node_modules/react-native-svg`)
+  - RNVoipPushNotification (from `../node_modules/react-native-voip-push-notification`)
   - SocketRocket (from `build/rndeps-facades/SocketRocket`)
   - "VideoSDKPubsub (from `../node_modules/@videosdk.live/react-native-sdk`)"
   - Yoga (from `build/rncore-facades/Yoga`)
@@ -2364,6 +2367,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-sound"
   RNSVG:
     :path: "../node_modules/react-native-svg"
+  RNVoipPushNotification:
+    :path: "../node_modules/react-native-voip-push-notification"
   SocketRocket:
     :path: build/rndeps-facades/SocketRocket
   VideoSDKPubsub:
@@ -2477,6 +2482,7 @@ SPEC CHECKSUMS:
   RNScreens: 3c977859fd13e67dc4ebfc24afb4d7c2e894db61
   RNSound: 76860916ec853ad19a335711fba0fae259522f12
   RNSVG: 4da2e0a724c48a841e0dbfbdc7db39286c050b61
+  RNVoipPushNotification: 4998fe6724d421da616dca765da7dc421ff54c4e
   SocketRocket: 37aec555668fb852ec12e3c0de59a86ca58f0871
   SwiftProtobuf: 409d3aaec90e51b1705b1dd8065b56893450e77c
   VideoSDKPubsub: 04ddf7d0efcd400711a0dea060f5dcde5545e3a2

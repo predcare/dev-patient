@@ -1,30 +1,67 @@
-import { Platform } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 import RNCallKeep from 'react-native-callkeep';
 
-let setupDone: Promise<unknown> | null = null;
+// Managed mode: Android's Phone app and iOS CallKit draw the incoming call screen.
+const CALLKEEP_OPTIONS = {
+  ios: {
+    appName: 'PRED Care',
+    supportsVideo: true,
+    includesCallsInRecents: false,
+    maximumCallGroups: '1',
+    maximumCallsPerCallGroup: '1',
+    ringtoneSound: 'ringtone.caf',
+  },
+  android: {
+    alertTitle: 'Allow doctor calls',
+    alertDescription:
+      "Turn on PRED Care in your calling accounts so your doctor's video calls ring like a normal phone call.",
+    cancelButton: 'Not now',
+    okButton: 'Open settings',
+    additionalPermissions: [],
+    selfManaged: false,
+    // The call must keep ringing if the background JS instance stops.
+    endCallsWhenReactNativeStops: false,
+    imageName: 'ic_launcher',
+  },
+};
 
-// Android only for now: iOS needs VoIP pushes from the backend before CallKit can be used.
-// Also called from the FCM background handler, so it must not depend on React.
-export const ensureCallKeep = (): Promise<unknown> => {
-  if (Platform.OS !== 'android') return Promise.resolve();
+let nativeSetupDone = false;
 
-  setupDone ??= RNCallKeep.setup({
-    ios: { appName: 'PRED Care' },
-    android: {
-      alertTitle: 'Permission required',
-      alertDescription: 'PRED Care needs this to ring for doctor calls',
-      cancelButton: 'Cancel',
-      okButton: 'OK',
-      additionalPermissions: [],
-      // The app shows its own ring, so no phone account or phone permissions are needed.
-      selfManaged: true,
-      // The ring must continue if the background JS instance stops.
-      endCallsWhenReactNativeStops: false,
-    },
-  }).catch(err => {
-    setupDone = null;
-    console.warn('[CallKeep] Setup failed:', err);
-  });
+/**
+ * Registers the calling account without any prompt. Safe in the FCM background handler, where
+ * there's no screen for a prompt. iOS is set up natively in AppDelegate.
+ */
+export const ensureCallKeep = async (): Promise<void> => {
+  if (Platform.OS !== 'android' || nativeSetupDone) return;
+  try {
+    // The native part of RNCallKeep.setup(), without the JS permission alert.
+    NativeModules.RNCallKeep?.setup(CALLKEEP_OPTIONS.android);
+    nativeSetupDone = true;
+  } catch (err) {
+    console.warn('[CallKeep] Native setup failed:', err);
+  }
+};
 
-  return setupDone;
+/**
+ * Asks for the phone permission and opens the calling-account settings if the account is off.
+ * Needs a screen, so call it only while the app is open. Android only.
+ */
+export const setupCallKeepWithPrompt = async (): Promise<void> => {
+  if (Platform.OS !== 'android') return;
+  try {
+    await RNCallKeep.setup(CALLKEEP_OPTIONS);
+    nativeSetupDone = true;
+  } catch {
+    // The patient tapped "Not now"; calls fall back to the Notifee ring.
+  }
+};
+
+// iOS always has CallKit. Android needs the patient to have turned the calling account on.
+export const canShowSystemCall = async (): Promise<boolean> => {
+  if (Platform.OS === 'ios') return true;
+  try {
+    return Boolean(await RNCallKeep.hasPhoneAccount());
+  } catch {
+    return false;
+  }
 };

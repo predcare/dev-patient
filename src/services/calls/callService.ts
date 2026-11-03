@@ -6,8 +6,9 @@ import { AppRoute } from '../../route';
 import { useIncomingCallStore } from '../../zustand/stores/useIncomingCallStore';
 import { useMeetingStore } from '../../zustand/stores/useMeetingStore';
 import { showAndroidRing, showMissedCall, stopAndroidRing } from './androidRing';
-import type { CallCancel, IncomingCall } from './call.types';
-import { ensureCallKeep } from './callKeepSetup';
+import type { CallCancel, IncomingCall, PushData } from './call.types';
+import { canShowSystemCall, ensureCallKeep } from './callKeepSetup';
+import { callFromPush } from './callPayload';
 import { joinIncomingCall } from './joinIncomingCall';
 
 // Every ring goes through here, whatever started it. Calls are keyed by the backend uuid, so a
@@ -15,44 +16,26 @@ import { joinIncomingCall } from './joinIncomingCall';
 const calls = new Map<string, IncomingCall>();
 const finished = new Set<string>();
 let pendingAnswer: IncomingCall | null = null;
+let joinWhenActive: ReturnType<typeof AppState.addEventListener> | null = null;
 let listening = false;
 
 const REMOTE_ENDED = CONSTANTS.END_CALL_REASONS.REMOTE_ENDED;
 // Allowance for a phone clock that's slightly wrong.
 const CLOCK_ALLOWANCE_MS = 30_000;
-// How long a join waits for the app to come to the front after Answer.
-const FOREGROUND_WAIT_MS = 15_000;
+// How long an answered call may wait for the patient to unlock and open the app.
+const ANSWER_WAIT_MS = 2 * 60_000;
 
 export const isCallExpired = (call: IncomingCall): boolean =>
   Date.now() > call.expiresAtMs + CLOCK_ALLOWANCE_MS;
 
 const isAppActive = () => AppState.currentState === 'active';
 
-// The camera can't start until the app is in front, for example right after Answer.
-const whenAppActive = (): Promise<boolean> =>
-  new Promise(resolve => {
-    if (isAppActive()) {
-      resolve(true);
-      return;
-    }
-    const timer = setTimeout(() => {
-      subscription.remove();
-      resolve(false);
-    }, FOREGROUND_WAIT_MS);
-    const subscription = AppState.addEventListener('change', state => {
-      if (state !== 'active') return;
-      clearTimeout(timer);
-      subscription.remove();
-      resolve(true);
-    });
-  });
-
 const isBannerShowing = (appointmentId: string) => {
   const store = useIncomingCallStore.getState();
   return store.visible && String(store.appointmentId) === appointmentId;
 };
 
-// Uses the existing banner as it is. Its Join and close buttons keep their current behaviour.
+// Fallback only, when the system call screen can't be shown (Android calling account off).
 const showBanner = (call: IncomingCall) => {
   // The socket may already show it for this appointment.
   if (isBannerShowing(call.appointmentId)) return;
@@ -64,28 +47,38 @@ const showBanner = (call: IncomingCall) => {
   });
 };
 
+// Keeps a call shown natively (iOS VoIP push) so Answer can find its appointment.
+export const rememberCall = (data: PushData): void => {
+  const call = callFromPush(data);
+  if (call && !finished.has(call.callId)) calls.set(call.callId, call);
+};
+
 export const ringIncomingCall = async (call: IncomingCall): Promise<void> => {
   if (calls.has(call.callId) || finished.has(call.callId) || isCallExpired(call)) return;
   // Already in a consultation.
   if (useMeetingStore.getState().callInfo?.meetingId) return;
   calls.set(call.callId, call);
 
-  if (isAppActive()) {
-    showBanner(call);
-    return;
-  }
+  // iOS with the app in the background: the backend's alert (or, later, its VoIP push) rings.
+  if (Platform.OS === 'ios' && !isAppActive()) return;
 
-  if (Platform.OS === 'android') {
-    await ensureCallKeep();
+  await ensureCallKeep();
+  if (await canShowSystemCall()) {
+    // Android Phone app screen or iOS CallKit, in every app state.
     try {
       RNCallKeep.displayIncomingCall(call.callId, 'PRED Care', call.callerName, 'generic', true);
+      return;
     } catch (err) {
-      // The Notifee ring below still works without the Telecom call.
       console.warn('[CallService] displayIncomingCall failed:', err);
     }
+  }
+
+  // Android calling account is off: today's rings.
+  if (isAppActive()) {
+    showBanner(call);
+  } else if (Platform.OS === 'android') {
     await showAndroidRing(call);
   }
-  // iOS in the background: the system already shows the push's own alert and ringtone.
 };
 
 // Clears the ring everywhere. Takes the appointment too, because a fresh background JS instance
@@ -100,13 +93,12 @@ const stopRinging = async (callId: string, appointmentId?: string): Promise<void
     useIncomingCallStore.getState().hideCallBanner();
   }
 
-  if (Platform.OS === 'android') {
-    await stopAndroidRing(callId);
-    try {
-      RNCallKeep.reportEndCallWithUUID(callId, REMOTE_ENDED);
-    } catch {
-      // No Telecom call to end.
-    }
+  if (Platform.OS === 'android') await stopAndroidRing(callId);
+  try {
+    // Closes the system call screen (and the Phone app's in-call screen after Answer).
+    RNCallKeep.reportEndCallWithUUID(callId, REMOTE_ENDED);
+  } catch {
+    // No system call to end.
   }
 };
 
@@ -123,8 +115,13 @@ export const cancelCall = async ({ callId, appointmentId }: CallCancel): Promise
   }
 
   // A cancel can reach a fresh background instance that never saw the ring.
-  if (matches.length === 0 && callId && Platform.OS === 'android') {
-    await stopAndroidRing(callId);
+  if (matches.length === 0 && callId) {
+    if (Platform.OS === 'android') await stopAndroidRing(callId);
+    try {
+      RNCallKeep.reportEndCallWithUUID(callId, REMOTE_ENDED);
+    } catch {
+      // No system call to end.
+    }
   }
 };
 
@@ -135,26 +132,48 @@ export const declineCall = async (callId: string, known?: IncomingCall): Promise
   await stopRinging(key, known?.appointmentId);
 };
 
-export const answerCall = async (callId: string, known?: IncomingCall): Promise<void> => {
-  const key = callId.toLowerCase();
-  const call = known ?? calls.get(key);
-  if (!call || finished.has(key)) return;
-  await stopRinging(key, call.appointmentId);
-
-  if (isCallExpired(call)) {
-    showInfoToast('The doctor is no longer calling. Open the appointment to join.', 'Call ended');
-    return;
-  }
-
+const startJoin = async (call: IncomingCall) => {
   const route = navigationRef.isReady() ? navigationRef.getCurrentRoute()?.name : undefined;
   if (!route || route === AppRoute.SPLASH) {
     // Cold start: SplashScreen joins after it has checked the login.
     pendingAnswer = call;
     return;
   }
-
-  if (!(await whenAppActive())) return;
   await joinIncomingCall(call.appointmentId, call.callerName);
+};
+
+export const answerCall = async (callId: string, known?: IncomingCall): Promise<void> => {
+  const key = callId.toLowerCase();
+  const call = known ?? calls.get(key);
+  if (!call || finished.has(key)) return;
+
+  // Android: open the app over the system call screen; CallKeep asks for the unlock if locked.
+  if (Platform.OS === 'android') RNCallKeep.backToForeground();
+  // Ends the system call. The consultation then runs in the app's own video call screen.
+  await stopRinging(key, call.appointmentId);
+
+  if (isCallExpired(call) && !isAppActive()) {
+    // Answered so late that the doctor has likely gone; the patient can join from the appointment.
+    showInfoToast('The doctor is no longer calling. Open the appointment to join.', 'Call ended');
+    return;
+  }
+
+  if (isAppActive()) {
+    await startJoin(call);
+    return;
+  }
+
+  // Locked phone or app in the background: join once the patient unlocks and the app is in front.
+  pendingAnswer = call;
+  joinWhenActive?.remove();
+  const answeredAt = Date.now();
+  joinWhenActive = AppState.addEventListener('change', state => {
+    if (state !== 'active') return;
+    joinWhenActive?.remove();
+    joinWhenActive = null;
+    const waiting = consumePendingAnswer();
+    if (waiting && Date.now() - answeredAt < ANSWER_WAIT_MS) startJoin(waiting);
+  });
 };
 
 export const consumePendingAnswer = (): IncomingCall | null => {
@@ -163,11 +182,42 @@ export const consumePendingAnswer = (): IncomingCall | null => {
   return call;
 };
 
-// Telecom events, e.g. Answer on a Bluetooth headset. Android only; started from App.tsx.
+type InitialEvent = { name: string; data: any };
+
+/**
+ * Runs the answers and declines the patient made on the system call screen before the app's JS
+ * was ready (closed app, locked phone). SplashScreen awaits this before consumePendingAnswer.
+ */
+export const replayInitialCallEvents = async (): Promise<void> => {
+  try {
+    const events = ((await RNCallKeep.getInitialEvents()) ?? []) as InitialEvent[];
+    RNCallKeep.clearInitialEvents();
+    // The display event carries the push payload, so the answer can find the appointment.
+    events
+      .filter(e => e.name === 'RNCallKeepDidDisplayIncomingCall')
+      .forEach(e => rememberCall(e.data?.payload));
+    for (const event of events) {
+      const callUUID = event.data?.callUUID;
+      if (!callUUID) continue;
+      if (event.name === 'RNCallKeepPerformAnswerCallAction') await answerCall(callUUID);
+      if (event.name === 'RNCallKeepPerformEndCallAction') await declineCall(callUUID);
+    }
+  } catch (err) {
+    console.warn('[CallService] Initial call events failed:', err);
+  }
+};
+
+/**
+ * Answer and Decline on the system call screen. Registered from index.js, so it also works when
+ * the app was closed and only the background JS is running. Safe to call more than once.
+ */
 export const startCallKeepListeners = async (): Promise<void> => {
-  if (Platform.OS !== 'android' || listening) return;
+  if (listening) return;
   listening = true;
   await ensureCallKeep();
+  RNCallKeep.addEventListener('didDisplayIncomingCall', ({ payload }) => {
+    rememberCall(payload as PushData);
+  });
   RNCallKeep.addEventListener('answerCall', ({ callUUID }) => {
     answerCall(callUUID);
   });

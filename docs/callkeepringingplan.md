@@ -4,6 +4,7 @@
 **Code:** `src/services/calls/` holds the source of truth; the snippets below show the design and may differ in small details.
 **Backend:** already built in `dev-api` (`src/services/callRinging.service.ts`, `src/queues/call-timeout.*`, `src/modules/webhooks/videosdk-webhook.service.ts`). This plan follows the backend as it is today.
 **Checked on:** 2026-11-03.
+**Next:** [fullscreencallplan.md](./fullscreencallplan.md) switches to the phone's own call screen through CallKeep (Android managed mode, iOS CallKit with VoIP pushes).
 
 ## Rules for this work
 

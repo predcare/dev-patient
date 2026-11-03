@@ -19,6 +19,7 @@ import { LanguageProvider } from './src/contexts/LanguageContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import NotificationEventListener from './src/services/notifications/components/NotificationEventListener';
 import { startCallKeepListeners } from './src/services/calls/callService';
+import { startVoipToken } from './src/services/calls/voipToken';
 import { setupPush } from './src/services/notifications/push/pushSetup';
 
 function App() {
@@ -35,8 +36,10 @@ function App() {
       })
       .catch(err => console.warn('[Push] Setup failed:', err));
 
-    // Android: Telecom answer and end events for incoming calls (e.g. a Bluetooth headset).
+    // Answer and Decline on the system call screen (also registered in index.js for background JS).
     startCallKeepListeners().catch(err => console.warn('[CallKeep] Listener setup failed:', err));
+    // iOS: PushKit VoIP token for CallKit when the app is closed.
+    startVoipToken();
 
     return () => {
       cancelled = true;

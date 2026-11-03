@@ -8,7 +8,8 @@ import SafeAreaWrapper from '../../Layout/SafeAreaWrapper';
 import { getItem, STORAGE_KEYS } from '../../lib/common/asyncStorage';
 import { consumeTargetRoute, resetAndNavigate, resetToLogin, resetToMainTabs } from '../../lib/common/navigation.utils';
 import { AppRoute, SplashScreenNavigationProp, SplashScreenRouteProp } from '../../route';
-import { consumePendingAnswer } from '../../services/calls/callService';
+import { consumePendingAnswer, replayInitialCallEvents } from '../../services/calls/callService';
+import { promptCallAccountIfNeeded } from '../../services/calls/callPermissionPrompt';
 import { syncPushToken } from '../../services/calls/deviceSync';
 import { joinIncomingCall } from '../../services/calls/joinIncomingCall';
 import { processInitialNotification } from '../../services/notifications/notificationDispatcher';
@@ -100,6 +101,8 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation, onFinish
       const patientData = await authenticateAndLoad();
       // Always consumed, so a route from a tap is dropped unless the branch below opens it.
       await processInitialNotification();
+      // Answers made on the system call screen before the app's JS was ready.
+      await replayInitialCallEvents();
       // Set when the app was opened by answering an incoming call.
       const pendingCall = consumePendingAnswer();
       const target = consumeTargetRoute();
@@ -121,6 +124,9 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation, onFinish
             // The patient answered a call before the app had started.
             if (pendingCall) {
               joinIncomingCall(pendingCall.appointmentId, pendingCall.callerName);
+            } else {
+              // Android: asks once to turn on the PRED Care calling account for the system call screen.
+              promptCallAccountIfNeeded();
             }
           }
         } else {
