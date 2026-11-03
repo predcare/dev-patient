@@ -51,7 +51,6 @@ export const showAndroidRing = async (call: IncomingCall): Promise<void> => {
       // Stops the ring if the cancel push never arrives.
       timeoutAfter: Math.max(call.expiresAtMs - Date.now(), 5000),
       pressAction: { id: 'default', launchActivity: 'default' },
-      fullScreenAction: { id: 'default' },
       actions: [
         { title: 'Decline', pressAction: { id: CALL_ACTION_DECLINE } },
         { title: 'Answer', pressAction: { id: CALL_ACTION_ANSWER, launchActivity: 'default' } },

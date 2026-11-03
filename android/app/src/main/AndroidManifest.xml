@@ -32,11 +32,10 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- ============================================
-         INCOMING CALL RINGING (react-native-callkeep, managed mode)
+         INCOMING CALL RINGING (react-native-callkeep, self-managed mode)
     ============================================= -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
-    <!-- CALL_PHONE and READ_PHONE_NUMBERS come from CallKeep's manifest; managed mode needs them. -->
+    <!-- MANAGE_OWN_CALLS comes from CallKeep's manifest; self-managed mode needs nothing to be asked. -->
 
     <!-- ============================================
          BLUETOOTH (For headsets and audio routing)

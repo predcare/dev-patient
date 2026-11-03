@@ -1,7 +1,9 @@
 import { NativeModules, Platform } from 'react-native';
 import RNCallKeep from 'react-native-callkeep';
 
-// Managed mode: Android's Phone app and iOS CallKit draw the incoming call screen.
+// iOS: CallKit draws the incoming call screen. Android: self-managed mode (CallKeep's Android
+// self-managed guide). PRED Care shows its own call notification (androidRing.ts), so the patient's
+// Answer tap opens the app; no phone permission or calling-account setup is needed.
 const CALLKEEP_OPTIONS = {
   ios: {
     appName: 'PRED Care',
@@ -13,17 +15,15 @@ const CALLKEEP_OPTIONS = {
     imageName: 'CallKitBlank',
   },
   android: {
-    alertTitle: 'Allow doctor calls',
-    alertDescription:
-      "Turn on PRED Care in your calling accounts so your doctor's video calls ring like a normal phone call.",
-    cancelButton: 'Not now',
-    okButton: 'Open settings',
+    // Required by CallKeep's types; not shown in self-managed mode.
+    alertTitle: 'PRED Care calls',
+    alertDescription: "Your doctor's video calls ring in PRED Care.",
+    cancelButton: 'Cancel',
+    okButton: 'OK',
     additionalPermissions: [],
-    selfManaged: false,
+    selfManaged: true,
     // The call must keep ringing if the background JS instance stops.
     endCallsWhenReactNativeStops: false,
-    // Transparent icon: without one, the Phone app shows the app's launcher icon on the call screen.
-    imageName: 'ic_call_blank',
   },
 };
 

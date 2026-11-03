@@ -5,7 +5,7 @@ import { navigationRef } from '../../navigation/navigationRef';
 import { AppRoute } from '../../route';
 import { useIncomingCallStore } from '../../zustand/stores/useIncomingCallStore';
 import { useMeetingStore } from '../../zustand/stores/useMeetingStore';
-import { showMissedCall, stopAndroidRing } from './androidRing';
+import { showAndroidRing, showMissedCall, stopAndroidRing } from './androidRing';
 import type { CallCancel, IncomingCall, PushData } from './call.types';
 import { canShowSystemCall, ensureCallKeep } from './callKeepSetup';
 import { callFromPush } from './callPayload';
@@ -73,6 +73,26 @@ export const ringIncomingCall = async (call: IncomingCall): Promise<void> => {
   if (Platform.OS === 'ios' && !isAppActive()) return;
 
   await ensureCallKeep();
+
+  if (Platform.OS === 'android') {
+    // Self-managed (CallKeep's Android guide): Telecom registers the call, so Android respects an
+    // ongoing phone call, Do Not Disturb and headsets, and PRED Care's own call notification is the
+    // incoming-call UI in every app state. Its Answer opens the app, which Android always allows for
+    // a tap on the app's own notification. Shown directly (not only on `showIncomingCallUi`) so it
+    // still rings when Telecom refuses the call (`createIncomingConnectionFailed`).
+    try {
+      RNCallKeep.displayIncomingCall(call.callId, 'PRED Care', call.callerName, 'generic', false);
+    } catch (err) {
+      console.warn('[CallService] displayIncomingCall failed:', err);
+    }
+    onSystemScreen.add(call.callId);
+    hideBannerWhileRinging();
+    await showAndroidRing(call);
+    // Cancelled or declined while the notification was being shown.
+    if (finished.has(call.callId)) await stopAndroidRing(call.callId);
+    return;
+  }
+
   // Android ignores the call when the PRED Care calling account is off or the phone permission is
   // missing. Then the socket's banner (if any) stays, so the patient still sees something.
   const systemScreenAvailable = await canShowSystemCall();
@@ -200,20 +220,16 @@ export const answerCall = async (callId: string, known?: IncomingCall): Promise<
     return;
   }
 
-  // Locked phone or app in the background: keep the system call on screen (as connected) until the
-  // app is in front, so the patient isn't left with nothing. Kept so a later cancel can find it.
-  calls.set(key, call);
-  holdAnswer(call);
   if (Platform.OS === 'android') {
-    try {
-      RNCallKeep.setCurrentCallActive(key);
-    } catch {
-      // Already active.
-    }
-    // Opens the app over the system call screen; CallKeep asks for the unlock if locked.
-    RNCallKeep.backToForeground();
+    // The Answer tap on PRED Care's notification is opening the app (after the unlock, if locked):
+    // stop the ring now and join as soon as the app is in front.
+    await stopRinging(key, call.appointmentId);
+  } else {
+    // iOS, locked or in the background: CallKit stays on the connected call until the app is in
+    // front (tapping PRED Care there opens it). Kept so a later cancel can find it.
+    calls.set(key, call);
   }
-  // iOS: CallKit stays on the connected call; tapping PRED Care there opens the app.
+  holdAnswer(call);
   joinWhenActive = AppState.addEventListener('change', state => {
     if (state !== 'active') return;
     const waiting = consumePendingAnswer();

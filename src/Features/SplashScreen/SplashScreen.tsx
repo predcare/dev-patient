@@ -9,7 +9,6 @@ import { getItem, STORAGE_KEYS } from '../../lib/common/asyncStorage';
 import { consumeTargetRoute, resetAndNavigate, resetToLogin, resetToMainTabs } from '../../lib/common/navigation.utils';
 import { AppRoute, SplashScreenNavigationProp, SplashScreenRouteProp } from '../../route';
 import { consumePendingAnswer, replayInitialCallEvents } from '../../services/calls/callService';
-import { promptCallAccountIfNeeded } from '../../services/calls/callPermissionPrompt';
 import { syncPushToken } from '../../services/calls/deviceSync';
 import { joinIncomingCall } from '../../services/calls/joinIncomingCall';
 import { processInitialNotification } from '../../services/notifications/notificationDispatcher';
@@ -124,9 +123,6 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation, onFinish
             // The patient answered a call before the app had started.
             if (pendingCall) {
               joinIncomingCall(pendingCall.appointmentId, pendingCall.callerName);
-            } else {
-              // Android: asks once to turn on the PRED Care calling account for the system call screen.
-              promptCallAccountIfNeeded();
             }
           }
         } else {
