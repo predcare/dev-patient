@@ -5,11 +5,12 @@ import RNCallKeep from 'react-native-callkeep';
 const CALLKEEP_OPTIONS = {
   ios: {
     appName: 'PRED Care',
-    supportsVideo: true,
+    supportsVideo: false,
     includesCallsInRecents: false,
     maximumCallGroups: '1',
     maximumCallsPerCallGroup: '1',
     ringtoneSound: 'ringtone.caf',
+    imageName: 'CallKitBlank',
   },
   android: {
     alertTitle: 'Allow doctor calls',
@@ -21,7 +22,8 @@ const CALLKEEP_OPTIONS = {
     selfManaged: false,
     // The call must keep ringing if the background JS instance stops.
     endCallsWhenReactNativeStops: false,
-    imageName: 'ic_launcher',
+    // Transparent icon: without one, the Phone app shows the app's launcher icon on the call screen.
+    imageName: 'ic_call_blank',
   },
 };
 

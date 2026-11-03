@@ -24,11 +24,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     // starts; CallKeep's JS setup() isn't called on iOS.
     RNCallKeep.setup([
       "appName": "PRED Care",
-      "supportsVideo": true,
+      "supportsVideo": false,
       "includesCallsInRecents": false,
       "maximumCallGroups": "1",
       "maximumCallsPerCallGroup": "1",
       "ringtoneSound": "ringtone.caf",
+      // Transparent icon: without one, CallKit shows the app icon on the call screen.
+      "imageName": "CallKitBlank",
     ])
     // Registers PushKit with this AppDelegate as its delegate (see AppDelegate+PushKit.swift).
     RNVoipPushNotificationManager.voipRegistration()

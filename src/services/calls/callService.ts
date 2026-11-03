@@ -17,15 +17,18 @@ const calls = new Map<string, IncomingCall>();
 const finished = new Set<string>();
 // Calls currently on the system call screen (Android Phone app or CallKit).
 const onSystemScreen = new Set<string>();
-let pendingAnswer: IncomingCall | null = null;
+// An answered call waiting for the app to come to the front.
+let pendingAnswer: { call: IncomingCall; answeredAt: number } | null = null;
 let joinWhenActive: ReturnType<typeof AppState.addEventListener> | null = null;
+let answerTimer: ReturnType<typeof setTimeout> | null = null;
 let listening = false;
 
 const REMOTE_ENDED = CONSTANTS.END_CALL_REASONS.REMOTE_ENDED;
 // Allowance for a phone clock that's slightly wrong.
 const CLOCK_ALLOWANCE_MS = 30_000;
-// How long an answered call may wait for the patient to unlock and open the app.
-const ANSWER_WAIT_MS = 2 * 60_000;
+// How long an answered call may wait for the patient to unlock and open the app. After this, opening
+// the app doesn't join by itself.
+const ANSWER_JOIN_WINDOW_MS = 45_000;
 
 export const isCallExpired = (call: IncomingCall): boolean =>
   Date.now() > call.expiresAtMs + CLOCK_ALLOWANCE_MS;
@@ -81,7 +84,9 @@ export const ringIncomingCall = async (call: IncomingCall): Promise<void> => {
 
   // The system call screen (Android Phone app or iOS CallKit) in every app state; no Notifee ring.
   try {
-    RNCallKeep.displayIncomingCall(call.callId, 'PRED Care', call.callerName, 'generic', true);
+    // hasVideo false: the screen shows just "PRED Care", without "Video". The video consultation
+    // itself runs in the app after Answer.
+    RNCallKeep.displayIncomingCall(call.callId, 'PRED Care', call.callerName, 'generic', false);
     if (systemScreenAvailable) onSystemScreen.add(call.callId);
   } catch (err) {
     console.warn('[CallService] displayIncomingCall failed:', err);
@@ -89,9 +94,31 @@ export const ringIncomingCall = async (call: IncomingCall): Promise<void> => {
   hideBannerWhileRinging();
 };
 
+const matchesCall = (call: IncomingCall, callId?: string, appointmentId?: string) =>
+  call.callId === callId || (!!appointmentId && call.appointmentId === appointmentId);
+
+const clearPendingAnswer = () => {
+  pendingAnswer = null;
+  joinWhenActive?.remove();
+  joinWhenActive = null;
+  if (answerTimer) clearTimeout(answerTimer);
+  answerTimer = null;
+};
+
+// Keeps an answer for ANSWER_JOIN_WINDOW_MS. When the window passes, the answer is dropped and the
+// system call (still showing as connected) is ended.
+const holdAnswer = (call: IncomingCall) => {
+  clearPendingAnswer();
+  pendingAnswer = { call, answeredAt: Date.now() };
+  answerTimer = setTimeout(() => {
+    if (pendingAnswer?.call.callId === call.callId) stopRinging(call.callId, call.appointmentId);
+  }, ANSWER_JOIN_WINDOW_MS);
+};
+
 // Clears the ring everywhere. Takes the appointment too, because a fresh background JS instance
 // (for example a Decline press after the app was closed) has an empty `calls` map.
 const stopRinging = async (callId: string, appointmentId?: string): Promise<void> => {
+  if (pendingAnswer && matchesCall(pendingAnswer.call, callId, appointmentId)) clearPendingAnswer();
   finished.add(callId);
   onSystemScreen.delete(callId);
   const call = calls.get(callId);
@@ -113,9 +140,12 @@ const stopRinging = async (callId: string, appointmentId?: string): Promise<void
 
 // CALL_CANCELLED push. The uuid can be empty, so match the appointment too.
 export const cancelCall = async ({ callId, appointmentId }: CallCancel): Promise<void> => {
-  const matches = [...calls.values()].filter(
-    call => call.callId === callId || (!!appointmentId && call.appointmentId === appointmentId)
-  );
+  const matches = [...calls.values()].filter(call => matchesCall(call, callId, appointmentId));
+  // An answered call that's waiting for the app: the doctor left, so opening the app must not join.
+  const answered = pendingAnswer?.call;
+  if (answered && matchesCall(answered, callId, appointmentId) && !matches.includes(answered)) {
+    matches.push(answered);
+  }
   const showMissed = !isAppActive();
 
   for (const call of matches) {
@@ -145,7 +175,7 @@ const startJoin = async (call: IncomingCall) => {
   const route = navigationRef.isReady() ? navigationRef.getCurrentRoute()?.name : undefined;
   if (!route || route === AppRoute.SPLASH) {
     // Cold start: SplashScreen joins after it has checked the login.
-    pendingAnswer = call;
+    holdAnswer(call);
     return;
   }
   await joinIncomingCall(call.appointmentId, call.callerName);
@@ -154,40 +184,54 @@ const startJoin = async (call: IncomingCall) => {
 export const answerCall = async (callId: string, known?: IncomingCall): Promise<void> => {
   const key = callId.toLowerCase();
   const call = known ?? calls.get(key);
-  if (!call || finished.has(key)) return;
-
-  // Android: open the app over the system call screen; CallKeep asks for the unlock if locked.
-  if (Platform.OS === 'android') RNCallKeep.backToForeground();
-  // Ends the system call. The consultation then runs in the app's own video call screen.
-  await stopRinging(key, call.appointmentId);
+  if (!call || finished.has(key) || pendingAnswer?.call.callId === key) return;
 
   if (isCallExpired(call) && !isAppActive()) {
     // Answered so late that the doctor has likely gone; the patient can join from the appointment.
+    await stopRinging(key, call.appointmentId);
     showInfoToast('The doctor is no longer calling. Open the appointment to join.', 'Call ended');
     return;
   }
 
   if (isAppActive()) {
+    // Ends the system call. The consultation then runs in the app's own video call screen.
+    await stopRinging(key, call.appointmentId);
     await startJoin(call);
     return;
   }
 
-  // Locked phone or app in the background: join once the patient unlocks and the app is in front.
-  pendingAnswer = call;
-  joinWhenActive?.remove();
-  const answeredAt = Date.now();
+  // Locked phone or app in the background: keep the system call on screen (as connected) until the
+  // app is in front, so the patient isn't left with nothing. Kept so a later cancel can find it.
+  calls.set(key, call);
+  holdAnswer(call);
+  if (Platform.OS === 'android') {
+    try {
+      RNCallKeep.setCurrentCallActive(key);
+    } catch {
+      // Already active.
+    }
+    // Opens the app over the system call screen; CallKeep asks for the unlock if locked.
+    RNCallKeep.backToForeground();
+  }
+  // iOS: CallKit stays on the connected call; tapping PRED Care there opens the app.
   joinWhenActive = AppState.addEventListener('change', state => {
     if (state !== 'active') return;
-    joinWhenActive?.remove();
-    joinWhenActive = null;
     const waiting = consumePendingAnswer();
-    if (waiting && Date.now() - answeredAt < ANSWER_WAIT_MS) startJoin(waiting);
+    if (waiting) startJoin(waiting);
   });
 };
 
+/**
+ * The answered call to join now, if it's still within ANSWER_JOIN_WINDOW_MS. Either way the pending
+ * answer is cleared and its system call ended, so opening the app later never joins by itself.
+ */
 export const consumePendingAnswer = (): IncomingCall | null => {
-  const call = pendingAnswer;
-  pendingAnswer = null;
+  const pending = pendingAnswer;
+  clearPendingAnswer();
+  if (!pending) return null;
+  const { call, answeredAt } = pending;
+  if (!finished.has(call.callId)) stopRinging(call.callId, call.appointmentId);
+  if (Date.now() - answeredAt > ANSWER_JOIN_WINDOW_MS) return null;
   return call;
 };
 
@@ -208,7 +252,13 @@ export const replayInitialCallEvents = async (): Promise<void> => {
     for (const event of events) {
       const callUUID = event.data?.callUUID;
       if (!callUUID) continue;
-      if (event.name === 'RNCallKeepPerformAnswerCallAction') await answerCall(callUUID);
+      if (event.name === 'RNCallKeepPerformAnswerCallAction') {
+        // Only a call this instance knows, answered while it could still be joined. Anything else
+        // (unknown or too old) just has its system call ended, so it doesn't join by itself.
+        const call = calls.get(String(callUUID).toLowerCase());
+        if (call && Date.now() <= call.expiresAtMs + ANSWER_JOIN_WINDOW_MS) await answerCall(callUUID);
+        else await declineCall(callUUID);
+      }
       if (event.name === 'RNCallKeepPerformEndCallAction') await declineCall(callUUID);
     }
   } catch (err) {

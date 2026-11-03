@@ -35,7 +35,7 @@ extension AppDelegate: PKPushRegistryDelegate {
       uuid,
       handle: "PRED Care",
       handleType: "generic",
-      hasVideo: true,
+      hasVideo: false,
       localizedCallerName: callerName,
       supportsHolding: false,
       supportsDTMF: false,

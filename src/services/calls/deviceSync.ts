@@ -6,6 +6,9 @@ import axiosInstance from '../api/apiClient';
 import { endpoints } from '../api/endpoints';
 
 const VOIP_TOKEN_KEY = '@voip_token';
+// What was last sent successfully. Logout clears it, so the next login sends once.
+const SYNCED_KEY = '@push_token_synced';
+let queue: Promise<void> = Promise.resolve();
 
 /**
  * Sends this phone's push tokens to the backend, so call pushes reach it after a token refresh.
@@ -13,7 +16,14 @@ const VOIP_TOKEN_KEY = '@voip_token';
  * Pass a new token when it's known, because local storage may not be updated yet.
  * `voip_token` (iOS) is for CallKit when the app is closed; the backend needs to store it.
  */
-export const syncPushToken = async (freshToken?: string, freshVoipToken?: string): Promise<void> => {
+export const syncPushToken = (freshToken?: string, freshVoipToken?: string): Promise<void> => {
+  // Several callers fire on every app start. They run one at a time, so after the first request
+  // the rest match the saved fingerprint and send nothing; a new token is never dropped.
+  queue = queue.then(() => doSync(freshToken, freshVoipToken));
+  return queue;
+};
+
+const doSync = async (freshToken?: string, freshVoipToken?: string): Promise<void> => {
   if (freshVoipToken) await setItem(VOIP_TOKEN_KEY, freshVoipToken);
 
   const userId = useAuthStore.getState().userData?.id;
@@ -25,6 +35,10 @@ export const syncPushToken = async (freshToken?: string, freshVoipToken?: string
     if (!fcmToken) return;
     const voipToken = Platform.OS === 'ios' ? (await getItem(VOIP_TOKEN_KEY)) || undefined : undefined;
 
+    // Skip when the backend already has exactly these tokens for this user and device.
+    const fingerprint = [userId, info.device_id, fcmToken, voipToken ?? ''].join('|');
+    if ((await getItem(SYNCED_KEY)) === fingerprint) return;
+
     await axiosInstance.post(endpoints.notifications.registerToken, {
       user_id: String(userId),
       user_type: 'patient',
@@ -34,6 +48,7 @@ export const syncPushToken = async (freshToken?: string, freshVoipToken?: string
       device_name: info.device_name,
       ...(voipToken ? { voip_token: voipToken, apns_env: __DEV__ ? 'sandbox' : 'production' } : {}),
     });
+    await setItem(SYNCED_KEY, fingerprint);
   } catch (err) {
     console.warn('[DeviceSync] register-token failed:', err);
   }
