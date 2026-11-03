@@ -37,7 +37,7 @@ export const showAndroidRing = async (call: IncomingCall): Promise<void> => {
   await notifee.displayNotification({
     id: call.callId,
     title: call.callerName,
-    body: 'Incoming video consultation',
+    body: 'PRED Care · Incoming video consultation',
     data: callToData(call),
     android: {
       channelId: RING_CHANNEL.id,
@@ -51,9 +51,16 @@ export const showAndroidRing = async (call: IncomingCall): Promise<void> => {
       // Stops the ring if the cancel push never arrives.
       timeoutAfter: Math.max(call.expiresAtMs - Date.now(), 5000),
       pressAction: { id: 'default', launchActivity: 'default' },
+      // Notifee renders HTML in action titles: red Decline, green Answer.
       actions: [
-        { title: 'Decline', pressAction: { id: CALL_ACTION_DECLINE } },
-        { title: 'Answer', pressAction: { id: CALL_ACTION_ANSWER, launchActivity: 'default' } },
+        {
+          title: '<font color="#E53935"><b>Decline</b></font>',
+          pressAction: { id: CALL_ACTION_DECLINE },
+        },
+        {
+          title: '<font color="#2E7D32"><b>Answer</b></font>',
+          pressAction: { id: CALL_ACTION_ANSWER, launchActivity: 'default' },
+        },
       ],
     },
   });
