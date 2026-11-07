@@ -8,7 +8,10 @@ import {
 import MeetingStageOverlay from '../../Features/Dashboard/MeetingScreen/Components/MeetingStageOverlay';
 import { stopStream, takePendingTracks } from '../../hooks/commons/meeting/meetingMediaTracks';
 import { logMeetingRecovery } from '../../hooks/commons/meeting/meetingRecoveryLog';
-import { useRegisterMeetingLeave } from '../../hooks/commons/meeting/meetingSessionLeave';
+import {
+  isEndingCallForOffline,
+  useRegisterMeetingLeave,
+} from '../../hooks/commons/meeting/meetingSessionLeave';
 import {
   openMeetingStatusOnce,
   resetMeetingStatusGuard,
@@ -183,6 +186,9 @@ export const MeetingSessionHost: React.FC = () => {
         }}
         onMeetingLeft={reason => {
           clearRecoveryTimer();
+          // Fully offline: the call is cleared and the no-internet screen stays up.
+          if (isEndingCallForOffline()) return;
+
           const { isEndRequested } = useMeetingStore.getState();
           const isNetworkDrop = MEETING_NETWORK_LEAVE_CODES.includes(Number(reason?.code));
           if (!isEndRequested && hasConnectedRef.current && isNetworkDrop) {

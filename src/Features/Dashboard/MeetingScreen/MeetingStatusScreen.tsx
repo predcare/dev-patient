@@ -1,13 +1,7 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-    BackHandler,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
-} from 'react-native';
+import { BackHandler, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import CommonErrorCard from '../../../components/commons/CommonErrorCard/CommonErrorCard';
 import {
     CalendarIcon,
@@ -49,13 +43,9 @@ const formatCallDuration = (seconds: unknown): string => {
     return `${minutes}m ${remainder}s`;
 };
 
-const SUMMARY_TIMEOUT_SECONDS = 15;
-
 const formatStatusLabel = (status?: string | null): string => {
     if (!status) return '';
-    return status
-        .replace(/[_-]+/g, ' ')
-        .replace(/\b\w/g, char => char.toUpperCase());
+    return status.replace(/[_-]+/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
 };
 
 export const MeetingStatusScreen: React.FC = () => {
@@ -64,9 +54,9 @@ export const MeetingStatusScreen: React.FC = () => {
     const route = useRoute<ConsultationCompletedScreenRouteProp>();
     const { joinVideoCall } = useJoinVideoCall();
     const appointmentId = route.params?.appointmentId;
-    const hasAppointmentId = appointmentId !== undefined && appointmentId !== null && `${appointmentId}` !== '';
+    const hasAppointmentId =
+        appointmentId !== undefined && appointmentId !== null && `${appointmentId}` !== '';
     const hasLeftRef = useRef(false);
-    const [secondsLeft, setSecondsLeft] = useState(SUMMARY_TIMEOUT_SECONDS);
 
     const {
         data: apptInfo,
@@ -104,20 +94,6 @@ export const MeetingStatusScreen: React.FC = () => {
             hasLeftRef.current = false;
         }
     };
-
-    useEffect(() => {
-        const endsAt = Date.now() + SUMMARY_TIMEOUT_SECONDS * 1000;
-        const timer = setInterval(() => {
-            const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
-            setSecondsLeft(remaining);
-            if (remaining === 0) {
-                clearInterval(timer);
-                handleGoHome();
-            }
-        }, 1000);
-
-        return () => clearInterval(timer);
-    }, [handleGoHome]);
 
     useEffect(() => {
         navigation.setOptions({
@@ -200,9 +176,6 @@ export const MeetingStatusScreen: React.FC = () => {
                     <Text style={consultationCompletedStyles.subheading}>
                         Your video session has concluded and your visit details are saved.
                     </Text>
-                    <Text style={consultationCompletedStyles.autoLeaveNote}>
-                        Returning home in {secondsLeft}s
-                    </Text>
                 </View>
                 {showLoader ? (
                     <MeetingStatusSkeleton />
@@ -221,26 +194,20 @@ export const MeetingStatusScreen: React.FC = () => {
                         <View style={consultationCompletedStyles.card}>
                             <View style={consultationCompletedStyles.doctorRow}>
                                 <View style={consultationCompletedStyles.doctorDetails}>
-                                    <Text style={consultationCompletedStyles.doctorName}>
-                                        {doctorName}
-                                    </Text>
+                                    <Text style={consultationCompletedStyles.doctorName}>{doctorName}</Text>
                                     {doctorSpecialty ? (
                                         <Text style={consultationCompletedStyles.doctorSpecialty}>
                                             {doctorSpecialty}
                                         </Text>
                                     ) : null}
                                     {clinicName ? (
-                                        <Text style={consultationCompletedStyles.doctorClinic}>
-                                            {clinicName}
-                                        </Text>
+                                        <Text style={consultationCompletedStyles.doctorClinic}>{clinicName}</Text>
                                     ) : null}
                                 </View>
                                 {statusLabel ? (
                                     <View style={consultationCompletedStyles.statusBadge}>
                                         <View style={consultationCompletedStyles.statusDot} />
-                                        <Text style={consultationCompletedStyles.statusBadgeText}>
-                                            {statusLabel}
-                                        </Text>
+                                        <Text style={consultationCompletedStyles.statusBadgeText}>{statusLabel}</Text>
                                     </View>
                                 ) : null}
                             </View>
@@ -297,9 +264,7 @@ export const MeetingStatusScreen: React.FC = () => {
                                     </View>
                                     <Text style={consultationCompletedStyles.gridLabel}>DURATION</Text>
                                 </View>
-                                <Text style={consultationCompletedStyles.gridValue}>
-                                    {durationLabel}
-                                </Text>
+                                <Text style={consultationCompletedStyles.gridValue}>{durationLabel}</Text>
                             </View>
 
                             <View style={consultationCompletedStyles.gridCell}>

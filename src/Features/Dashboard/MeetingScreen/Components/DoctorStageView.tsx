@@ -1,6 +1,6 @@
 import { MediaStream, RTCView } from '@videosdk.live/react-native-sdk';
 import React, { memo, useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { useDoctorStream } from '../../../../hooks/commons/meeting/useMeetingParticipants';
 import meetingStyles from '../../../../styled/MeetingScreen.styled';
 import useMeetingStore from '../../../../zustand/stores/useMeetingStore';
@@ -29,12 +29,12 @@ export const DoctorStageView: React.FC = () => {
 
   if (remoteStreamURL) {
     return (
-      <View style={StyleSheet.absoluteFill}>
+      <View style={meetingStyles.fullScreenStage}>
         <RTCView
           key={remoteVideoEpoch}
           streamURL={remoteStreamURL}
           objectFit="contain"
-          style={StyleSheet.absoluteFill}
+          style={meetingStyles.remoteStageVideo}
           zOrder={0}
         />
       </View>

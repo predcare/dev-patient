@@ -11,7 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { MEETING_OFFLINE_GRACE_MS } from '../../../config/meeting.constants';
-import { endMeetingCall } from '../../../hooks/commons/meeting/meetingSessionLeave';
+import { endCallForOffline, endMeetingCall } from '../../../hooks/commons/meeting/meetingSessionLeave';
 import { navigate } from '../../../navigation/navigationRef';
 import { AppRoute } from '../../../route';
 import { noInternetBlockerStyles as styles } from '../../../styled/NoInternetBlocker.styled';
@@ -33,6 +33,7 @@ const WifiOffLargeIcon = () => (
 export const GlobalNoInternetBlocker: React.FC = () => {
   const insets = useSafeAreaInsets();
   const isOffline = useNetworkStore(state => state.isOffline);
+  const isConnected = useNetworkStore(state => state.isConnected);
   const setNetworkState = useNetworkStore(state => state.setNetworkState);
   const meetingId = useMeetingStore(state => state.callInfo?.meetingId);
 
@@ -76,6 +77,12 @@ export const GlobalNoInternetBlocker: React.FC = () => {
     const timerId = setTimeout(() => setIsGraceOver(true), MEETING_OFFLINE_GRACE_MS);
     return () => clearTimeout(timerId);
   }, [isOffline, meetingId]);
+
+  // A full disconnect (not a weak link) ends the call once the no-internet screen is up.
+  useEffect(() => {
+    if (!isBlocking || isConnected) return;
+    endCallForOffline();
+  }, [isBlocking, isConnected]);
 
   // Intercept Android hardware back button so user cannot escape broken screens while offline
   useEffect(() => {

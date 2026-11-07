@@ -38,6 +38,37 @@ export const leaveActiveMeeting = async () => {
   }
 };
 
+let endingForOffline = false;
+
+/** True while a full disconnect is ending the call, so the status screen stays closed. */
+export const isEndingCallForOffline = () => endingForOffline;
+
+/**
+ * Ends the live call because the device is fully offline.
+ * Does not open Consultation Completed. Reconnect will not start.
+ */
+export const endCallForOffline = async () => {
+  const store = useMeetingStore.getState();
+  if (endingForOffline || store.isEndRequested) return;
+  if (!store.callInfo?.meetingId && !store.appointmentId) return;
+
+  endingForOffline = true;
+  store.setEndRequested(true);
+  try {
+    await Promise.race([
+      leaveActiveMeeting(),
+      new Promise<void>((_, reject) =>
+        setTimeout(() => reject(new Error('Leave timed out')), MEETING_LEAVE_TIMEOUT_MS),
+      ),
+    ]);
+  } catch (e) {
+    console.warn('[meetingSessionLeave] endCallForOffline:', e);
+  } finally {
+    useMeetingStore.getState().resetCallInfo();
+    endingForOffline = false;
+  }
+};
+
 /**
  * Every intentional end (END button, PiP end, time-up, offline exit) goes through here,
  * so a network drop can be told apart from an end and is not treated as one.

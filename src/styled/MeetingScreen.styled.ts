@@ -30,6 +30,10 @@ export const meetingStyles = StyleSheet.create({
     left: 0,
     backgroundColor: '#1E293B',
   },
+  remoteStageVideo: {
+    width: '100%',
+    height: '100%',
+  },
   // Header, self-view and controls float over the video inside the safe area.
   stageContent: {
     flex: 1,
