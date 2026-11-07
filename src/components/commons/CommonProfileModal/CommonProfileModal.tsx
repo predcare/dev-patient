@@ -116,211 +116,213 @@ export const CommonProfileModal: React.FC<CommonProfileModalProps> = ({
   };
 
   return (
-    <>
-      <Modal
-        visible={showProfileModal}
-        animationType="slide"
-        transparent
-        statusBarTranslucent
-        onRequestClose={onCloseProfileModal}
-      >
-        <View style={dashboardStyles.modalOverlay}>
+    <Modal
+      visible={showProfileModal}
+      animationType="slide"
+      transparent
+      statusBarTranslucent
+      onRequestClose={onCloseProfileModal}
+    >
+      <View style={dashboardStyles.modalOverlay}>
+        <TouchableOpacity
+          style={dashboardStyles.modalBackdrop}
+          activeOpacity={1}
+          onPress={onCloseProfileModal}
+        />
+        <View
+          style={[dashboardStyles.modalContent, { paddingBottom: Math.max(insets.bottom, 16) }]}
+        >
+          <View style={dashboardStyles.modalHandle} />
           <TouchableOpacity
-            style={dashboardStyles.modalBackdrop}
-            activeOpacity={1}
+            style={styles.closeBtn}
             onPress={onCloseProfileModal}
-          />
-          <View
-            style={[
-              dashboardStyles.modalContent,
-              { paddingBottom: Math.max(insets.bottom, 16) },
+            activeOpacity={0.7}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityRole="button"
+            accessibilityLabel="Close profile modal"
+          >
+            <CircleXIcon size={24} color={theme.colors.textMuted} />
+          </TouchableOpacity>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={[
+              dashboardStyles.modalScroll,
+              { paddingBottom: Math.max(insets.bottom + 20, 40) },
             ]}
           >
-            <View style={dashboardStyles.modalHandle} />
-            <TouchableOpacity
-              style={styles.closeBtn}
-              onPress={onCloseProfileModal}
-              activeOpacity={0.7}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              accessibilityRole="button"
-              accessibilityLabel="Close profile modal"
-            >
-              <CircleXIcon size={24} color={theme.colors.textMuted} />
-            </TouchableOpacity>
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              contentContainerStyle={[
-                dashboardStyles.modalScroll,
-                { paddingBottom: Math.max(insets.bottom + 20, 40) },
-              ]}
-            >
-              <View style={dashboardStyles.profileSection}>
-                {userData?.profile_image ? (
-                  <Image
-                    source={{ uri: userData.profile_image }}
-                    style={{ width: 88, height: 88, borderRadius: 44 }}
-                  />
-                ) : (
-                  <View
-                    style={{
-                      width: 88,
-                      height: 88,
-                      borderRadius: 44,
-                      backgroundColor: theme.colors.primary,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Text style={{ fontSize: 32, fontWeight: '700', color: theme.colors.surface }}>
-                      {getInitials(userData?.name || 'User')}
+            <View style={dashboardStyles.profileSection}>
+              {userData?.profile_image ? (
+                <Image
+                  source={{ uri: userData.profile_image }}
+                  style={{ width: 88, height: 88, borderRadius: 44 }}
+                />
+              ) : (
+                <View
+                  style={{
+                    width: 88,
+                    height: 88,
+                    borderRadius: 44,
+                    backgroundColor: theme.colors.primary,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Text style={{ fontSize: 32, fontWeight: '700', color: theme.colors.surface }}>
+                    {getInitials(userData?.name || 'User')}
+                  </Text>
+                </View>
+              )}
+              <Text style={dashboardStyles.modalName}>{userData?.name || 'User'}</Text>
+              {relationLabel ? (
+                <View style={dashboardStyles.relationBadge}>
+                  <Text style={dashboardStyles.relationBadgeText}>{capitalize(relationLabel)}</Text>
+                </View>
+              ) : null}
+            </View>
+
+            <View style={dashboardStyles.infoList}>
+              <View style={dashboardStyles.infoCard}>
+                <View style={dashboardStyles.infoContent}>
+                  <Text style={dashboardStyles.infoLabel}>Email Address</Text>
+                  <Text style={dashboardStyles.infoValue}>{userData?.email || 'N/A'}</Text>
+                </View>
+              </View>
+              <View style={dashboardStyles.infoCard}>
+                <View style={dashboardStyles.infoContent}>
+                  <Text style={dashboardStyles.infoLabel}>Phone Number</Text>
+                  <Text style={dashboardStyles.infoValue}>{userData?.phone_number}</Text>
+                </View>
+              </View>
+              <View style={dashboardStyles.infoRow}>
+                <View style={[dashboardStyles.infoCard, dashboardStyles.infoCardHalf]}>
+                  <View style={dashboardStyles.infoContent}>
+                    <Text style={dashboardStyles.infoLabel}>Gender</Text>
+                    <Text style={dashboardStyles.infoValue}>{userData?.gender || '-'}</Text>
+                  </View>
+                </View>
+                <View style={[dashboardStyles.infoCard, dashboardStyles.infoCardHalf]}>
+                  <View style={dashboardStyles.infoContent}>
+                    <Text style={dashboardStyles.infoLabel}>Date of Birth</Text>
+                    <Text style={dashboardStyles.infoValue}>
+                      {userData?.date_of_birth ? formatDate(userData?.date_of_birth) : 'N/A'}
                     </Text>
                   </View>
-                )}
-                <Text style={dashboardStyles.modalName}>{userData?.name || 'User'}</Text>
-                {relationLabel ? (
-                  <View style={dashboardStyles.relationBadge}>
-                    <Text style={dashboardStyles.relationBadgeText}>{capitalize(relationLabel)}</Text>
-                  </View>
-                ) : null}
-              </View>
-
-              <View style={dashboardStyles.infoList}>
-                <View style={dashboardStyles.infoCard}>
-                  <View style={dashboardStyles.infoContent}>
-                    <Text style={dashboardStyles.infoLabel}>Email Address</Text>
-                    <Text style={dashboardStyles.infoValue}>{userData?.email || 'N/A'}</Text>
-                  </View>
-                </View>
-                <View style={dashboardStyles.infoCard}>
-                  <View style={dashboardStyles.infoContent}>
-                    <Text style={dashboardStyles.infoLabel}>Phone Number</Text>
-                    <Text style={dashboardStyles.infoValue}>{userData?.phone_number}</Text>
-                  </View>
-                </View>
-                <View style={dashboardStyles.infoRow}>
-                  <View style={[dashboardStyles.infoCard, dashboardStyles.infoCardHalf]}>
-                    <View style={dashboardStyles.infoContent}>
-                      <Text style={dashboardStyles.infoLabel}>Gender</Text>
-                      <Text style={dashboardStyles.infoValue}>{userData?.gender || 'N/A'}</Text>
-                    </View>
-                  </View>
-                  <View style={[dashboardStyles.infoCard, dashboardStyles.infoCardHalf]}>
-                    <View style={dashboardStyles.infoContent}>
-                      <Text style={dashboardStyles.infoLabel}>Date of Birth</Text>
-                      <Text style={dashboardStyles.infoValue}>
-                        {userData?.date_of_birth ? formatDate(userData?.date_of_birth) : 'N/A'}
-                      </Text>
-                    </View>
-                  </View>
                 </View>
               </View>
+            </View>
 
-              <TouchableOpacity
-                style={dashboardStyles.editProfileButton}
-                activeOpacity={0.85}
-                onPress={() => handeNavigate('edit-profile')}
-              >
-                <Text style={dashboardStyles.editProfileText}>Edit Profile</Text>
-              </TouchableOpacity>
+            <TouchableOpacity
+              style={dashboardStyles.editProfileButton}
+              activeOpacity={0.85}
+              onPress={() => handeNavigate('edit-profile')}
+            >
+              <Text style={dashboardStyles.editProfileText}>Edit Profile</Text>
+            </TouchableOpacity>
 
-              <View style={dashboardStyles.membersCard}>
-                <View style={dashboardStyles.membersCardHeader}>
-                  <Text style={dashboardStyles.membersCardTitle}>My Family Members</Text>
-                  <TouchableOpacity onPress={onCloseProfileModal} activeOpacity={0.7}>
-                    <Text style={dashboardStyles.membersManageText}>Close</Text>
-                  </TouchableOpacity>
-                </View>
-
-                {familyPending && !memberLists ? (
-                  <View style={styles.membersStatus}>
-                    <ActivityIndicator size="small" color={theme.colors.primary} />
-                  </View>
-                ) : isFamilyError && !memberLists ? (
-                  <TouchableOpacity
-                    style={styles.membersStatus}
-                    activeOpacity={0.7}
-                    onPress={() => refetchFamilyMembers()}
-                    disabled={isFamilyFetching}
-                  >
-                    {isFamilyFetching ? (
-                      <ActivityIndicator size="small" color={theme.colors.primary} />
-                    ) : (
-                      <Text style={dashboardStyles.membersManageText}>Try again</Text>
-                    )}
-                  </TouchableOpacity>
-                ) : (
-                  memberLists?.map((member, index) => {
-                    const isSelf = member.relation === 'Self';
-                    return (
-                      <View
-                        key={`${member.user_id}-${member.relation}`}
-                        style={[
-                          dashboardStyles.memberRow,
-                          isSelf && dashboardStyles.memberRowActive,
-                          index < memberLists.length - 1 && dashboardStyles.memberRowBorder,
-                        ]}
-                      >
-                        {member.profile_image ? (
-                          <Image
-                            source={{ uri: member.profile_image }}
-                            style={dashboardStyles.memberAvatarImage}
-                          />
-                        ) : (
-                          <View style={dashboardStyles.memberAvatar}>
-                            <Text style={dashboardStyles.memberAvatarText}>
-                              {getInitials(member.name)}
-                            </Text>
-                          </View>
-                        )}
-                        <View style={dashboardStyles.memberInfo}>
-                          <Text style={dashboardStyles.memberName}>{member.name}</Text>
-                          {member.relation ? (
-                            <Text style={dashboardStyles.memberRelation}>
-                              {capitalize(member.relation)}
-                            </Text>
-                          ) : null}
-                        </View>
-                        {isSelf ? (
-                          <>
-                            <View style={dashboardStyles.youBadge}>
-                              <Text style={dashboardStyles.youBadgeText}>YOU</Text>
-                            </View>
-                            <View style={dashboardStyles.memberActiveIndicator} />
-                          </>
-                        ) : null}
-                      </View>
-                    );
-                  })
-                )}
-
-                <TouchableOpacity
-                  style={dashboardStyles.addMemberRow}
-                  activeOpacity={0.7}
-                  onPress={() => handeNavigate('add-family-member')}
-                >
-                  <View style={dashboardStyles.addMemberPlusCircle}>
-                    <Text style={dashboardStyles.addMemberPlusText}>+</Text>
-                  </View>
-                  <Text style={dashboardStyles.addMemberLabel}>Add New Family Member</Text>
+            <View style={dashboardStyles.membersCard}>
+              <View style={dashboardStyles.membersCardHeader}>
+                <Text style={dashboardStyles.membersCardTitle}>My Family Members</Text>
+                <TouchableOpacity onPress={onCloseProfileModal} activeOpacity={0.7}>
+                  <Text style={dashboardStyles.membersManageText}>Close</Text>
                 </TouchableOpacity>
               </View>
-              <TouchableOpacity style={dashboardStyles.settingsButton} activeOpacity={0.85}>
-                <Text style={dashboardStyles.settingsIcon}>⚙️</Text>
-                <Text style={dashboardStyles.settingsText}>Settings & Account</Text>
-              </TouchableOpacity>
+
+              {familyPending && !memberLists ? (
+                <View style={styles.membersStatus}>
+                  <ActivityIndicator size="small" color={theme.colors.primary} />
+                </View>
+              ) : isFamilyError && !memberLists ? (
+                <TouchableOpacity
+                  style={styles.membersStatus}
+                  activeOpacity={0.7}
+                  onPress={() => refetchFamilyMembers()}
+                  disabled={isFamilyFetching}
+                >
+                  {isFamilyFetching ? (
+                    <ActivityIndicator size="small" color={theme.colors.primary} />
+                  ) : (
+                    <Text style={dashboardStyles.membersManageText}>Try again</Text>
+                  )}
+                </TouchableOpacity>
+              ) : (
+                memberLists?.map((member, index) => {
+                  const isSelf = member.relation === 'Self';
+                  return (
+                    <View
+                      key={`${member.user_id}-${member.relation}`}
+                      style={[
+                        dashboardStyles.memberRow,
+                        isSelf && dashboardStyles.memberRowActive,
+                        index < memberLists.length - 1 && dashboardStyles.memberRowBorder,
+                      ]}
+                    >
+                      {member.profile_image ? (
+                        <Image
+                          source={{ uri: member.profile_image }}
+                          style={dashboardStyles.memberAvatarImage}
+                        />
+                      ) : (
+                        <View style={dashboardStyles.memberAvatar}>
+                          <Text style={dashboardStyles.memberAvatarText}>
+                            {getInitials(member.name)}
+                          </Text>
+                        </View>
+                      )}
+                      <View style={dashboardStyles.memberInfo}>
+                        <Text style={dashboardStyles.memberName}>{member.name}</Text>
+                        {member.relation ? (
+                          <Text style={dashboardStyles.memberRelation}>
+                            {capitalize(member.relation)}
+                          </Text>
+                        ) : null}
+                      </View>
+                      {isSelf ? (
+                        <>
+                          <View style={dashboardStyles.youBadge}>
+                            <Text style={dashboardStyles.youBadgeText}>YOU</Text>
+                          </View>
+                          <View style={dashboardStyles.memberActiveIndicator} />
+                        </>
+                      ) : null}
+                    </View>
+                  );
+                })
+              )}
+
               <TouchableOpacity
-                style={dashboardStyles.signOutButton}
-                activeOpacity={0.85}
-                onPress={() => handeNavigate('sign-out')}
+                style={dashboardStyles.addMemberRow}
+                activeOpacity={0.7}
+                onPress={() => handeNavigate('add-family-member')}
               >
-                <Text style={dashboardStyles.signOutIcon}>⎋</Text>
-                <Text style={dashboardStyles.signOutText}>Sign Out</Text>
+                <View style={dashboardStyles.addMemberPlusCircle}>
+                  <Text style={dashboardStyles.addMemberPlusText}>+</Text>
+                </View>
+                <Text style={dashboardStyles.addMemberLabel}>Add New Family Member</Text>
               </TouchableOpacity>
-            </ScrollView>
-          </View>
+            </View>
+            <TouchableOpacity
+              style={dashboardStyles.settingsButton}
+              activeOpacity={0.85}
+              onPress={() => {
+                navigation.navigate(AppRoute.ACCOUNT);
+                onCloseProfileModal();
+              }}
+            >
+              <Text style={dashboardStyles.settingsIcon}>⚙️</Text>
+              <Text style={dashboardStyles.settingsText}>Settings & Account</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={dashboardStyles.signOutButton}
+              activeOpacity={0.85}
+              onPress={() => handeNavigate('sign-out')}
+            >
+              <Text style={dashboardStyles.signOutIcon}>⎋</Text>
+              <Text style={dashboardStyles.signOutText}>Sign Out</Text>
+            </TouchableOpacity>
+          </ScrollView>
         </View>
-      </Modal>
+      </View>
       {isLogoutModalOpen && (
         <LogoutOptionsModal
           visible={isLogoutModalOpen}
@@ -329,7 +331,7 @@ export const CommonProfileModal: React.FC<CommonProfileModalProps> = ({
           isLoading={isLoggingOut}
         />
       )}
-    </>
+    </Modal>
   );
 };
 
