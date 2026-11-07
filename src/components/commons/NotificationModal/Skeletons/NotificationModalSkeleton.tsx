@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, View } from 'react-native';
 import notificationModalSkeletonStyles from '../../../../styled/NotificationModalSkeleton.styled';
 
-const PLACEHOLDERS = [0, 1, 2, 3];
+const PLACEHOLDERS = [0, 1, 2, 3, 4, 5, 6];
 
 export const NotificationModalSkeleton: React.FC = () => {
   const pulseAnim = useRef(new Animated.Value(0.3)).current;

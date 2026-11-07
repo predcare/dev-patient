@@ -2,6 +2,8 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshControl, ScrollView, View } from 'react-native';
+import { queryClient } from '../../../components/providers/ReactQueryProvider';
+import { AppointmemntQueryKey, DoctorQueryKeys, NotificationQueryKeys } from '../../../hooks/react-query/query.keys';
 import Header from '../../../Layout/Header';
 import SafeAreaWrapper from '../../../Layout/SafeAreaWrapper';
 import { getProfileCompletion } from '../../../lib/common/common.utils';
@@ -27,8 +29,11 @@ export const HomeScreen: React.FC = () => {
         return getProfileCompletion(userData);
     }, [userData]);
 
-    const onRefresh = () => {
+    const onRefresh = async () => {
         setRefreshing(true);
+        await queryClient.invalidateQueries({ queryKey: [DoctorQueryKeys.MY_DOCS] })
+        await queryClient.invalidateQueries({ queryKey: [NotificationQueryKeys.NotificationCount] })
+        await queryClient.invalidateQueries({ queryKey: [AppointmemntQueryKey.ALL_APPOINTMENTS] })
         setTimeout(() => {
             setRefreshing(false);
         }, 600);

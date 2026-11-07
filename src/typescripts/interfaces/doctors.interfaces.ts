@@ -94,6 +94,7 @@ export interface IDoctorDetailsDoc {
   postal_code: string;
   rating: any;
   reviews_count: number;
+  consults_count: number;
   status: string;
   clinics: IDocInfoClinic[];
 }

@@ -7,7 +7,7 @@ import SafeAreaWrapper from '../../../Layout/SafeAreaWrapper';
 import CommonErrorCard from '../../../components/commons/CommonErrorCard/CommonErrorCard';
 import { CheckIcon, GlobeIcon, PatientsIcon, StethoscopeIcon } from '../../../components/ui/icons';
 import { useDoctorDetails } from '../../../hooks/react-query/doctors/doctor.hooks';
-import { getInitials } from '../../../lib/common/common.utils';
+import { _compactNumber, getInitials } from '../../../lib/common/common.utils';
 import { showErrorToast } from '../../../lib/common/toast.utils';
 import doctorDetailsStyles from '../../../styled/DoctorDetailsScreen.styled';
 import theme from '../../../styled/theme.styled';
@@ -137,7 +137,7 @@ export const DoctorProfileScreen: React.FC = () => {
                         <View style={doctorDetailsStyles.statCard}>
                             <PatientsIcon size={22} color={theme.colors.primary} />
                             <Text style={doctorDetailsStyles.statValue}>
-                                {doctorDetailsData.reviews_count ? `${doctorDetailsData.reviews_count}+` : '0'}
+                                {doctorDetailsData.consults_count ? `${_compactNumber(doctorDetailsData.consults_count)}` : '0'}
                             </Text>
                             <Text style={doctorDetailsStyles.statLabel}>{t('doctorDetailsScreen.consults')}</Text>
                         </View>

@@ -1,6 +1,11 @@
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
 import { NotificationQueryKeys } from '../query.keys';
-import { getNotificationCount, getNotifications } from './notifications.funcs';
+import {
+  deleteNotification,
+  getNotificationCount,
+  getNotifications,
+  markNoShowNotifications,
+} from './notifications.funcs';
 
 export const useNotificationCount = () => {
   return useQuery({
@@ -31,3 +36,15 @@ export const useInfiniteNotifications = (limit = 10) =>
       return undefined;
     },
   });
+
+export const useDeleteNotification = () => {
+  return useMutation({
+    mutationFn: (notificationId: number | string) => deleteNotification(notificationId),
+  });
+};
+
+export const useMarkNoShowNotifications = () => {
+  return useMutation({
+    mutationFn: () => markNoShowNotifications(),
+  });
+};
