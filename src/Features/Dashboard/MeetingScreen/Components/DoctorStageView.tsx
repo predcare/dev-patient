@@ -33,7 +33,7 @@ export const DoctorStageView: React.FC = () => {
         <RTCView
           key={remoteVideoEpoch}
           streamURL={remoteStreamURL}
-          objectFit="cover"
+          objectFit="contain"
           style={StyleSheet.absoluteFill}
           zOrder={0}
         />
