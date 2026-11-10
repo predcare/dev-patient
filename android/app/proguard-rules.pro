@@ -9,6 +9,33 @@
 
 # Add any project specific keep options here:
 
+# React Native / Hermes. Annotation and member keeps only — do not keep
+# com.predcarepatient or all of com.facebook.react, or Play obfuscation stays low.
+-keep,allowobfuscation @interface com.facebook.proguard.annotations.DoNotStrip
+-keep,allowobfuscation @interface com.facebook.proguard.annotations.KeepGettersAndSetters
+-keep,allowobfuscation @interface com.facebook.proguard.annotations.DoNotStripAny
+
+-keep @com.facebook.proguard.annotations.DoNotStrip class *
+-keepclassmembers class * {
+    @com.facebook.proguard.annotations.DoNotStrip *;
+}
+
+-keep @com.facebook.proguard.annotations.DoNotStripAny class * {
+    *;
+}
+
+-keepclassmembers @com.facebook.proguard.annotations.KeepGettersAndSetters class * {
+    void set*(***);
+    *** get*();
+}
+
+-keepclassmembers,includedescriptorclasses class * { native <methods>; }
+-keepclassmembers class * { @com.facebook.react.uimanager.annotations.ReactProp <methods>; }
+-keepclassmembers class * { @com.facebook.react.uimanager.annotations.ReactPropGroup <methods>; }
+
+-keep class com.facebook.hermes.unicode.** { *; }
+-keep class com.facebook.jni.** { *; }
+
 # Razorpay SDK ProGuard Rules
 -keepattributes *Annotation*
 -dontwarn com.razorpay.**
